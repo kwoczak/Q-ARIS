@@ -195,13 +195,47 @@ function BlockRenderer({ block }: { block: StageBlock }) {
             )
         case 'image':
             if (!block.content) return null
+
+            // Resolve Overlay Position
+            let overlayPositionClass = 'bottom-0 left-0 right-0' // Default bottom-center-ish behavior if fully wide
+            const pos = block.overlay?.position || 'bottom-center'
+            switch (pos) {
+                case 'top-left': overlayPositionClass = 'top-0 left-0'; break;
+                case 'top-center': overlayPositionClass = 'top-0 left-0 right-0 flex justify-center'; break;
+                case 'top-right': overlayPositionClass = 'top-0 right-0'; break;
+                case 'center': overlayPositionClass = 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform'; break;
+                case 'bottom-left': overlayPositionClass = 'bottom-0 left-0'; break;
+                case 'bottom-center': overlayPositionClass = 'bottom-0 left-0 right-0 flex justify-center'; break;
+                case 'bottom-right': overlayPositionClass = 'bottom-0 right-0'; break;
+            }
+
             return (
-                <div style={style} className="w-full">
+                <div style={{ ...style, position: 'relative' }} className="w-full">
                     <img
                         src={block.content as string}
                         alt="Block Image"
                         className="w-full h-auto object-cover shadow-sm"
                     />
+                    {block.overlay && (
+                        <div className={`absolute ${overlayPositionClass} p-4 pointer-events-none`}>
+                            <div
+                                className="pointer-events-auto rounded-lg backdrop-blur-sm"
+                                style={{
+                                    backgroundColor: block.overlay.style.backgroundColor || 'rgba(0,0,0,0.5)',
+                                    color: block.overlay.style.color || 'white',
+                                    padding: block.overlay.style.padding || '1rem',
+                                    width: block.overlay.width === 'auto' ? 'auto' : block.overlay.width,
+                                    maxWidth: '100%',
+                                    fontFamily: getFontFamily(block.overlay.style.fontFamily || 'sans'),
+                                    textAlign: block.overlay.style.textAlign || 'center'
+                                }}
+                            >
+                                <p className="whitespace-pre-wrap text-sm md:text-base">
+                                    {block.overlay.text}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )
         case 'audio':

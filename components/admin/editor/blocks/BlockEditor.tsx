@@ -99,6 +99,146 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                         {block.content && typeof block.content === 'string' && (
                             <img src={block.content} alt="Preview" className="h-32 object-cover rounded border mt-2" />
                         )}
+
+                        {/* --- OVERLAY CONTROLS --- */}
+                        <div className="pt-2 border-t border-dashed mt-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <Label className="text-xs font-semibold">Text Overlay</Label>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 text-xs"
+                                    onClick={() => {
+                                        if (block.overlay) {
+                                            // Remove overlay
+                                            const { overlay, ...rest } = block
+                                            onChange(rest)
+                                        } else {
+                                            // Add overlay
+                                            onChange({
+                                                ...block,
+                                                overlay: {
+                                                    text: "Caption Text",
+                                                    position: 'bottom-center',
+                                                    width: '100%',
+                                                    style: {
+                                                        color: '#ffffff',
+                                                        backgroundColor: 'rgba(0,0,0,0.5)',
+                                                        padding: '1rem',
+                                                        fontSize: 'base'
+                                                    }
+                                                }
+                                            })
+                                        }
+                                    }}
+                                >
+                                    {block.overlay ? "Remove Overlay" : "Add Overlay"}
+                                </Button>
+                            </div>
+
+                            {block.overlay && (
+                                <div className="space-y-3 bg-neutral-50 p-2 rounded text-xs">
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px]">Caption</Label>
+                                        <Textarea
+                                            value={block.overlay.text}
+                                            onChange={(e) => onChange({
+                                                ...block,
+                                                overlay: { ...block.overlay!, text: e.target.value }
+                                            })}
+                                            rows={2}
+                                            className="text-xs"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <Label className="text-[10px]">Position</Label>
+                                            <Select
+                                                value={block.overlay.position}
+                                                onValueChange={(v: any) => onChange({
+                                                    ...block,
+                                                    overlay: { ...block.overlay!, position: v }
+                                                })}
+                                            >
+                                                <SelectTrigger className="h-7 text-[10px]">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="top-left">Top Left</SelectItem>
+                                                    <SelectItem value="top-center">Top Center</SelectItem>
+                                                    <SelectItem value="top-right">Top Right</SelectItem>
+                                                    <SelectItem value="center">Center</SelectItem>
+                                                    <SelectItem value="bottom-left">Bottom Left</SelectItem>
+                                                    <SelectItem value="bottom-center">Bottom Center</SelectItem>
+                                                    <SelectItem value="bottom-right">Bottom Right</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-[10px]">Width</Label>
+                                            <Select
+                                                value={block.overlay.width}
+                                                onValueChange={(v: any) => onChange({
+                                                    ...block,
+                                                    overlay: { ...block.overlay!, width: v }
+                                                })}
+                                            >
+                                                <SelectTrigger className="h-7 text-[10px]">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="auto">Auto</SelectItem>
+                                                    <SelectItem value="50%">50%</SelectItem>
+                                                    <SelectItem value="75%">75%</SelectItem>
+                                                    <SelectItem value="100%">100%</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    {/* Overlay Styles */}
+                                    <div className="space-y-2 pt-2 border-t border-dotted">
+                                        <Label className="text-[10px] font-semibold text-neutral-500">Style</Label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px]">Bg Color</span>
+                                                <Input
+                                                    type="color"
+                                                    className="w-6 h-6 p-0 border-0"
+                                                    value={block.overlay.style.backgroundColor || '#000000'} // Simplify for now (no opacity slider here to save space, user can edit json or we add advanced)
+                                                    // Actually let's just do a simple color picker that likely lacks opacity unless browser supports it, 
+                                                    // but standard input type=color is solid. 
+                                                    // Let's settle for a preset list or just color for now.
+                                                    onChange={(e) => onChange({
+                                                        ...block,
+                                                        overlay: {
+                                                            ...block.overlay!,
+                                                            style: { ...block.overlay!.style, backgroundColor: e.target.value }
+                                                        }
+                                                    })}
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px]">Text Color</span>
+                                                <Input
+                                                    type="color"
+                                                    className="w-6 h-6 p-0 border-0"
+                                                    value={block.overlay.style.color || '#ffffff'}
+                                                    onChange={(e) => onChange({
+                                                        ...block,
+                                                        overlay: {
+                                                            ...block.overlay!,
+                                                            style: { ...block.overlay!.style, color: e.target.value }
+                                                        }
+                                                    })}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )
             case 'audio':
@@ -308,6 +448,27 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                         </SelectContent>
                     </Select>
                 </div>
+
+                {block.type === 'text' && (
+                    <div className="space-y-1">
+                        <Label className="text-xs">Corner Radius</Label>
+                        <Select
+                            value={block.styles?.borderRadius || '0'}
+                            onValueChange={(v: string) => updateStyle('borderRadius', v)}
+                        >
+                            <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="0">None</SelectItem>
+                                <SelectItem value="0.5rem">Small (8px)</SelectItem>
+                                <SelectItem value="1rem">Medium (16px)</SelectItem>
+                                <SelectItem value="1.5rem">Large (24px)</SelectItem>
+                                <SelectItem value="9999px">Full (Pill)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
             </div>
         </div>
     )

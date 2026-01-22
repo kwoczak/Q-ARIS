@@ -20,11 +20,19 @@ export interface BlockStyle {
     borderRadius?: string
 }
 
+export interface BlockOverlay {
+    text: string
+    style: BlockStyle
+    position: 'top-left' | 'top-center' | 'top-right' | 'center' | 'bottom-left' | 'bottom-center' | 'bottom-right'
+    width: 'auto' | '50%' | '75%' | '100%'
+}
+
 export interface StageBlock {
     id: string
     type: BlockType
     content: string | string[] // Text content or URL(s)
     styles?: BlockStyle
+    overlay?: BlockOverlay
 }
 
 export interface StageBackground {

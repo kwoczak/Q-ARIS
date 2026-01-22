@@ -23,9 +23,10 @@ interface StagePropertiesProps {
     isOpen: boolean
     onClose: () => void
     onSave: (updatedStage: Stage) => void
+    onDelete: (stageId: string) => void
 }
 
-export function StageProperties({ stage, isOpen, onClose, onSave }: StagePropertiesProps) {
+export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: StagePropertiesProps) {
     const [formData, setFormData] = useState<Stage | null>(null)
     const [trigger, setTrigger] = useState<Trigger | null>(null)
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
@@ -267,9 +268,17 @@ export function StageProperties({ stage, isOpen, onClose, onSave }: StagePropert
                     </div>
                 </div>
 
-                <div className="p-4 bg-white border-t flex justify-end gap-2 shrink-0">
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
-                    <Button onClick={handleSave}>Save Changes</Button>
+                <div className="p-4 bg-white border-t flex justify-between gap-2 shrink-0">
+                    <Button variant="destructive" onClick={() => {
+                        if (formData && confirm("Are you sure you want to delete this stage?")) {
+                            onDelete(formData.id)
+                            onClose()
+                        }
+                    }}>Delete Stage</Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={onClose}>Cancel</Button>
+                        <Button onClick={handleSave}>Save Changes</Button>
+                    </div>
                 </div>
 
             </SheetContent>

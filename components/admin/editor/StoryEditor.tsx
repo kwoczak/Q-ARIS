@@ -236,6 +236,15 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
                 onSave={handleStageUpdate}
+                onDelete={async (id) => {
+                    if (id) {
+                        // Delete from DB
+                        await supabase.from('stages').delete().eq('id', id)
+                        // Update local state
+                        setStages(prev => prev.filter(s => s.id !== id))
+                        setNodes(prev => prev.filter(n => n.id !== id))
+                    }
+                }}
             />
         </div>
     )

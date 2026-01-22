@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState, useMemo } from 'react'
+import { useCallback, useState } from 'react'
 import ReactFlow, {
     Background,
     Controls,
@@ -53,6 +53,10 @@ const getInitialGraphEdges = (edges: StoryEdge[]): Edge[] => {
     }))
 }
 
+// Define types outside to avoid re-creation warning
+const nodeTypes = {}
+const edgeTypes = {}
+
 export function StoryEditor({ story, initialStages, initialTriggers, initialEdges }: { story: Story, initialStages: Stage[], initialTriggers: Trigger[], initialEdges: StoryEdge[] }) {
     const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes(initialStages))
     const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialGraphEdges(initialEdges))
@@ -60,10 +64,6 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
     const [selectedStage, setSelectedStage] = useState<Stage | null>(null)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
-
-    // Memoize types to prevent ReactFlow warning
-    const nodeTypes = useMemo(() => ({}), [])
-    const edgeTypes = useMemo(() => ({}), [])
 
     const supabase = createClient()
 

@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import Cropper from 'react-easy-crop'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
 
 interface ImageCropperModalProps {
@@ -92,6 +92,9 @@ export function ImageCropperModal({ isOpen, onClose, imageSrc, onCropComplete }:
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Crop Image</DialogTitle>
+                    <DialogDescription>
+                        Adjust the cropping area to fit the 16:9 aspect ratio.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="relative w-full h-64 bg-black">
                     <Cropper

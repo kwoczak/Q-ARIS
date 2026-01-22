@@ -194,6 +194,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                 </div>
             )
         case 'image':
+            if (!block.content) return null
             return (
                 <div style={style} className="w-full">
                     <img
@@ -204,18 +205,21 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                 </div>
             )
         case 'audio':
+            if (!block.content) return null
             return (
                 <div style={style} className="w-full">
                     <audio controls src={block.content as string} className="w-full" />
                 </div>
             )
         case 'model_3d':
+            if (!block.content) return null
             return (
                 <div style={style} className="w-full h-[50vh] relative bg-neutral-100/5 dark:bg-neutral-800/50 rounded-xl overflow-hidden">
                     <ModelViewer src={block.content as string} />
                 </div>
             )
         case 'video':
+            if (!block.content) return null
             return (
                 <div style={style} className="w-full">
                     <video controls src={block.content as string} className="w-full rounded-lg" />

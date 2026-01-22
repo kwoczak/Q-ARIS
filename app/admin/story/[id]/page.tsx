@@ -27,7 +27,7 @@ export default async function StoryEditorPage({ params }: { params: Promise<{ id
                     story={{ id: id, title: "Mock Story", description: "This is a mock because DB failed.", created_at: "", updated_at: "" }}
                     initialStages={[]}
                     initialTriggers={[]}
-                    initialEdges={[]}
+                    initialEdges={[]} // Empty array for mock data
                 />
             )
         }

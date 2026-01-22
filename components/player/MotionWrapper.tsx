@@ -35,11 +35,7 @@ export function MotionWrapper({ children, animation, delay, style }: MotionWrapp
             initial = { opacity: 0, scale: 0.95 }
             whileInView = { opacity: 1, scale: 1 }
             break
-        case 'typewriter':
-            // Special case, maybe handled by child or simpler fade for wrapper
-            initial = { opacity: 0, x: -10 }
-            whileInView = { opacity: 1, x: 0 }
-            break
+        // Typewriter handled separately or ignored here
     }
 
     return (

@@ -8,7 +8,7 @@ export type Story = {
 
 export type StageType = 'content' | 'ar_model' | 'quiz' | 'ending'
 
-export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d' | 'comparison' | 'hotspot' | 'quiz' | 'carousel' | 'accordion'
+export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d' | 'comparison' | 'hotspot' | 'quiz' | 'scratchpad' | 'carousel' | 'accordion'
 
 export interface BlockStyle {
     textAlign?: 'left' | 'center' | 'right' | 'justify'
@@ -39,6 +39,12 @@ export interface ComparisonContent {
     imageAfter: string
     labelBefore?: string
     labelAfter?: string
+}
+
+export interface ScratchContent {
+    hiddenImage: string
+    coverColor?: string // hex
+    coverText?: string // "Scratch me!" overlay on the cover
 }
 
 export interface HotspotItem {
@@ -82,7 +88,7 @@ export interface AccordionItem {
 export interface StageBlock {
     id: string
     type: BlockType
-    content: string | ComparisonContent | HotspotContent | QuizContent | CarouselItem[] | AccordionItem[] | any
+    content: string | ComparisonContent | HotspotContent | QuizContent | ScratchContent | CarouselItem[] | AccordionItem[] | any
     styles?: BlockStyle
     overlay?: BlockOverlay
 }

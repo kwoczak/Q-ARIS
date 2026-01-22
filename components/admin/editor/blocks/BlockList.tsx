@@ -33,6 +33,9 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
             case 'quiz':
                 initialContent = { question: '', answers: [], points: 10 }
                 break
+            case 'scratchpad':
+                initialContent = { hiddenImage: '', coverColor: '#C0C0C0', coverText: 'Scratch me!' }
+                break
             case 'comparison':
                 initialContent = { imageBefore: '', imageAfter: '' }
                 break
@@ -88,6 +91,7 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
                 <Button size="sm" variant="outline" onClick={() => addBlock('comparison')}>+ Compare</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('hotspot')}>+ Hotspot</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('quiz')}>+ Quiz</Button>
+                <Button size="sm" variant="outline" onClick={() => addBlock('scratchpad')}>+ Scratch</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('carousel')}>+ Gallery</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('accordion')}>+ Accordion</Button>
             </div>

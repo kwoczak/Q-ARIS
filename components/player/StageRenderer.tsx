@@ -15,9 +15,11 @@ import { HotspotBlock } from "./blocks/HotspotBlock"
 import { CarouselBlock } from "./blocks/CarouselBlock"
 import { AccordionBlock } from "./blocks/AccordionBlock"
 import { QuizBlock } from "./blocks/QuizBlock"
+import { ScratchCardBlock } from "./blocks/ScratchCardBlock"
 import { MotionWrapper } from "./MotionWrapper"
 import { ScoreDisplay } from "./ScoreDisplay" // Import ScoreDisplay
-import { ComparisonContent, HotspotContent, QuizContent, CarouselItem, AccordionItem } from "@/types/schema"
+import { TypewriterEffect } from "./TypewriterEffect"
+import { ComparisonContent, HotspotContent, QuizContent, ScratchContent, CarouselItem, AccordionItem } from "@/types/schema"
 
 // Dynamically import ModelViewer to avoid SSR hydration mismatch
 const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
@@ -199,6 +201,15 @@ function BlockRenderer({ block }: { block: StageBlock }) {
 
     switch (block.type) {
         case 'text':
+            if (block.styles?.animation === 'typewriter') {
+                return (
+                    <TypewriterEffect
+                        text={block.content as string}
+                        style={{ ...style, fontSize }}
+                        delay={block.styles.animationDelay}
+                    />
+                )
+            }
             return (
                 <MotionWrapper style={style} animation={block.styles?.animation} delay={block.styles?.animationDelay}>
                     <div style={{ fontSize }} className="whitespace-pre-wrap leading-relaxed">
@@ -317,6 +328,13 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                 <QuizBlock
                     blockId={block.id}
                     content={block.content as QuizContent}
+                    style={style}
+                />
+            )
+        case 'scratchpad':
+            return (
+                <ScratchCardBlock
+                    content={block.content as ScratchContent}
                     style={style}
                 />
             )

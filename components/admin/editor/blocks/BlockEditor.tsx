@@ -17,6 +17,7 @@ import { HotspotEditor } from "./HotspotEditor"
 import { CarouselEditor } from "./CarouselEditor"
 import { AccordionEditor } from "./AccordionEditor"
 import { QuizEditor } from "./QuizEditor"
+import { ScratchCardEditor } from "./ScratchCardEditor"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { fontOptions } from "@/lib/fonts"
@@ -474,6 +475,10 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
             case 'quiz':
                 return (
                     <QuizEditor block={block} onChange={onChange} />
+                )
+            case 'scratchpad':
+                return (
+                    <ScratchCardEditor block={block} onChange={onChange} />
                 )
             default:
                 return null

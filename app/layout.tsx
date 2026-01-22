@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Roboto, Playfair_Display, Merriweather, Oswald } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
+import { VisitorProvider } from "@/components/player/VisitorContext";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const roboto = Roboto({ weight: ['400', '700'], subsets: ["latin"], variable: '--font-roboto' });
@@ -23,7 +25,12 @@ export default function RootLayout({
       <head>
         <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js" async></script>
       </head>
-      <body className={`${inter.variable} ${roboto.variable} ${playfair.variable} ${merriweather.variable} ${oswald.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${roboto.variable} ${playfair.variable} ${merriweather.variable} ${oswald.variable} font-sans antialiased`}>
+        <VisitorProvider>
+          {children}
+          <Toaster />
+        </VisitorProvider>
+      </body>
     </html>
   );
 }

@@ -511,104 +511,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </div>
                 )}
 
-                {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz') && (
-                    <div className="space-y-1">
-                        <Label className="text-xs">Font Family</Label>
-                        <Select
-                            value={block.styles?.fontFamily || 'sans'}
-                            onValueChange={(v: string) => updateStyle('fontFamily', v)}
-                        >
-                            <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {fontOptions.map(font => (
-                                    <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.fontFamily }}>
-                                        {font.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                )}
-
-                {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz') && (
-                    <div className="space-y-1">
-                        <Label className="text-xs">Text Color</Label>
-                        <div className="flex items-center gap-2">
-                            <Input
-                                type="color"
-                                value={block.styles?.color || '#000000'}
-                                onChange={(e) => updateStyle('color', e.target.value)}
-                                className="w-8 h-8 p-1"
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz') && (
-                    <div className="space-y-1 col-span-2">
-                        <Label className="text-xs">Background (Color + Transparency)</Label>
-                        <div className="flex items-center gap-4 border p-2 rounded-md">
-                            <Input
-                                type="color"
-                                value={block.styles?.backgroundColor?.startsWith('#') ? block.styles.backgroundColor.substring(0, 7) : '#ffffff'}
-                                onChange={(e) => {
-                                    // Set color but keep approximate opacity if possible? Or just reset to solid. 
-                                    // For simplicity, let's assume converting to RGBA is easier for management but HTML color input takes HEX.
-                                    // We will store as HEX for the color part, but we need to manage opacity separately or convert on the fly.
-                                    // Simplified: Just use HEX and separate Opacity, then combine to rgba string for storage.
-                                    const hex = e.target.value
-                                    // We need to know current opacity.
-                                    const currentBg = block.styles?.backgroundColor || 'rgba(255,255,255,0)'
-                                    let currentOpacity = 1
-                                    if (currentBg.startsWith('rgba')) {
-                                        const match = currentBg.match(/[\d\.]+\)$/)
-                                        if (match) currentOpacity = parseFloat(match[0])
-                                    }
-
-                                    // Convert hex to rgb
-                                    const r = parseInt(hex.slice(1, 3), 16)
-                                    const g = parseInt(hex.slice(3, 5), 16)
-                                    const b = parseInt(hex.slice(5, 7), 16)
-
-                                    const newRgba = `rgba(${r},${g},${b},${currentOpacity})`
-                                    updateStyle('backgroundColor', newRgba)
-                                }}
-                                className="w-8 h-8 p-1 shrink-0"
-                            />
-                            <div className="flex-1">
-                                <Slider
-                                    min={0}
-                                    max={1}
-                                    step={0.1}
-                                    value={[block.styles?.backgroundColor?.startsWith('rgba') ? parseFloat(block.styles.backgroundColor.match(/[\d\.]+\)$/)?.[0] || '1') : 1]}
-                                    onValueChange={(val) => {
-                                        const opacity = val[0]
-                                        // Get current color RGB
-                                        const currentBg = block.styles?.backgroundColor
-                                        let r = 255, g = 255, b = 255
-                                        if (currentBg?.startsWith('#')) {
-                                            r = parseInt(currentBg.slice(1, 3), 16)
-                                            g = parseInt(currentBg.slice(3, 5), 16)
-                                            b = parseInt(currentBg.slice(5, 7), 16)
-                                        } else if (currentBg?.startsWith('rgba')) {
-                                            const parts = currentBg.match(/\d+/g)
-                                            if (parts) {
-                                                r = parseInt(parts[0])
-                                                g = parseInt(parts[1])
-                                                b = parseInt(parts[2])
-                                            }
-                                        }
-                                        updateStyle('backgroundColor', `rgba(${r},${g},${b},${opacity})`)
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {(block.type === 'text' || block.type === 'hotspot') && (
+                {(block.type === 'text' || block.type === 'accordion') && (
                     <div className="space-y-1">
                         <Label className="text-xs">Size</Label>
                         <Select
@@ -628,109 +531,223 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                         </Select>
                     </div>
                 )}
-
-                <div className="space-y-1">
-                    <Label className="text-xs">Padding</Label>
-                    <Select
-                        value={block.styles?.padding || '1rem'}
-                        onValueChange={(v: string) => updateStyle('padding', v)}
-                    >
-                        <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="0">None</SelectItem>
-                            <SelectItem value="0.5rem">Small</SelectItem>
-                            <SelectItem value="1rem">Medium</SelectItem>
-                            <SelectItem value="2rem">Large</SelectItem>
-                            <SelectItem value="4rem">Extra Large</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="space-y-1">
-                    <Label className="text-xs">Vertical Space (Margin)</Label>
-                    <Select
-                        value={block.styles?.marginBottom || '0'}
-                        onValueChange={(v: string) => updateStyle('marginBottom', v)}
-                    >
-                        <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="0">None</SelectItem>
-                            <SelectItem value="0.5rem">Small</SelectItem>
-                            <SelectItem value="1rem">Medium</SelectItem>
-                            <SelectItem value="2rem">Large</SelectItem>
-                            <SelectItem value="4rem">Extra Large</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {block.type === 'text' && (
-                    <div className="space-y-1">
-                        <Label className="text-xs">Corner Radius</Label>
-                        <Select
-                            value={block.styles?.borderRadius || '0'}
-                            onValueChange={(v: string) => updateStyle('borderRadius', v)}
-                        >
-                            <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="0">None</SelectItem>
-                                <SelectItem value="0.5rem">Small (8px)</SelectItem>
-                                <SelectItem value="1rem">Medium (16px)</SelectItem>
-                                <SelectItem value="1.5rem">Large (24px)</SelectItem>
-                                <SelectItem value="9999px">Full (Pill)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                <Select
+                    value={block.styles?.fontFamily || 'sans'}
+                    onValueChange={(v: string) => updateStyle('fontFamily', v)}
+                >
+                    <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {fontOptions.map(font => (
+                            <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.fontFamily }}>
+                                {font.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
                 )}
+
+            {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz' || block.type === 'accordion') && (
+                <div className="space-y-1">
+                    <Label className="text-xs">Text Color</Label>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            type="color"
+                            value={block.styles?.color || '#000000'}
+                            onChange={(e) => updateStyle('color', e.target.value)}
+                            className="w-8 h-8 p-1"
+                        />
+                    </div>
+                </div>
+            )}
+
+            {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz' || block.type === 'accordion') && (
+                <div className="space-y-1 col-span-2">
+                    <Label className="text-xs">Background (Color + Transparency)</Label>
+                    <div className="flex items-center gap-4 border p-2 rounded-md">
+                        <Input
+                            type="color"
+                            value={block.styles?.backgroundColor?.startsWith('#') ? block.styles.backgroundColor.substring(0, 7) : '#ffffff'}
+                            onChange={(e) => {
+                                // Set color but keep approximate opacity if possible? Or just reset to solid. 
+                                // For simplicity, let's assume converting to RGBA is easier for management but HTML color input takes HEX.
+                                // We will store as HEX for the color part, but we need to manage opacity separately or convert on the fly.
+                                // Simplified: Just use HEX and separate Opacity, then combine to rgba string for storage.
+                                const hex = e.target.value
+                                // We need to know current opacity.
+                                const currentBg = block.styles?.backgroundColor || 'rgba(255,255,255,0)'
+                                let currentOpacity = 1
+                                if (currentBg.startsWith('rgba')) {
+                                    const match = currentBg.match(/[\d\.]+\)$/)
+                                    if (match) currentOpacity = parseFloat(match[0])
+                                }
+
+                                // Convert hex to rgb
+                                const r = parseInt(hex.slice(1, 3), 16)
+                                const g = parseInt(hex.slice(3, 5), 16)
+                                const b = parseInt(hex.slice(5, 7), 16)
+
+                                const newRgba = `rgba(${r},${g},${b},${currentOpacity})`
+                                updateStyle('backgroundColor', newRgba)
+                            }}
+                            className="w-8 h-8 p-1 shrink-0"
+                        />
+                        <div className="flex-1">
+                            <Slider
+                                min={0}
+                                max={1}
+                                step={0.1}
+                                value={[block.styles?.backgroundColor?.startsWith('rgba') ? parseFloat(block.styles.backgroundColor.match(/[\d\.]+\)$/)?.[0] || '1') : 1]}
+                                onValueChange={(val) => {
+                                    const opacity = val[0]
+                                    // Get current color RGB
+                                    const currentBg = block.styles?.backgroundColor
+                                    let r = 255, g = 255, b = 255
+                                    if (currentBg?.startsWith('#')) {
+                                        r = parseInt(currentBg.slice(1, 3), 16)
+                                        g = parseInt(currentBg.slice(3, 5), 16)
+                                        b = parseInt(currentBg.slice(5, 7), 16)
+                                    } else if (currentBg?.startsWith('rgba')) {
+                                        const parts = currentBg.match(/\d+/g)
+                                        if (parts) {
+                                            r = parseInt(parts[0])
+                                            g = parseInt(parts[1])
+                                            b = parseInt(parts[2])
+                                        }
+                                    }
+                                    updateStyle('backgroundColor', `rgba(${r},${g},${b},${opacity})`)
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {(block.type === 'text' || block.type === 'hotspot') && (
+                <div className="space-y-1">
+                    <Label className="text-xs">Size</Label>
+                    <Select
+                        value={block.styles?.fontSize?.includes('px') ? block.styles.fontSize : '16px'}
+                        onValueChange={(v: string) => updateStyle('fontSize', v)}
+                    >
+                        <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {fontSizes.map((size) => (
+                                <SelectItem key={size.value} value={size.value}>
+                                    {size.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+
+            <div className="space-y-1">
+                <Label className="text-xs">Padding</Label>
+                <Select
+                    value={block.styles?.padding || '1rem'}
+                    onValueChange={(v: string) => updateStyle('padding', v)}
+                >
+                    <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="0">None</SelectItem>
+                        <SelectItem value="0.5rem">Small</SelectItem>
+                        <SelectItem value="1rem">Medium</SelectItem>
+                        <SelectItem value="2rem">Large</SelectItem>
+                        <SelectItem value="4rem">Extra Large</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
-            {/* Visual Effects Section */}
-            <div className="pt-2 border-t border-dashed mt-2">
-                <Label className="text-[10px] uppercase font-bold text-neutral-400 mb-2 block">Visual Effects</Label>
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                        <Label className="text-xs">Entrance Animation</Label>
-                        <Select
-                            value={block.styles?.animation || 'none'}
-                            onValueChange={(v: string) => updateStyle('animation', v)}
-                        >
-                            <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="none">None</SelectItem>
-                                <SelectItem value="fade-in">Fade In</SelectItem>
-                                <SelectItem value="slide-up">Slide Up</SelectItem>
-                                <SelectItem value="scale-up">Scale Up</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    {(block.type === 'image' || block.type === 'comparison') && (
-                        <div className="space-y-1">
-                            <Label className="text-xs">Color Filter</Label>
-                            <Select
-                                value={block.styles?.filter || 'none'}
-                                onValueChange={(v: string) => updateStyle('filter', v)}
-                            >
-                                <SelectTrigger className="h-8 text-xs">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    <SelectItem value="sepia">Sepia (Old)</SelectItem>
-                                    <SelectItem value="grayscale">Black & White</SelectItem>
-                                    <SelectItem value="vintage">Vintage</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-                </div>
+            <div className="space-y-1">
+                <Label className="text-xs">Vertical Space (Margin)</Label>
+                <Select
+                    value={block.styles?.marginBottom || '0'}
+                    onValueChange={(v: string) => updateStyle('marginBottom', v)}
+                >
+                    <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="0">None</SelectItem>
+                        <SelectItem value="0.5rem">Small</SelectItem>
+                        <SelectItem value="1rem">Medium</SelectItem>
+                        <SelectItem value="2rem">Large</SelectItem>
+                        <SelectItem value="4rem">Extra Large</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
+
+            {block.type === 'text' && (
+                <div className="space-y-1">
+                    <Label className="text-xs">Corner Radius</Label>
+                    <Select
+                        value={block.styles?.borderRadius || '0'}
+                        onValueChange={(v: string) => updateStyle('borderRadius', v)}
+                    >
+                        <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="0">None</SelectItem>
+                            <SelectItem value="0.5rem">Small (8px)</SelectItem>
+                            <SelectItem value="1rem">Medium (16px)</SelectItem>
+                            <SelectItem value="1.5rem">Large (24px)</SelectItem>
+                            <SelectItem value="9999px">Full (Pill)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
         </div>
+
+            {/* Visual Effects Section */ }
+    <div className="pt-2 border-t border-dashed mt-2">
+        <Label className="text-[10px] uppercase font-bold text-neutral-400 mb-2 block">Visual Effects</Label>
+        <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+                <Label className="text-xs">Entrance Animation</Label>
+                <Select
+                    value={block.styles?.animation || 'none'}
+                    onValueChange={(v: string) => updateStyle('animation', v)}
+                >
+                    <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="fade-in">Fade In</SelectItem>
+                        <SelectItem value="slide-up">Slide Up</SelectItem>
+                        <SelectItem value="scale-up">Scale Up</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            {(block.type === 'image' || block.type === 'comparison') && (
+                <div className="space-y-1">
+                    <Label className="text-xs">Color Filter</Label>
+                    <Select
+                        value={block.styles?.filter || 'none'}
+                        onValueChange={(v: string) => updateStyle('filter', v)}
+                    >
+                        <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            <SelectItem value="sepia">Sepia (Old)</SelectItem>
+                            <SelectItem value="grayscale">Black & White</SelectItem>
+                            <SelectItem value="vintage">Vintage</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+        </div>
+    </div>
+        </div >
     )
 }

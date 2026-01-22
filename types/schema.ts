@@ -8,13 +8,42 @@ export type Story = {
 
 export type StageType = 'content' | 'ar_model' | 'quiz' | 'ending'
 
+export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d'
+
+export interface BlockStyle {
+    textAlign?: 'left' | 'center' | 'right' | 'justify'
+    fontSize?: 'sm' | 'base' | 'lg' | 'xl'
+    color?: string
+    padding?: string
+    backgroundColor?: string
+    borderRadius?: string
+}
+
+export interface StageBlock {
+    id: string
+    type: BlockType
+    content: string | string[] // Text content or URL(s)
+    styles?: BlockStyle
+}
+
+export interface StageBackground {
+    type: 'color' | 'image' | 'gradient'
+    value: string
+    overlayOpacity?: number
+}
+
 export type StageContent = {
+    // Legacy fields (kept for backward compatibility)
     text?: string
     images?: string[]
     audio?: string         // URL to mp3
     autoplay_audio?: boolean
     video?: string         // URL to mp4
     model_3d?: string      // URL to glb
+
+    // New fields
+    background?: StageBackground
+    blocks?: StageBlock[]
 }
 
 export type Stage = {

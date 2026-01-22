@@ -1,12 +1,19 @@
 'use client'
 
-import { Stage } from "@/types/schema"
+import { Stage, StageBlock, BlockStyle } from "@/types/schema" // Added Block imports
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ArrowRight, Play, Pause, ScanLine, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { QRScanner } from "./QRScanner"
+import dynamic from 'next/dynamic'
+
+// Dynamically import ModelViewer to avoid SSR hydration mismatch
+const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-neutral-100/10 animate-pulse rounded-xl" />
+})
 
 export function StageRenderer({ stage }: { stage: Stage }) {
     const [isScanning, setIsScanning] = useState(false)
@@ -17,8 +24,48 @@ export function StageRenderer({ stage }: { stage: Stage }) {
         return <QRScanner onClose={() => setIsScanning(false)} />
     }
 
+    const { content } = stage
+
+    // --- Background Style Logic ---
+    const bgStyle: React.CSSProperties = {}
+    let isDarkBackground = true
+
+    if (content.background) {
+        if (content.background.type === 'color') {
+            bgStyle.backgroundColor = content.background.value
+            if (content.background.value === '#ffffff' || content.background.value.toLowerCase() === '#fff') {
+                isDarkBackground = false
+            }
+        } else if (content.background.type === 'gradient') {
+            bgStyle.background = content.background.value
+        } else if (content.background.type === 'image') {
+            bgStyle.backgroundImage = `url(${content.background.value})`
+            bgStyle.backgroundSize = 'cover'
+            bgStyle.backgroundPosition = 'center'
+        }
+    }
+
+    // --- Block Rendering Logic ---
+    const hasBlocks = content.blocks && content.blocks.length > 0
+
+    const containerClasses = [
+        "flex flex-col h-screen relative transition-colors duration-500",
+        content.background ? (isDarkBackground ? "text-white" : "text-neutral-900") : "bg-black text-white"
+    ].join(" ")
+
     return (
-        <div className="flex flex-col h-screen bg-black text-white relative">
+        <div
+            className={containerClasses}
+            style={bgStyle}
+        >
+            {/* Optional Overlay for readability on image backgrounds */}
+            {content.background?.overlayOpacity ? (
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ backgroundColor: `rgba(0,0,0,${content.background.overlayOpacity})` }}
+                />
+            ) : null}
+
             {/* Close / Scan Button */}
             <div className="absolute top-4 right-4 z-50">
                 <Button
@@ -32,72 +79,147 @@ export function StageRenderer({ stage }: { stage: Stage }) {
                 </Button>
             </div>
 
-            {/* Media or Image Header */}
-            <div className="shrink-0 relative w-full h-[40vh] bg-neutral-900 overflow-hidden">
-                {stage.content?.images?.[0] ? (
-                    <img
-                        src={stage.content.images[0]}
-                        alt={stage.title}
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-neutral-700">
-                        Media Placeholder
-                    </div>
-                )}
-
-                {/* AR Button Overlay */}
-                {stage.content?.model_3d && (
-                    <div className="absolute bottom-4 right-4 animate-bounce">
-                        <Button
-                            size="lg"
-                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full shadow-xl"
-                            onClick={() => {
-                                // WebAR logic via model-viewer intennt
-                                // This usually opens a separate view or activates model-viewer
-                                const modelViewer = document.querySelector('model-viewer') as any;
-                                if (modelViewer) modelViewer.activateAR();
-                            }}
-                        >
-                            👀 View in 3D
-                        </Button>
-                        {/* Hidden model-viewer to facilitate AR activation */}
-                        {(() => {
-                            const ModelViewer = 'model-viewer' as any;
-                            return (
-                                <ModelViewer
-                                    src={stage.content.model_3d}
-                                    ar
-                                    ar-modes="scene-viewer quick-look webxr"
-                                    camera-controls
-                                    style={{ display: 'none' }}
-                                />
-                            )
-                        })()}
-                    </div>
-                )}
-            </div>
-
-            {/* Content Body */}
-            <div className="flex-1 bg-white dark:bg-neutral-950 text-neutral-900 dark:text-gray-100 rounded-t-3xl -mt-6 relative z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col">
-                <div className="p-6 pb-2 shrink-0">
-                    <h1 className="text-2xl font-bold mb-1">{stage.title}</h1>
-                    <div className="w-12 h-1 bg-blue-500 rounded-full mb-4"></div>
-                </div>
-
-                <ScrollArea className="flex-1 px-6 pb-24">
-                    <div className="prose dark:prose-invert max-w-none text-lg leading-relaxed text-neutral-600 dark:text-neutral-300">
-                        {stage.content?.text}
+            {hasBlocks ? (
+                // --- NEW BLOCK RENDERER ---
+                <ScrollArea className="flex-1 w-full h-full relative z-10">
+                    <div className="flex flex-col min-h-screen">
+                        {content.blocks!.map((block) => (
+                            <BlockRenderer key={block.id} block={block} />
+                        ))}
+                        {/* Audio Autoplay Logic for Blocks? Or keep global? 
+                            Let's keep global audio for now if defined in legacy or specific block. 
+                            Actually, let's just support the legacy audio field as "Ambient Audio" for the stage
+                        */}
                     </div>
                 </ScrollArea>
-            </div>
+            ) : (
+                // --- LEGACY RENDERER ---
+                <>
+                    {/* Media or Image Header */}
+                    <div className="shrink-0 relative w-full h-[40vh] bg-neutral-900 overflow-hidden">
+                        {stage.content?.images?.[0] ? (
+                            <img
+                                src={stage.content.images[0]}
+                                alt={stage.title}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-neutral-700">
+                                Media Placeholder
+                            </div>
+                        )}
 
-            {/* Floating Audio Player Bar */}
+                        {/* AR Button Overlay */}
+                        {stage.content?.model_3d && (
+                            <div className="absolute bottom-4 right-4 animate-bounce">
+                                <Button
+                                    size="lg"
+                                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full shadow-xl"
+                                    onClick={() => {
+                                        const modelViewer = document.querySelector('model-viewer') as any;
+                                        if (modelViewer) modelViewer.activateAR();
+                                    }}
+                                >
+                                    👀 View in 3D
+                                </Button>
+                                {(() => {
+                                    const ModelViewer = 'model-viewer' as any;
+                                    return (
+                                        <ModelViewer
+                                            src={stage.content.model_3d}
+                                            ar
+                                            ar-modes="scene-viewer quick-look webxr"
+                                            camera-controls
+                                            style={{ display: 'none' }}
+                                        />
+                                    )
+                                })()}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Content Body */}
+                    <div className="flex-1 bg-white dark:bg-neutral-950 text-neutral-900 dark:text-gray-100 rounded-t-3xl -mt-6 relative z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col">
+                        <div className="p-6 pb-2 shrink-0">
+                            <h1 className="text-2xl font-bold mb-1">{stage.title}</h1>
+                            <div className="w-12 h-1 bg-blue-500 rounded-full mb-4"></div>
+                        </div>
+
+                        <ScrollArea className="flex-1 px-6 pb-24">
+                            <div className="prose dark:prose-invert max-w-none text-lg leading-relaxed text-neutral-600 dark:text-neutral-300">
+                                {stage.content?.text}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </>
+            )}
+
+            {/* Global Audio Player (Works for both legacy and new if 'audio' field is set) */}
             {stage.content?.audio && (
                 <AudioPlayerBar src={stage.content.audio} autoplay={stage.content.autoplay_audio} />
             )}
         </div>
     )
+}
+
+function BlockRenderer({ block }: { block: StageBlock }) {
+    const style: React.CSSProperties = {
+        textAlign: block.styles?.textAlign || 'left',
+        padding: block.styles?.padding ? block.styles.padding : '1rem', // Default padding
+        backgroundColor: block.styles?.backgroundColor || 'transparent',
+        borderRadius: block.styles?.borderRadius || '0',
+        color: block.styles?.color || 'inherit',
+    }
+
+    // FontSize map
+    const fontSizeMap = {
+        'sm': '0.875rem',
+        'base': '1rem',
+        'lg': '1.25rem',
+        'xl': '1.5rem',
+    }
+    const fontSize = fontSizeMap[block.styles?.fontSize || 'base']
+
+    switch (block.type) {
+        case 'text':
+            return (
+                <div style={style} className="w-full">
+                    <div style={{ fontSize }} className="whitespace-pre-wrap leading-relaxed">
+                        {block.content as string}
+                    </div>
+                </div>
+            )
+        case 'image':
+            return (
+                <div style={style} className="w-full flex justify-center">
+                    <img
+                        src={block.content as string}
+                        alt="Block Image"
+                        className="max-w-full h-auto rounded-lg shadow-sm"
+                    />
+                </div>
+            )
+        case 'audio':
+            return (
+                <div style={style} className="w-full">
+                    <audio controls src={block.content as string} className="w-full" />
+                </div>
+            )
+        case 'model_3d':
+            return (
+                <div style={style} className="w-full h-[50vh] relative bg-neutral-100/5 dark:bg-neutral-800/50 rounded-xl overflow-hidden">
+                    <ModelViewer src={block.content as string} />
+                </div>
+            )
+        case 'video':
+            return (
+                <div style={style} className="w-full">
+                    <video controls src={block.content as string} className="w-full rounded-lg" />
+                </div>
+            )
+        default:
+            return null
+    }
 }
 
 function AudioPlayerBar({ src, autoplay }: { src: string, autoplay?: boolean }) {
@@ -122,7 +244,7 @@ function AudioPlayerBar({ src, autoplay }: { src: string, autoplay?: boolean }) 
     }
 
     return (
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-black/90 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 flex items-center gap-4 z-50 safe-area-bottom">
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-black/90 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 flex items-center gap-4 z-40 safe-area-bottom">
             <audio
                 ref={audioRef}
                 src={src}

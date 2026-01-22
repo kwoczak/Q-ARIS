@@ -17,6 +17,8 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Loader2, QrCode } from "lucide-react"
+import { BackgroundEditor } from "./blocks/BackgroundEditor"
+import { BlockList } from "./blocks/BlockList"
 
 interface StagePropertiesProps {
     stage: Stage | null
@@ -136,7 +138,7 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: St
 
                 {/* Native CSS Scrolling - More robust than ScrollArea for full height layouts */}
                 <div className="flex-1 w-full overflow-y-auto">
-                    <div className="p-6 space-y-6">
+                    <div className="p-6 space-y-8">
 
                         {/* Basic Info */}
                         <div className="space-y-2">
@@ -148,115 +150,33 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: St
                             />
                         </div>
 
-                        {/* Text Content */}
-                        <div className="space-y-2">
-                            <Label htmlFor="content-text">Text Content</Label>
-                            <Textarea
-                                id="content-text"
-                                value={formData.content?.text || ''}
-                                onChange={(e) => handleContentChange('text', e.target.value)}
-                                placeholder="Enter the story text here..."
-                                rows={5}
+                        {/* --- ADVANCED BUILDER --- */}
+                        <div className="space-y-6">
+                            <BackgroundEditor
+                                background={formData.content?.background}
+                                onChange={(bg) => handleContentChange('background', bg)}
                             />
-                        </div>
 
-                        <div className="h-px bg-neutral-200" />
-
-                        <h3 className="font-semibold text-sm">Media Assets</h3>
-
-                        {/* Audio Upload */}
-                        <div className="space-y-2 p-3 bg-neutral-50 rounded-md">
-                            <Label>Voiceover / Audio (MP3)</Label>
-                            <FileUpload
-                                label="Audio"
-                                accept="audio/mp3,audio/mpeg,audio/wav"
-                                folder="audio"
-                                currentUrl={formData.content?.audio}
-                                onUploadComplete={(url) => handleContentChange('audio', url)}
-                            />
-                            {formData.content?.audio && (
-                                <audio
-                                    controls
-                                    src={formData.content.audio}
-                                    className="mt-3 w-full"
-                                    key={formData.content.audio} // Force re-render on change
+                            <div className="border-t pt-4">
+                                <Label className="mb-4 block">Content Blocks</Label>
+                                <BlockList
+                                    blocks={formData.content?.blocks || []}
+                                    onChange={(blocks) => handleContentChange('blocks', blocks)}
                                 />
-                            )}
-                            <div className="flex items-center gap-2 mt-2">
-                                <input
-                                    type="checkbox"
-                                    id="autoplay"
-                                    checked={formData.content?.autoplay_audio || false}
-                                    onChange={(e) => handleContentChange('autoplay_audio', e.target.checked)}
-                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <Label htmlFor="autoplay" className="font-normal text-xs text-neutral-600">Autoplay audio on load</Label>
                             </div>
                         </div>
 
-                        {/* Images Upload */}
-                        <div className="space-y-2 p-3 bg-neutral-50 rounded-md">
-                            <Label>Image (JPG/PNG)</Label>
-                            {/* Simplify to single image for MVP, array logic requires more UI */}
-                            <FileUpload
-                                label="Image"
-                                accept="image/*"
-                                folder="images"
-                                // Handle array by taking first element if exist, or just treating as single string in this simple UI
-                                currentUrl={formData.content?.images?.[0]}
-                                onUploadComplete={(url) => handleContentChange('images', [url])}
-                            />
-                            {formData.content?.images?.[0] && (
-                                <div className="mt-2 relative group">
-                                    <img
-                                        src={formData.content.images[0]}
-                                        alt="Preview"
-                                        className="w-full h-48 object-cover rounded-md border"
-                                    />
-                                </div>
-                            )}
-                        </div>
+                        {/* Legacy Warnings / Fallback */}
+                        {(formData.content?.text || formData.content?.images?.length || formData.content?.audio) && (
+                            <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                                <h4 className="font-bold text-yellow-800 text-sm mb-2">Legacy Content Detected</h4>
+                                <p className="text-xs text-yellow-700 mb-2">
+                                    This stage has content created with the old editor. It will still display, but consider moving it to Blocks for better styling.
+                                </p>
+                            </div>
+                        )}
 
-                        {/* Video Upload */}
-                        <div className="space-y-2 p-3 bg-neutral-50 rounded-md">
-                            <Label>Video (MP4)</Label>
-                            <FileUpload
-                                label="Video"
-                                accept="video/mp4"
-                                folder="video"
-                                currentUrl={formData.content?.video}
-                                onUploadComplete={(url) => handleContentChange('video', url)}
-                            />
-                        </div>
-
-                        {/* 3D Model Upload */}
-                        <div className="space-y-2 p-3 bg-neutral-50 rounded-md border-l-4 border-l-purple-500">
-                            <Label className="text-purple-700 font-bold">AR Model (GLB)</Label>
-                            <FileUpload
-                                label="3D Model"
-                                accept=".glb,.gltf"
-                                folder="models"
-                                currentUrl={formData.content?.model_3d}
-                                onUploadComplete={(url) => handleContentChange('model_3d', url)}
-                            />
-                            {formData.content?.model_3d && (
-                                <div className="mt-2 p-3 bg-purple-50 border border-purple-100 rounded-md flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-purple-100 rounded flex items-center justify-center text-purple-600 font-bold text-xs">
-                                        3D
-                                    </div>
-                                    <div className="flex-1 overflow-hidden">
-                                        <p className="text-xs font-medium text-purple-900 truncate">
-                                            {formData.content.model_3d.split('/').pop()?.split('?')[0] || "Model Uploaded"}
-                                        </p>
-                                        <p className="text-[10px] text-purple-600 truncate opacity-70">Ready for AR View</p>
-                                    </div>
-                                </div>
-                            )}
-                            <p className="text-[10px] text-neutral-500 mt-1">
-                                Upload a .glb file to enable the "View in AR" button for this stage.
-                            </p>
-                        </div>
-
+                        <div className="h-10" />
                         <div className="h-px bg-neutral-200" />
 
                         {/* QR Code Section */}
@@ -307,7 +227,7 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: St
                     </div>
                 </div>
 
-            </SheetContent>
-        </Sheet>
+            </SheetContent >
+        </Sheet >
     )
 }

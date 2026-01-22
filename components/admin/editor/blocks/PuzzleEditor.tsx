@@ -1,7 +1,7 @@
 'use client'
 
 import { PuzzleContent, StageBlock } from "@/types/schema"
-import { FileUpload } from "@/components/admin/FileUpload"
+import { FileUpload } from "@/components/ui/file-upload"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"

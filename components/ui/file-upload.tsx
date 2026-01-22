@@ -59,11 +59,6 @@ export function FileUpload({ label, accept, folder, onUploadComplete, currentUrl
                     onChange={handleFileChange}
                 />
             </div>
-            {currentUrl && (
-                <p className="mt-1 text-xs text-blue-600 truncate underline">
-                    <a href={currentUrl} target="_blank" rel="noopener noreferrer">View current file</a>
-                </p>
-            )}
         </div>
     )
 }

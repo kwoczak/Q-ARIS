@@ -161,7 +161,12 @@ export function StageProperties({ stage, isOpen, onClose, onSave }: StagePropert
                                 onUploadComplete={(url) => handleContentChange('audio', url)}
                             />
                             {formData.content?.audio && (
-                                <audio controls src={formData.content.audio} className="mt-2 w-full h-8" />
+                                <audio
+                                    controls
+                                    src={formData.content.audio}
+                                    className="mt-3 w-full"
+                                    key={formData.content.audio} // Force re-render on change
+                                />
                             )}
                             <div className="flex items-center gap-2 mt-2">
                                 <input

@@ -226,6 +226,17 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: St
                                 currentUrl={formData.content?.model_3d}
                                 onUploadComplete={(url) => handleContentChange('model_3d', url)}
                             />
+                            {formData.content?.model_3d && (
+                                <div className="mt-2 p-3 bg-purple-50 border border-purple-100 rounded-md flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-purple-100 rounded flex items-center justify-center text-purple-600 font-bold text-xs">
+                                        3D
+                                    </div>
+                                    <div className="flex-1 overflow-hidden">
+                                        <p className="text-xs font-medium text-purple-900 truncate">Model Uploaded</p>
+                                        <p className="text-[10px] text-purple-600 truncate opacity-70">Ready for AR View</p>
+                                    </div>
+                                </div>
+                            )}
                             <p className="text-[10px] text-neutral-500 mt-1">
                                 Upload a .glb file to enable the "View in AR" button for this stage.
                             </p>

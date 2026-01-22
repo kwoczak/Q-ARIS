@@ -21,10 +21,32 @@ export function AudioPlayer({ src, autoplay, className, minimal = false }: Audio
     const [isMuted, setIsMuted] = useState(false)
 
     useEffect(() => {
-        if (autoplay && audioRef.current) {
-            audioRef.current.play().catch(e => console.log("Autoplay blocked", e))
-            setIsPlaying(true)
+        const attemptPlay = async () => {
+            if (autoplay && audioRef.current) {
+                try {
+                    await audioRef.current.play()
+                    setIsPlaying(true)
+                } catch (e) {
+                    console.log("Autoplay blocked, waiting for interaction", e)
+                    // Add one-time listener to unlock audio on first interaction
+                    const unlockAudio = () => {
+                        if (audioRef.current) {
+                            audioRef.current.play()
+                                .then(() => setIsPlaying(true))
+                                .catch(err => console.error("Unlock failed", err))
+                        }
+                        ['click', 'touchstart', 'scroll', 'keydown'].forEach(event =>
+                            window.removeEventListener(event, unlockAudio)
+                        )
+                    }
+
+                    ['click', 'touchstart', 'scroll', 'keydown'].forEach(event =>
+                        window.addEventListener(event, unlockAudio, { once: true, passive: true })
+                    )
+                }
+            }
         }
+        attemptPlay()
     }, [autoplay])
 
     const togglePlay = () => {

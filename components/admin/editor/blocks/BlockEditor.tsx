@@ -12,6 +12,10 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { uploadAsset } from "@/lib/supabase/storage"
 import { ImageCropperModal } from "../ImageCropperModal"
+import { ComparisonEditor } from "./ComparisonEditor"
+import { HotspotEditor } from "./HotspotEditor"
+import { CarouselEditor } from "./CarouselEditor"
+import { AccordionEditor } from "./AccordionEditor"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { fontOptions } from "@/lib/fonts"
@@ -380,6 +384,22 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                         />
                     </div>
                 )
+            case 'comparison':
+                return (
+                    <ComparisonEditor block={block} onChange={onChange} />
+                )
+            case 'hotspot':
+                return (
+                    <HotspotEditor block={block} onChange={onChange} />
+                )
+            case 'carousel':
+                return (
+                    <CarouselEditor block={block} onChange={onChange} />
+                )
+            case 'accordion':
+                return (
+                    <AccordionEditor block={block} onChange={onChange} />
+                )
             default:
                 return null
         }
@@ -567,6 +587,49 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                         </Select>
                     </div>
                 )}
+            </div>
+
+            {/* Visual Effects Section */}
+            <div className="pt-2 border-t border-dashed mt-2">
+                <Label className="text-[10px] uppercase font-bold text-neutral-400 mb-2 block">Visual Effects</Label>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                        <Label className="text-xs">Entrance Animation</Label>
+                        <Select
+                            value={block.styles?.animation || 'none'}
+                            onValueChange={(v: string) => updateStyle('animation', v)}
+                        >
+                            <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                <SelectItem value="fade-in">Fade In</SelectItem>
+                                <SelectItem value="slide-up">Slide Up</SelectItem>
+                                <SelectItem value="scale-up">Scale Up</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {(block.type === 'image' || block.type === 'comparison') && (
+                        <div className="space-y-1">
+                            <Label className="text-xs">Color Filter</Label>
+                            <Select
+                                value={block.styles?.filter || 'none'}
+                                onValueChange={(v: string) => updateStyle('filter', v)}
+                            >
+                                <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">None</SelectItem>
+                                    <SelectItem value="sepia">Sepia (Old)</SelectItem>
+                                    <SelectItem value="grayscale">Black & White</SelectItem>
+                                    <SelectItem value="vintage">Vintage</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )

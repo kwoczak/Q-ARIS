@@ -10,6 +10,12 @@ import { QRScanner } from "./QRScanner"
 import dynamic from 'next/dynamic'
 import { getFontFamily } from "@/lib/fonts"
 import { AudioPlayer } from './AudioPlayer'
+import { ComparisonBlock } from "./blocks/ComparisonBlock"
+import { HotspotBlock } from "./blocks/HotspotBlock"
+import { CarouselBlock } from "./blocks/CarouselBlock"
+import { AccordionBlock } from "./blocks/AccordionBlock"
+import { MotionWrapper } from "./MotionWrapper"
+import { ComparisonContent, HotspotContent, CarouselItem, AccordionItem } from "@/types/schema"
 
 // Dynamically import ModelViewer to avoid SSR hydration mismatch
 const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
@@ -188,11 +194,11 @@ function BlockRenderer({ block }: { block: StageBlock }) {
     switch (block.type) {
         case 'text':
             return (
-                <div style={style} className="w-full">
+                <MotionWrapper style={style} animation={block.styles?.animation} delay={block.styles?.animationDelay}>
                     <div style={{ fontSize }} className="whitespace-pre-wrap leading-relaxed">
                         {block.content as string}
                     </div>
-                </div>
+                </MotionWrapper>
             )
         case 'image':
             if (!block.content) return null
@@ -211,7 +217,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
             }
 
             return (
-                <div style={{ ...style, position: 'relative' }} className="w-full">
+                <MotionWrapper style={{ ...style, position: 'relative' }} animation={block.styles?.animation} delay={block.styles?.animationDelay}>
                     <img
                         src={block.content as string}
                         alt="Block Image"
@@ -238,7 +244,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                             </div>
                         </div>
                     )}
-                </div>
+                </MotionWrapper>
             )
         case 'audio':
             if (!block.content) return null
@@ -266,6 +272,34 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                         className="w-full rounded-lg"
                     />
                 </div>
+            )
+        case 'comparison':
+            return (
+                <ComparisonBlock
+                    content={block.content as ComparisonContent}
+                    style={style}
+                />
+            )
+        case 'hotspot':
+            return (
+                <HotspotBlock
+                    content={block.content as HotspotContent}
+                    style={style}
+                />
+            )
+        case 'carousel':
+            return (
+                <CarouselBlock
+                    content={block.content as CarouselItem[]}
+                    style={style}
+                />
+            )
+        case 'accordion':
+            return (
+                <AccordionBlock
+                    content={block.content as AccordionItem[]}
+                    style={style}
+                />
             )
         default:
             return null

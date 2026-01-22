@@ -8,7 +8,7 @@ export type Story = {
 
 export type StageType = 'content' | 'ar_model' | 'quiz' | 'ending'
 
-export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d'
+export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d' | 'comparison' | 'hotspot' | 'quiz' | 'carousel' | 'accordion'
 
 export interface BlockStyle {
     textAlign?: 'left' | 'center' | 'right' | 'justify'
@@ -16,8 +16,12 @@ export interface BlockStyle {
     color?: string
     fontFamily?: string
     padding?: string
-    backgroundColor?: string
+    backgroundColor?: string // hex or rgba
     borderRadius?: string
+    // Visual Effects
+    animation?: 'fade-in' | 'slide-up' | 'scale-up' | 'typewriter' | 'none'
+    animationDelay?: string
+    filter?: 'sepia' | 'grayscale' | 'vintage' | 'blur' | 'none'
 }
 
 export interface BlockOverlay {
@@ -27,10 +31,55 @@ export interface BlockOverlay {
     width: 'auto' | '50%' | '75%' | '100%'
 }
 
+// Content Interfaces for Complex Blocks
+export interface ComparisonContent {
+    imageBefore: string
+    imageAfter: string
+    labelBefore?: string
+    labelAfter?: string
+}
+
+export interface HotspotItem {
+    id: string
+    x: number // percentage 0-100
+    y: number // percentage 0-100
+    label?: string
+    text: string
+}
+
+export interface HotspotContent {
+    image: string
+    hotspots: HotspotItem[]
+}
+
+export interface QuizAnswer {
+    id: string
+    text: string
+    isCorrect: boolean
+    feedback?: string
+}
+
+export interface QuizContent {
+    question: string
+    answers: QuizAnswer[]
+}
+
+export interface CarouselItem {
+    id: string
+    url: string
+    caption?: string
+}
+
+export interface AccordionItem {
+    id: string
+    title: string
+    content: string
+}
+
 export interface StageBlock {
     id: string
     type: BlockType
-    content: string | string[] // Text content or URL(s)
+    content: string | ComparisonContent | HotspotContent | QuizContent | CarouselItem[] | AccordionItem[] | any
     styles?: BlockStyle
     overlay?: BlockOverlay
 }

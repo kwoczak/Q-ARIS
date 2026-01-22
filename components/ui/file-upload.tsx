@@ -1,6 +1,6 @@
 'use client'
 
-import { ChangeEvent, useState } from 'react'
+import { ChangeEvent, useState, useId } from 'react'
 import { Button } from "@/components/ui/button"
 import { Loader2, Upload } from "lucide-react"
 import { uploadAsset } from "@/lib/supabase/storage"
@@ -17,6 +17,7 @@ interface FileUploadProps {
 
 export function FileUpload({ label, accept, folder, onUploadComplete, currentUrl, className, onFileSelect }: FileUploadProps) {
     const [isUploading, setIsUploading] = useState(false)
+    const uniqueId = useId()
 
     const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -48,8 +49,9 @@ export function FileUpload({ label, accept, folder, onUploadComplete, currentUrl
                 <Button
                     variant="outline"
                     disabled={isUploading}
+                    type="button" // Prevent form submission
                     className="relative cursor-pointer w-full justify-start text-neutral-500 hover:text-neutral-900 border-dashed border-2"
-                    onClick={() => document.getElementById(`file-upload-${label}`)?.click()}
+                    onClick={() => document.getElementById(uniqueId)?.click()}
                 >
                     {isUploading ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -59,7 +61,7 @@ export function FileUpload({ label, accept, folder, onUploadComplete, currentUrl
                     {isUploading ? "Uploading..." : `Upload ${label}`}
                 </Button>
                 <input
-                    id={`file-upload-${label}`}
+                    id={uniqueId}
                     type="file"
                     accept={accept}
                     className="hidden"

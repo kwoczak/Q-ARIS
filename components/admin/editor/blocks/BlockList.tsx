@@ -20,10 +20,27 @@ interface BlockListProps {
 export function BlockList({ blocks, onChange }: BlockListProps) {
 
     const addBlock = (type: BlockType) => {
+        let initialContent: any = ''
+
+        switch (type) {
+            case 'carousel':
+            case 'accordion':
+                initialContent = []
+                break
+            case 'hotspot':
+                initialContent = { image: '', hotspots: [] }
+                break
+            case 'comparison':
+                initialContent = { imageBefore: '', imageAfter: '' }
+                break
+            default:
+                initialContent = ''
+        }
+
         const newBlock: StageBlock = {
             id: crypto.randomUUID(),
             type,
-            content: '',
+            content: initialContent,
             styles: {
                 textAlign: 'left',
                 fontSize: 'base',
@@ -65,6 +82,10 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
                 <Button size="sm" variant="outline" onClick={() => addBlock('audio')}>+ Audio</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('video')}>+ Video</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('model_3d')}>+ 3D</Button>
+                <Button size="sm" variant="ghost" className="text-blue-600 bg-blue-50" onClick={() => addBlock('comparison')}>+ Compare</Button>
+                <Button size="sm" variant="ghost" className="text-indigo-600 bg-indigo-50" onClick={() => addBlock('hotspot')}>+ Hotspot</Button>
+                <Button size="sm" variant="ghost" className="text-pink-600 bg-pink-50" onClick={() => addBlock('carousel')}>+ Gallery</Button>
+                <Button size="sm" variant="ghost" className="text-orange-600 bg-orange-50" onClick={() => addBlock('accordion')}>+ Accordion</Button>
             </div>
 
             <Accordion type="single" collapsible className="space-y-2">

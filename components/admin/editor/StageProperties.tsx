@@ -220,7 +220,7 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: St
                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-800 to-black z-0 pointer-events-none" />
 
                         {/* Phone Mockup Frame */}
-                        <div className="relative z-10 w-full max-w-[375px] aspect-[9/19.5] bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border-[8px] border-neutral-800 ring-1 ring-white/10">
+                        <div className="relative z-10 h-auto max-h-[85vh] w-auto max-w-full aspect-[9/19.5] bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border-[8px] border-neutral-800 ring-1 ring-white/10">
                             {/* Notch */}
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-6 bg-black z-50 rounded-b-xl" />
 

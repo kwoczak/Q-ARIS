@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Roboto, Playfair_Display, Merriweather, Oswald } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
 import { VisitorProvider } from "@/components/player/VisitorContext";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
@@ -28,7 +27,6 @@ export default function RootLayout({
       <body className={`${inter.variable} ${roboto.variable} ${playfair.variable} ${merriweather.variable} ${oswald.variable} font-sans antialiased`}>
         <VisitorProvider>
           {children}
-          <Toaster />
         </VisitorProvider>
       </body>
     </html>

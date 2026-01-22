@@ -256,7 +256,12 @@ function BlockRenderer({ block }: { block: StageBlock }) {
             if (!block.content) return null
             return (
                 <div style={style} className="w-full">
-                    <audio controls src={block.content as string} className="w-full" />
+                    <audio
+                        controls
+                        src={block.content as string}
+                        className="w-full"
+                        autoPlay={block.styles?.autoplayMedia}
+                    />
                 </div>
             )
         case 'model_3d':

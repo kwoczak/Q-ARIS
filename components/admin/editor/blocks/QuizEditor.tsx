@@ -88,7 +88,8 @@ export function QuizEditor({ block, onChange }: QuizEditorProps) {
                         <div key={answer.id} className="flex items-center gap-2 p-2 bg-neutral-50 rounded border">
                             <button
                                 onClick={() => updateAnswer(answer.id, { isCorrect: !answer.isCorrect })}
-                                className={`shrink-0 ${answer.isCorrect ? 'text-green-600' : 'text-neutral-300 hover:text-neutral-400'}`}
+                                className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-colors ${answer.isCorrect ? 'bg-green-100 text-green-600' : 'bg-neutral-100 text-neutral-300 hover:bg-neutral-200'}`}
+                                title="Mark as Correct Answer"
                             >
                                 {answer.isCorrect ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
                             </button>

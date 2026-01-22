@@ -23,7 +23,7 @@ export function ScoreDisplay() {
 
     return (
         <div className={cn(
-            "fixed top-4 right-16 z-50 transition-all duration-300",
+            "absolute top-4 right-16 z-50 transition-all duration-300 pointer-events-none",
             animate ? "scale-125" : "scale-100"
         )}>
             <div className="bg-black/50 backdrop-blur-md border border-white/20 text-white rounded-full px-3 py-1.5 flex items-center gap-2 shadow-lg">

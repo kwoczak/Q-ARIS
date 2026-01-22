@@ -23,6 +23,7 @@ export interface BlockStyle {
     animation?: 'fade-in' | 'slide-up' | 'scale-up' | 'typewriter' | 'none'
     animationDelay?: string
     filter?: 'sepia' | 'grayscale' | 'vintage' | 'blur' | 'none'
+    autoplayMedia?: boolean
 }
 
 export interface BlockOverlay {

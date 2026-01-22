@@ -405,6 +405,14 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                             currentUrl={block.content as string}
                             onUploadComplete={(url) => onChange({ ...block, content: url })}
                         />
+                        <div className="flex items-center space-x-2 mt-2">
+                            <Checkbox
+                                id={`autoplay-${block.id}`}
+                                checked={block.styles?.autoplayMedia}
+                                onCheckedChange={(checked) => updateStyle('autoplayMedia', checked)}
+                            />
+                            <Label htmlFor={`autoplay-${block.id}`} className="text-xs">Auto-play audio</Label>
+                        </div>
                         {block.content && typeof block.content === 'string' && (
                             <audio controls src={block.content} className="w-full mt-2" />
                         )}
@@ -478,7 +486,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
 
             {/* Common Styles */}
             <div className="grid grid-cols-2 gap-2">
-                {block.type === 'text' && (
+                {(block.type === 'text' || block.type === 'quiz') && (
                     <div className="space-y-1">
                         <Label className="text-xs">Alignment</Label>
                         <div className="flex border rounded overflow-hidden">
@@ -498,7 +506,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </div>
                 )}
 
-                {(block.type === 'text' || block.type === 'hotspot') && (
+                {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz') && (
                     <div className="space-y-1">
                         <Label className="text-xs">Font Family</Label>
                         <Select
@@ -519,7 +527,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </div>
                 )}
 
-                {(block.type === 'text' || block.type === 'hotspot') && (
+                {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz') && (
                     <div className="space-y-1">
                         <Label className="text-xs">Text Color</Label>
                         <div className="flex items-center gap-2">
@@ -533,7 +541,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </div>
                 )}
 
-                {(block.type === 'text' || block.type === 'hotspot') && (
+                {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz') && (
                     <div className="space-y-1 col-span-2">
                         <Label className="text-xs">Background (Color + Transparency)</Label>
                         <div className="flex items-center gap-4 border p-2 rounded-md">

@@ -163,6 +163,17 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
             return
         }
 
+        // Auto-generate Trigger
+        if (data) {
+            const code = Math.random().toString(36).substring(2, 10).toUpperCase()
+            await supabase.from('triggers').insert({
+                code,
+                story_id: story.id,
+                target_stage_id: data.id,
+                type: 'checkpoint'
+            })
+        }
+
         const createdStage = data as Stage
         setStages(prev => [...prev, createdStage])
         setNodes(prev => [...prev, ...getInitialNodes([createdStage])])

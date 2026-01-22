@@ -268,6 +268,17 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                             currentUrl={block.content as string}
                             onUploadComplete={(url) => onChange({ ...block, content: url })}
                         />
+                        {block.content && typeof block.content === 'string' && (
+                            <div className="mt-2 rounded-lg overflow-hidden border bg-black">
+                                <video
+                                    controls
+                                    playsInline
+                                    preload="metadata"
+                                    src={`${block.content}#t=0.001`}
+                                    className="w-full max-h-48"
+                                />
+                            </div>
+                        )}
                     </div>
                 )
             case 'model_3d':

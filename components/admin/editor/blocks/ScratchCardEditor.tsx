@@ -30,6 +30,7 @@ export function ScratchCardEditor({ block, onChange }: ScratchCardEditorProps) {
                 <FileUpload
                     label="Secrets"
                     folder="blocks/scratch"
+                    accept="image/*"
                     currentUrl={content.hiddenImage}
                     onUploadComplete={(url) => updateContent({ hiddenImage: url })}
                 />

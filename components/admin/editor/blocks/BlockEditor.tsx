@@ -505,6 +505,10 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                 return (
                     <ScratchCardEditor block={block} onChange={onChange} />
                 )
+            case 'puzzle':
+                return (
+                    <PuzzleEditor block={block} onChange={onChange} />
+                )
             default:
                 return null
         }

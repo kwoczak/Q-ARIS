@@ -176,13 +176,14 @@ function BlockRenderer({ block }: { block: StageBlock }) {
     }
 
     // FontSize map
-    const fontSizeMap = {
+    const fontSizeMap: Record<string, string> = {
         'sm': '0.875rem',
         'base': '1rem',
         'lg': '1.25rem',
         'xl': '1.5rem',
     }
-    const fontSize = fontSizeMap[block.styles?.fontSize || 'base']
+    // If it's a legacy key, map it. Otherwise assume it's a valid CSS value (e.g. "16px")
+    const fontSize = fontSizeMap[block.styles?.fontSize || 'base'] || block.styles?.fontSize || '1rem'
 
     switch (block.type) {
         case 'text':
@@ -227,6 +228,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                                     width: block.overlay.width === 'auto' ? 'auto' : block.overlay.width,
                                     maxWidth: '100%',
                                     fontFamily: getFontFamily(block.overlay.style.fontFamily || 'sans'),
+                                    fontSize: block.overlay.style.fontSize || '1rem',
                                     textAlign: block.overlay.style.textAlign || 'center'
                                 }}
                             >

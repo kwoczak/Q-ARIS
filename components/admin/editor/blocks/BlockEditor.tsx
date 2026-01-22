@@ -13,12 +13,27 @@ import { useState } from "react"
 import { uploadAsset } from "@/lib/supabase/storage"
 import { ImageCropperModal } from "../ImageCropperModal"
 import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox"
 import { fontOptions } from "@/lib/fonts"
 
 interface BlockEditorProps {
     block: StageBlock
     onChange: (block: StageBlock) => void
 }
+
+const fontSizes = [
+    { label: '12px', value: '12px' },
+    { label: '14px', value: '14px' },
+    { label: '16px (Base)', value: '16px' },
+    { label: '18px', value: '18px' },
+    { label: '20px', value: '20px' },
+    { label: '24px', value: '24px' },
+    { label: '30px', value: '30px' },
+    { label: '36px', value: '36px' },
+    { label: '48px', value: '48px' },
+    { label: '60px', value: '60px' },
+    { label: '72px', value: '72px' },
+]
 
 export function BlockEditor({ block, onChange }: BlockEditorProps) {
     const [isCropperOpen, setIsCropperOpen] = useState(false)
@@ -201,23 +216,49 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                                     <div className="space-y-2 pt-2 border-t border-dotted">
                                         <Label className="text-[10px] font-semibold text-neutral-500">Style</Label>
                                         <div className="grid grid-cols-2 gap-2">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[10px]">Bg Color</span>
-                                                <Input
-                                                    type="color"
-                                                    className="w-6 h-6 p-0 border-0"
-                                                    value={block.overlay.style.backgroundColor || '#000000'} // Simplify for now (no opacity slider here to save space, user can edit json or we add advanced)
-                                                    // Actually let's just do a simple color picker that likely lacks opacity unless browser supports it, 
-                                                    // but standard input type=color is solid. 
-                                                    // Let's settle for a preset list or just color for now.
-                                                    onChange={(e) => onChange({
-                                                        ...block,
-                                                        overlay: {
-                                                            ...block.overlay!,
-                                                            style: { ...block.overlay!.style, backgroundColor: e.target.value }
-                                                        }
-                                                    })}
-                                                />
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[10px]">Background</span>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Checkbox
+                                                            id="transparent-bg"
+                                                            checked={block.overlay.style.backgroundColor === 'transparent'}
+                                                            onCheckedChange={(checked) => {
+                                                                onChange({
+                                                                    ...block,
+                                                                    overlay: {
+                                                                        ...block.overlay!,
+                                                                        style: {
+                                                                            ...block.overlay!.style,
+                                                                            backgroundColor: checked ? 'transparent' : '#000000'
+                                                                        }
+                                                                    }
+                                                                })
+                                                            }}
+                                                        />
+                                                        <label
+                                                            htmlFor="transparent-bg"
+                                                            className="text-[10px] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                        >
+                                                            Clear
+                                                        </label>
+                                                    </div>
+
+                                                    {block.overlay.style.backgroundColor !== 'transparent' && (
+                                                        <Input
+                                                            type="color"
+                                                            className="w-6 h-6 p-0 border-0"
+                                                            value={block.overlay.style.backgroundColor?.startsWith('#') ? block.overlay.style.backgroundColor : '#000000'}
+                                                            onChange={(e) => onChange({
+                                                                ...block,
+                                                                overlay: {
+                                                                    ...block.overlay!,
+                                                                    style: { ...block.overlay!.style, backgroundColor: e.target.value }
+                                                                }
+                                                            })}
+                                                        />
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[10px]">Text Color</span>
@@ -233,6 +274,51 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                                                         }
                                                     })}
                                                 />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px]">Font</Label>
+                                                <Select
+                                                    value={block.overlay.style.fontFamily || 'sans'}
+                                                    onValueChange={(v: any) => onChange({
+                                                        ...block,
+                                                        overlay: { ...block.overlay!, style: { ...block.overlay!.style, fontFamily: v } }
+                                                    })}
+                                                >
+                                                    <SelectTrigger className="h-7 text-[10px]">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {fontOptions.map(font => (
+                                                            <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.fontFamily }}>
+                                                                {font.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label className="text-[10px]">Size</Label>
+                                                <Select
+                                                    value={block.overlay.style.fontSize?.includes('px') ? block.overlay.style.fontSize : '16px'}
+                                                    onValueChange={(v: any) => onChange({
+                                                        ...block,
+                                                        overlay: { ...block.overlay!, style: { ...block.overlay!.style, fontSize: v } }
+                                                    })}
+                                                >
+                                                    <SelectTrigger className="h-7 text-[10px]">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {fontSizes.map((size) => (
+                                                            <SelectItem key={size.value} value={size.value}>
+                                                                {size.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                         </div>
                                     </div>
@@ -426,17 +512,18 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     <div className="space-y-1">
                         <Label className="text-xs">Size</Label>
                         <Select
-                            value={block.styles?.fontSize || 'base'}
+                            value={block.styles?.fontSize?.includes('px') ? block.styles.fontSize : '16px'}
                             onValueChange={(v: string) => updateStyle('fontSize', v)}
                         >
                             <SelectTrigger className="h-8 text-xs">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="sm">Small</SelectItem>
-                                <SelectItem value="base">Normal</SelectItem>
-                                <SelectItem value="lg">Large</SelectItem>
-                                <SelectItem value="xl">Extra Large</SelectItem>
+                                {fontSizes.map((size) => (
+                                    <SelectItem key={size.value} value={size.value}>
+                                        {size.label}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>

@@ -12,7 +12,7 @@ export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d'
 
 export interface BlockStyle {
     textAlign?: 'left' | 'center' | 'right' | 'justify'
-    fontSize?: 'sm' | 'base' | 'lg' | 'xl'
+    fontSize?: string // '16px', '1.5rem', etc.
     color?: string
     fontFamily?: string
     padding?: string

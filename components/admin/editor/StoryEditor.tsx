@@ -183,6 +183,47 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
         setNodes(prev => [...prev, ...getInitialNodes([createdStage])])
     }
 
+    const handleDuplicateStage = async (originalStage: Stage) => {
+        setIsSaving(true)
+        const copiedStage = {
+            story_id: story.id,
+            title: `${originalStage.title} (Copy)`,
+            type: originalStage.type,
+            content: structuredClone(originalStage.content), // Deep copy
+            position_x: (originalStage.position_x || 0) + 50,
+            position_y: (originalStage.position_y || 0) + 50,
+        }
+
+        const { data, error } = await supabase
+            .from('stages')
+            .insert(copiedStage)
+            .select()
+            .single()
+
+        setIsSaving(false)
+
+        if (error || !data) {
+            console.error("Error duplicating stage", error)
+            alert("Failed to duplicate stage")
+            return
+        }
+
+        // Auto-generate Trigger for Copy
+        if (data) {
+            const code = Math.random().toString(36).substring(2, 10).toUpperCase()
+            await supabase.from('triggers').insert({
+                code,
+                story_id: story.id,
+                target_stage_id: data.id,
+                type: 'checkpoint'
+            })
+        }
+
+        const createdStage = data as Stage
+        setStages(prev => [...prev, createdStage])
+        setNodes(prev => [...prev, ...getInitialNodes([createdStage])])
+    }
+
     const handleSaveGraphPositions = async () => {
         setIsSaving(true)
         for (const node of nodes) {

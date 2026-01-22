@@ -57,6 +57,7 @@ export function QuizBlock({ blockId, content, style }: QuizBlockProps) {
         backgroundColor: style.backgroundColor || 'rgba(255, 255, 255, 0.5)',
         color: style.color || 'inherit',
         fontFamily: style.fontFamily,
+        fontSize: style.fontSize,
         borderRadius: style.borderRadius || '0.75rem',
         padding: style.padding || '1.5rem',
         marginBottom: style.marginBottom
@@ -64,7 +65,7 @@ export function QuizBlock({ blockId, content, style }: QuizBlockProps) {
 
     return (
         <div style={{ marginBottom: style.marginBottom }} className="w-full">
-            <div style={containerStyle} className="backdrop-blur-sm border shadow-sm">
+            <div style={containerStyle} className="backdrop-blur-sm shadow-sm">
                 <div className="flex justify-between items-start mb-4">
                     <h3 className="font-bold text-lg leading-tight">{content.question}</h3>
                     {alreadyCompleted && (

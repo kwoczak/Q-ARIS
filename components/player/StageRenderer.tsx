@@ -320,7 +320,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
             return (
                 <AccordionBlock
                     content={block.content as AccordionItem[]}
-                    style={style}
+                    style={{ ...style, fontSize }}
                 />
             )
         case 'quiz':
@@ -328,7 +328,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                 <QuizBlock
                     blockId={block.id}
                     content={block.content as QuizContent}
-                    style={style}
+                    style={{ ...style, fontSize }}
                 />
             )
         case 'scratchpad':

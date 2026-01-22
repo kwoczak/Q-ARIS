@@ -511,7 +511,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </div>
                 )}
 
-                {(block.type === 'text' || block.type === 'accordion') && (
+                {(block.type === 'text' || block.type === 'accordion' || block.type === 'quiz') && (
                     <div className="space-y-1">
                         <Label className="text-xs">Size</Label>
                         <Select

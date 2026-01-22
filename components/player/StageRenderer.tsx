@@ -8,6 +8,8 @@ import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { QRScanner } from "./QRScanner"
 import dynamic from 'next/dynamic'
+import { getFontFamily } from "@/lib/fonts"
+import { AudioPlayer } from './AudioPlayer'
 
 // Dynamically import ModelViewer to avoid SSR hydration mismatch
 const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
@@ -155,8 +157,9 @@ export function StageRenderer({ stage }: { stage: Stage }) {
             )}
 
             {/* Global Audio Player (Works for both legacy and new if 'audio' field is set) */}
+            {/* Global Audio Player (Works for both legacy and new if 'audio' field is set) */}
             {stage.content?.audio && (
-                <AudioPlayerBar src={stage.content.audio} autoplay={stage.content.autoplay_audio} />
+                <AudioPlayer src={stage.content.audio} autoplay={stage.content.autoplay_audio} />
             )}
         </div>
     )
@@ -169,6 +172,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
         backgroundColor: block.styles?.backgroundColor || 'transparent',
         borderRadius: block.styles?.borderRadius || '0',
         color: block.styles?.color || 'inherit',
+        fontFamily: getFontFamily(block.styles?.fontFamily || 'sans'),
     }
 
     // FontSize map
@@ -191,11 +195,11 @@ function BlockRenderer({ block }: { block: StageBlock }) {
             )
         case 'image':
             return (
-                <div style={style} className="w-full flex justify-center">
+                <div style={style} className="w-full">
                     <img
                         src={block.content as string}
                         alt="Block Image"
-                        className="max-w-full h-auto rounded-lg shadow-sm"
+                        className="w-full h-auto object-cover shadow-sm"
                     />
                 </div>
             )
@@ -222,47 +226,3 @@ function BlockRenderer({ block }: { block: StageBlock }) {
     }
 }
 
-function AudioPlayerBar({ src, autoplay }: { src: string, autoplay?: boolean }) {
-    const audioRef = useRef<HTMLAudioElement>(null)
-    const [isPlaying, setIsPlaying] = useState(false)
-
-    useEffect(() => {
-        if (autoplay && audioRef.current) {
-            audioRef.current.play().catch(e => console.log("Autoplay blocked", e))
-            setIsPlaying(true)
-        }
-    }, [autoplay])
-
-    const togglePlay = () => {
-        if (!audioRef.current) return
-        if (isPlaying) {
-            audioRef.current.pause()
-        } else {
-            audioRef.current.play()
-        }
-        setIsPlaying(!isPlaying)
-    }
-
-    return (
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-black/90 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 flex items-center gap-4 z-40 safe-area-bottom">
-            <audio
-                ref={audioRef}
-                src={src}
-                onEnded={() => setIsPlaying(false)}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-            />
-            <Button
-                onClick={togglePlay}
-                size="icon"
-                className="rounded-full w-12 h-12 shrink-0 bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800"
-            >
-                {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current ml-1" />}
-            </Button>
-            <div className="flex-1">
-                <p className="text-xs font-bold uppercase text-neutral-500">Audio Guide</p>
-                <p className="text-sm font-medium truncate">Listen to narration</p>
-            </div>
-        </div>
-    )
-}

@@ -12,14 +12,21 @@ interface FileUploadProps {
     onUploadComplete: (url: string) => void
     currentUrl?: string
     className?: string
+    onFileSelect?: (file: File) => void // New optional prop
 }
 
-export function FileUpload({ label, accept, folder, onUploadComplete, currentUrl, className }: FileUploadProps) {
+export function FileUpload({ label, accept, folder, onUploadComplete, currentUrl, className, onFileSelect }: FileUploadProps) {
     const [isUploading, setIsUploading] = useState(false)
 
     const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
+
+        // If interceptor is provided, use it and stop
+        if (onFileSelect) {
+            onFileSelect(file)
+            return
+        }
 
         try {
             setIsUploading(true)

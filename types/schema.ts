@@ -14,6 +14,7 @@ export interface BlockStyle {
     textAlign?: 'left' | 'center' | 'right' | 'justify'
     fontSize?: 'sm' | 'base' | 'lg' | 'xl'
     color?: string
+    fontFamily?: string
     padding?: string
     backgroundColor?: string
     borderRadius?: string

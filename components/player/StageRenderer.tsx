@@ -46,7 +46,6 @@ export function StageRenderer({ stage }: { stage: Stage }) {
                         >
                             👀 View in 3D
                         </Button>
-                        {/* Hidden model-viewer to facilitate AR activation */}
                         {/* @ts-ignore */}
                         <model-viewer
                             src={stage.content.model_3d}

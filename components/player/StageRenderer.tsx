@@ -2,21 +2,36 @@
 
 import { Stage } from "@/types/schema"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ArrowRight, Play, Pause } from "lucide-react"
+import { ArrowRight, Play, Pause, ScanLine, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
+import { QRScanner } from "./QRScanner"
 
 export function StageRenderer({ stage }: { stage: Stage }) {
+    const [isScanning, setIsScanning] = useState(false)
 
     if (!stage) return <div>Loading...</div>
 
-    // We can switch component based on type, but for now 
-    // 'content' type handles almost everything (text, audio, image, model).
-    // Even 'ar_model' type is just 'content' with emphasized AR button.
+    if (isScanning) {
+        return <QRScanner onClose={() => setIsScanning(false)} />
+    }
 
     return (
-        <div className="flex flex-col h-screen bg-black text-white">
+        <div className="flex flex-col h-screen bg-black text-white relative">
+            {/* Close / Scan Button */}
+            <div className="absolute top-4 right-4 z-50">
+                <Button
+                    size="icon"
+                    variant="secondary"
+                    className="rounded-full bg-black/50 backdrop-blur-md text-white border border-white/20 hover:bg-black/70"
+                    onClick={() => setIsScanning(true)}
+                >
+                    <X className="w-5 h-5" />
+                    <span className="sr-only">Close / Scan</span>
+                </Button>
+            </div>
+
             {/* Media or Image Header */}
             <div className="shrink-0 relative w-full h-[40vh] bg-neutral-900 overflow-hidden">
                 {stage.content?.images?.[0] ? (

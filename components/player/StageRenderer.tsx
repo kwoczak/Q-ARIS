@@ -243,7 +243,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                     {block.overlay && (
                         <div className={`absolute ${overlayPositionClass} p-4 pointer-events-none`}>
                             <div
-                                className="pointer-events-auto rounded-lg"
+                                className={`pointer-events-auto rounded-lg ${block.overlay.style.backdropBlur ? 'backdrop-blur-sm' : ''}`}
                                 style={{
                                     backgroundColor: block.overlay.style.backgroundColor || 'rgba(0,0,0,0.5)',
                                     color: block.overlay.style.color || 'white',

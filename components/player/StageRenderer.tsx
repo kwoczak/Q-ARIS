@@ -57,7 +57,7 @@ export function StageRenderer({ stage }: { stage: Stage }) {
     const hasBlocks = content.blocks && content.blocks.length > 0
 
     const containerClasses = [
-        "flex flex-col h-screen relative transition-colors duration-500",
+        "flex flex-col h-[100dvh] w-full relative transition-colors duration-500 overflow-hidden",
         content.background ? (isDarkBackground ? "text-white" : "text-neutral-900") : "bg-black text-white"
     ].join(" ")
 
@@ -89,8 +89,8 @@ export function StageRenderer({ stage }: { stage: Stage }) {
 
             {hasBlocks ? (
                 // --- NEW BLOCK RENDERER ---
-                <ScrollArea className="flex-1 w-full h-full relative z-10">
-                    <div className="flex flex-col min-h-screen">
+                <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden touch-pan-y">
+                    <div className="flex flex-col min-h-full pb-32">
                         {content.blocks!.map((block) => (
                             <BlockRenderer key={block.id} block={block} />
                         ))}
@@ -99,7 +99,7 @@ export function StageRenderer({ stage }: { stage: Stage }) {
                             Actually, let's just support the legacy audio field as "Ambient Audio" for the stage
                         */}
                     </div>
-                </ScrollArea>
+                </div>
             ) : (
                 // --- LEGACY RENDERER ---
                 <>
@@ -177,6 +177,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
         padding: block.styles?.padding ? block.styles.padding : '1rem', // Default padding
         backgroundColor: block.styles?.backgroundColor || 'transparent',
         borderRadius: block.styles?.borderRadius || '0',
+        marginBottom: block.styles?.marginBottom || '0',
         color: block.styles?.color || 'inherit',
         fontFamily: getFontFamily(block.styles?.fontFamily || 'sans'),
     }
@@ -226,7 +227,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                     {block.overlay && (
                         <div className={`absolute ${overlayPositionClass} p-4 pointer-events-none`}>
                             <div
-                                className="pointer-events-auto rounded-lg backdrop-blur-sm"
+                                className={`pointer-events-auto rounded-lg ${block.overlay.style.backgroundColor === 'transparent' ? '' : 'backdrop-blur-sm'}`}
                                 style={{
                                     backgroundColor: block.overlay.style.backgroundColor || 'rgba(0,0,0,0.5)',
                                     color: block.overlay.style.color || 'white',

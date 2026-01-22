@@ -249,18 +249,80 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                                                     </div>
 
                                                     {block.overlay.style.backgroundColor !== 'transparent' && (
-                                                        <Input
-                                                            type="color"
-                                                            className="w-6 h-6 p-0 border-0"
-                                                            value={block.overlay.style.backgroundColor?.startsWith('#') ? block.overlay.style.backgroundColor : '#000000'}
-                                                            onChange={(e) => onChange({
-                                                                ...block,
-                                                                overlay: {
-                                                                    ...block.overlay!,
-                                                                    style: { ...block.overlay!.style, backgroundColor: e.target.value }
-                                                                }
-                                                            })}
-                                                        />
+                                                        <div className="flex items-center gap-2 flex-1">
+                                                            <Input
+                                                                type="color"
+                                                                className="w-6 h-6 p-0 border-0 shrink-0"
+                                                                value={block.overlay.style.backgroundColor?.startsWith('#') ? block.overlay.style.backgroundColor : (block.overlay.style.backgroundColor?.startsWith('rgba') ? (() => {
+                                                                    // Simple parser to hex for input
+                                                                    const parts = block.overlay.style.backgroundColor?.match(/\d+/g)
+                                                                    if (parts && parts.length >= 3) {
+                                                                        const r = parseInt(parts[0]).toString(16).padStart(2, '0')
+                                                                        const g = parseInt(parts[1]).toString(16).padStart(2, '0')
+                                                                        const b = parseInt(parts[2]).toString(16).padStart(2, '0')
+                                                                        return `#${r}${g}${b}`
+                                                                    }
+                                                                    return '#000000'
+                                                                })() : '#000000')}
+                                                                onChange={(e) => {
+                                                                    const hex = e.target.value
+                                                                    const currentBg = block.overlay?.style.backgroundColor || 'rgba(0,0,0,0.5)'
+                                                                    let currentOpacity = 0.5
+                                                                    if (currentBg.startsWith('rgba')) {
+                                                                        const match = currentBg.match(/[\d\.]+\)$/)
+                                                                        if (match) currentOpacity = parseFloat(match[0])
+                                                                    }
+
+                                                                    const r = parseInt(hex.slice(1, 3), 16)
+                                                                    const g = parseInt(hex.slice(3, 5), 16)
+                                                                    const b = parseInt(hex.slice(5, 7), 16)
+
+                                                                    const newRgba = `rgba(${r},${g},${b},${currentOpacity})`
+
+                                                                    onChange({
+                                                                        ...block,
+                                                                        overlay: {
+                                                                            ...block.overlay!,
+                                                                            style: { ...block.overlay!.style, backgroundColor: newRgba }
+                                                                        }
+                                                                    })
+                                                                }}
+                                                            />
+                                                            <Slider
+                                                                min={0}
+                                                                max={1}
+                                                                step={0.1}
+                                                                className="w-20"
+                                                                value={[block.overlay.style.backgroundColor?.startsWith('rgba') ? parseFloat(block.overlay.style.backgroundColor.match(/[\d\.]+\)$/)?.[0] || '0.5') : 1]}
+                                                                onValueChange={(val) => {
+                                                                    const opacity = val[0]
+                                                                    const currentBg = block.overlay?.style.backgroundColor || 'rgba(0,0,0,0.5)'
+                                                                    let r = 0, g = 0, b = 0
+
+                                                                    if (currentBg.startsWith('#')) {
+                                                                        r = parseInt(currentBg.slice(1, 3), 16)
+                                                                        g = parseInt(currentBg.slice(3, 5), 16)
+                                                                        b = parseInt(currentBg.slice(5, 7), 16)
+                                                                    } else if (currentBg.startsWith('rgba')) {
+                                                                        const parts = currentBg.match(/\d+/g)
+                                                                        if (parts) {
+                                                                            r = parseInt(parts[0])
+                                                                            g = parseInt(parts[1])
+                                                                            b = parseInt(parts[2])
+                                                                        }
+                                                                    }
+
+                                                                    const newRgba = `rgba(${r},${g},${b},${opacity})`
+                                                                    onChange({
+                                                                        ...block,
+                                                                        overlay: {
+                                                                            ...block.overlay!,
+                                                                            style: { ...block.overlay!.style, backgroundColor: newRgba }
+                                                                        }
+                                                                    })
+                                                                }}
+                                                            />
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
@@ -431,7 +493,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </div>
                 )}
 
-                {block.type === 'text' && (
+                {(block.type === 'text' || block.type === 'hotspot') && (
                     <div className="space-y-1">
                         <Label className="text-xs">Font Family</Label>
                         <Select
@@ -452,7 +514,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </div>
                 )}
 
-                {block.type === 'text' && (
+                {(block.type === 'text' || block.type === 'hotspot') && (
                     <div className="space-y-1">
                         <Label className="text-xs">Text Color</Label>
                         <div className="flex items-center gap-2">
@@ -466,7 +528,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </div>
                 )}
 
-                {block.type === 'text' && (
+                {(block.type === 'text' || block.type === 'hotspot') && (
                     <div className="space-y-1 col-span-2">
                         <Label className="text-xs">Background (Color + Transparency)</Label>
                         <div className="flex items-center gap-4 border p-2 rounded-md">
@@ -528,7 +590,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </div>
                 )}
 
-                {block.type === 'text' && (
+                {(block.type === 'text' || block.type === 'hotspot') && (
                     <div className="space-y-1">
                         <Label className="text-xs">Size</Label>
                         <Select
@@ -563,6 +625,26 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                             <SelectItem value="0.5rem">Small</SelectItem>
                             <SelectItem value="1rem">Medium</SelectItem>
                             <SelectItem value="2rem">Large</SelectItem>
+                            <SelectItem value="4rem">Extra Large</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-1">
+                    <Label className="text-xs">Vertical Space (Margin)</Label>
+                    <Select
+                        value={block.styles?.marginBottom || '0'}
+                        onValueChange={(v: string) => updateStyle('marginBottom', v)}
+                    >
+                        <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="0">None</SelectItem>
+                            <SelectItem value="0.5rem">Small</SelectItem>
+                            <SelectItem value="1rem">Medium</SelectItem>
+                            <SelectItem value="2rem">Large</SelectItem>
+                            <SelectItem value="4rem">Extra Large</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

@@ -18,6 +18,7 @@ export interface BlockStyle {
     padding?: string
     backgroundColor?: string // hex or rgba
     borderRadius?: string
+    marginBottom?: string
     // Visual Effects
     animation?: 'fade-in' | 'slide-up' | 'scale-up' | 'typewriter' | 'none'
     animationDelay?: string

@@ -27,6 +27,9 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
             case 'accordion':
                 initialContent = []
                 break
+            case 'puzzle':
+                initialContent = { image: '', gridSize: 3, points: 20 }
+                break
             case 'hotspot':
                 initialContent = { image: '', hotspots: [] }
                 break
@@ -106,6 +109,7 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
                 <Button size="sm" variant="outline" onClick={() => addBlock('scratchpad')}>+ Scratch</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('carousel')}>+ Gallery</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('accordion')}>+ Accordion</Button>
+                <Button size="sm" variant="outline" onClick={() => addBlock('puzzle')}>+ Puzzle</Button>
             </div>
 
             <Accordion type="single" collapsible className="space-y-2">

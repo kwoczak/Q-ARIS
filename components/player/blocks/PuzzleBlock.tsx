@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { PuzzleContent, BlockStyle } from "@/types/schema"
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
-import { useScore } from "../ScoreContext"
+import { useVisitor } from "../VisitorContext"
 import confetti from 'canvas-confetti'
 
 interface PuzzleBlockProps {
@@ -36,7 +36,7 @@ const shuffle = (array: number[]) => {
 // Since this is a SWAP puzzle (pick any two to swap), ANY configuration is solvable.
 
 export function PuzzleBlock({ blockId, content, style }: PuzzleBlockProps) {
-    const { addPoints } = useScore()
+    const { addPoints } = useVisitor()
     const [pieces, setPieces] = useState<PuzzlePiece[]>([])
     const [selectedPieceId, setSelectedPieceId] = useState<number | null>(null)
     const [isComplete, setIsComplete] = useState(false)
@@ -152,7 +152,7 @@ export function PuzzleBlock({ blockId, content, style }: PuzzleBlockProps) {
             setIsComplete(true)
             if (!alreadyCompleted) {
                 const points = content.points || 20
-                addPoints(points)
+                addPoints(points, blockId)
                 confetti({
                     particleCount: 150,
                     spread: 70,

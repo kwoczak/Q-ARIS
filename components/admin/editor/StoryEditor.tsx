@@ -18,6 +18,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import type { Story, Stage, Trigger, StoryEdge } from '@/types/schema'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { createClient } from '@/lib/supabase/client'
 import { StageProperties } from './StageProperties'
 import { Loader2 } from 'lucide-react'
@@ -64,6 +65,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
     const [selectedStage, setSelectedStage] = useState<Stage | null>(null)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
+    const [storyTitle, setStoryTitle] = useState(story.title)
 
     const supabase = createClient()
 
@@ -240,7 +242,19 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
         <div className="h-[calc(100vh-140px)] w-full border rounded-lg overflow-hidden bg-white dark:bg-black flex flex-col relative">
             <div className="p-4 border-b flex justify-between items-center bg-neutral-50 dark:bg-neutral-900 shrink-0">
                 <div>
-                    <h2 className="font-bold text-lg">{story.title}</h2>
+                    <Input
+                        value={storyTitle}
+                        onChange={(e) => setStoryTitle(e.target.value)}
+                        onBlur={async () => {
+                            if (storyTitle.trim() === story.title) return
+                            const { error } = await supabase.from('stories').update({ title: storyTitle }).eq('id', story.id)
+                            if (error) {
+                                console.error(error)
+                                alert("Error updating title")
+                            }
+                        }}
+                        className="font-bold text-lg h-auto p-0 border-transparent hover:border-neutral-200 focus-visible:ring-0 bg-transparent px-1 -ml-1 w-full max-w-md transition-all shadow-none"
+                    />
                     <p className="text-xs text-neutral-500">
                         {stages.length} Stages • Drag nodes to plan. Draw lines to connect.
                     </p>

@@ -8,7 +8,7 @@ export type Story = {
 
 export type StageType = 'content' | 'ar_model' | 'quiz' | 'ending'
 
-export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d' | 'comparison' | 'hotspot' | 'quiz' | 'scratchpad' | 'carousel' | 'accordion' | 'puzzle'
+export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d' | 'comparison' | 'hotspot' | 'quiz' | 'scratchpad' | 'carousel' | 'accordion'
 
 export interface BlockStyle {
     // ... existing BlockStyle ...
@@ -87,16 +87,10 @@ export interface AccordionItem {
     content: string
 }
 
-export interface PuzzleContent {
-    image: string
-    gridSize: 3 | 4 | 5
-    points: number
-}
-
 export interface StageBlock {
     id: string
     type: BlockType
-    content: string | ComparisonContent | HotspotContent | QuizContent | ScratchContent | CarouselItem[] | AccordionItem[] | PuzzleContent | any
+    content: string | ComparisonContent | HotspotContent | QuizContent | ScratchContent | CarouselItem[] | AccordionItem[] | any
     styles?: BlockStyle
     overlay?: BlockOverlay
 }

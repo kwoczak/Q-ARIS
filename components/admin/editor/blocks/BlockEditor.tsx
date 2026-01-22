@@ -18,7 +18,6 @@ import { CarouselEditor } from "./CarouselEditor"
 import { AccordionEditor } from "./AccordionEditor"
 import { QuizEditor } from "./QuizEditor"
 import { ScratchCardEditor } from "./ScratchCardEditor"
-import { PuzzleEditor } from "./PuzzleEditor"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { fontOptions } from "@/lib/fonts"
@@ -504,10 +503,6 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
             case 'scratchpad':
                 return (
                     <ScratchCardEditor block={block} onChange={onChange} />
-                )
-            case 'puzzle':
-                return (
-                    <PuzzleEditor block={block} onChange={onChange} />
                 )
             default:
                 return null

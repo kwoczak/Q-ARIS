@@ -16,11 +16,10 @@ import { CarouselBlock } from "./blocks/CarouselBlock"
 import { AccordionBlock } from "./blocks/AccordionBlock"
 import { QuizBlock } from "./blocks/QuizBlock"
 import { ScratchCardBlock } from "./blocks/ScratchCardBlock"
-import { PuzzleBlock } from "./blocks/PuzzleBlock"
 import { MotionWrapper } from "./MotionWrapper"
 import { ScoreDisplay } from "./ScoreDisplay" // Import ScoreDisplay
 import { TypewriterEffect } from "./TypewriterEffect"
-import { ComparisonContent, HotspotContent, QuizContent, ScratchContent, CarouselItem, AccordionItem, PuzzleContent } from "@/types/schema"
+import { ComparisonContent, HotspotContent, QuizContent, ScratchContent, CarouselItem, AccordionItem } from "@/types/schema"
 
 // Dynamically import ModelViewer to avoid SSR hydration mismatch
 const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
@@ -336,14 +335,6 @@ function BlockRenderer({ block }: { block: StageBlock }) {
             return (
                 <ScratchCardBlock
                     content={block.content as ScratchContent}
-                    style={style}
-                />
-            )
-        case 'puzzle':
-            return (
-                <PuzzleBlock
-                    blockId={block.id}
-                    content={block.content as PuzzleContent}
                     style={style}
                 />
             )

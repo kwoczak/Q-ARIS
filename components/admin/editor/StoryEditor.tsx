@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useMemo } from 'react'
 import ReactFlow, {
     Background,
     Controls,
@@ -60,6 +60,10 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
     const [selectedStage, setSelectedStage] = useState<Stage | null>(null)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
+
+    // Memoize types to prevent ReactFlow warning
+    const nodeTypes = useMemo(() => ({}), [])
+    const edgeTypes = useMemo(() => ({}), [])
 
     const supabase = createClient()
 
@@ -217,6 +221,8 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                     onEdgesChange={onEdgesChangeWrapper}
                     onConnect={onConnect}
                     onNodeClick={handleNodeClick}
+                    nodeTypes={nodeTypes}
+                    edgeTypes={edgeTypes}
                     fitView
                 >
                     <Background gap={12} size={1} />

@@ -44,7 +44,7 @@ export function StageProperties({ stage, isOpen, onClose, onSave }: StagePropert
     }, [stage])
 
     const fetchTrigger = async (stageId: string) => {
-        const { data } = await supabase.from('triggers').select('*').eq('target_stage_id', stageId).single()
+        const { data } = await supabase.from('triggers').select('*').eq('target_stage_id', stageId).maybeSingle()
         if (data) {
             setTrigger(data)
             generateQrImage(data.code)
@@ -160,6 +160,9 @@ export function StageProperties({ stage, isOpen, onClose, onSave }: StagePropert
                                 currentUrl={formData.content?.audio}
                                 onUploadComplete={(url) => handleContentChange('audio', url)}
                             />
+                            {formData.content?.audio && (
+                                <audio controls src={formData.content.audio} className="mt-2 w-full h-8" />
+                            )}
                             <div className="flex items-center gap-2 mt-2">
                                 <input
                                     type="checkbox"
@@ -184,6 +187,15 @@ export function StageProperties({ stage, isOpen, onClose, onSave }: StagePropert
                                 currentUrl={formData.content?.images?.[0]}
                                 onUploadComplete={(url) => handleContentChange('images', [url])}
                             />
+                            {formData.content?.images?.[0] && (
+                                <div className="mt-2 relative group">
+                                    <img
+                                        src={formData.content.images[0]}
+                                        alt="Preview"
+                                        className="w-full h-48 object-cover rounded-md border"
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Video Upload */}

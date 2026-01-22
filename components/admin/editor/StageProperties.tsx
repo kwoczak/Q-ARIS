@@ -114,11 +114,24 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: St
     return (
         <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <SheetContent className="w-[400px] sm:w-[540px] flex flex-col h-full bg-white transition-all p-0 gap-0">
-                <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitle>Edit Stage: {formData.title}</SheetTitle>
-                    <SheetDescription>
-                        Configure content and media for this step.
-                    </SheetDescription>
+                <SheetHeader className="p-6 border-b shrink-0 flex flex-row items-center justify-between space-y-0">
+                    <div>
+                        <SheetTitle>Edit Stage: {formData.title}</SheetTitle>
+                        <SheetDescription>
+                            Configure content and media for this step.
+                        </SheetDescription>
+                    </div>
+                    {trigger && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-4 gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                            onClick={() => window.open(`/play/${trigger.code}`, '_blank')}
+                        >
+                            <QrCode className="w-4 h-4" />
+                            Preview
+                        </Button>
+                    )}
                 </SheetHeader>
 
                 {/* Native CSS Scrolling - More robust than ScrollArea for full height layouts */}
@@ -232,7 +245,9 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: St
                                         3D
                                     </div>
                                     <div className="flex-1 overflow-hidden">
-                                        <p className="text-xs font-medium text-purple-900 truncate">Model Uploaded</p>
+                                        <p className="text-xs font-medium text-purple-900 truncate">
+                                            {formData.content.model_3d.split('/').pop()?.split('?')[0] || "Model Uploaded"}
+                                        </p>
                                         <p className="text-[10px] text-purple-600 truncate opacity-70">Ready for AR View</p>
                                     </div>
                                 </div>

@@ -27,9 +27,10 @@ interface StagePropertiesProps {
     onClose: () => void
     onSave: (updatedStage: Stage) => void
     onDelete: (stageId: string) => void
+    onDuplicate: () => void
 }
 
-export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: StagePropertiesProps) {
+export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDuplicate }: StagePropertiesProps) {
     const [formData, setFormData] = useState<Stage | null>(null)
     const [trigger, setTrigger] = useState<Trigger | null>(null)
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
@@ -211,6 +212,10 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete }: St
                                         onClose()
                                     }
                                 }}>Delete Stage</Button>
+                                <Button variant="secondary" onClick={() => {
+                                    onDuplicate()
+                                    onClose()
+                                }}>Duplicate Stage</Button>
                             </div>
                         </div>
                     </div>

@@ -2,7 +2,7 @@
 
 import { StageBlock, BlockType } from "@/types/schema"
 import { Button } from "@/components/ui/button"
-import { Plus, Trash2, ChevronUp, ChevronDown, GripVertical, Settings2 } from "lucide-react"
+import { Plus, Trash2, ChevronUp, ChevronDown, GripVertical, Settings2, Copy } from "lucide-react"
 import { BlockEditor } from "./BlockEditor"
 import { useState } from "react"
 import {
@@ -80,6 +80,18 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
         onChange(newBlocks)
     }
 
+    const duplicateBlock = (index: number) => {
+        const blockToClone = blocks[index]
+        const clonedBlock: StageBlock = {
+            ...structuredClone(blockToClone),
+            id: crypto.randomUUID() // Ensure new ID
+        }
+
+        const newBlocks = [...blocks]
+        newBlocks.splice(index + 1, 0, clonedBlock) // Insert after original
+        onChange(newBlocks)
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex gap-2 justify-center flex-wrap p-2 bg-neutral-100 rounded-lg">
@@ -110,6 +122,9 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
                                 </Button>
                                 <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); moveBlock(index, 'down') }}>
                                     <ChevronDown className="w-3 h-3" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-6 w-6 text-blue-500 hover:text-blue-700 hover:bg-blue-50" onClick={(e) => { e.stopPropagation(); duplicateBlock(index) }}>
+                                    <Copy className="w-3 h-3" />
                                 </Button>
                                 <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={(e) => { e.stopPropagation(); removeBlock(index) }}>
                                     <Trash2 className="w-3 h-3" />

@@ -245,6 +245,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                         setNodes(prev => prev.filter(n => n.id !== id))
                     }
                 }}
+                onDuplicate={() => selectedStage && handleDuplicateStage(selectedStage)}
             />
         </div>
     )

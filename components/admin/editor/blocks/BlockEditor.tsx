@@ -244,9 +244,33 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                                                         />
                                                         <label
                                                             htmlFor="transparent-bg"
-                                                            className="text-[10px] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                            className="text-[10px] font-medium leading-none cursor-pointer"
                                                         >
                                                             Clear
+                                                        </label>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <Checkbox
+                                                            id="blur-bg"
+                                                            checked={block.overlay.style.backdropBlur}
+                                                            onCheckedChange={(checked) => {
+                                                                onChange({
+                                                                    ...block,
+                                                                    overlay: {
+                                                                        ...block.overlay!,
+                                                                        style: {
+                                                                            ...block.overlay!.style,
+                                                                            backdropBlur: !!checked
+                                                                        }
+                                                                    }
+                                                                })
+                                                            }}
+                                                        />
+                                                        <label
+                                                            htmlFor="blur-bg"
+                                                            className="text-[10px] font-medium leading-none cursor-pointer"
+                                                        >
+                                                            Blur
                                                         </label>
                                                     </div>
 

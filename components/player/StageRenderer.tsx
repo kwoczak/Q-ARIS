@@ -46,14 +46,19 @@ export function StageRenderer({ stage }: { stage: Stage }) {
                         >
                             👀 View in 3D
                         </Button>
-                        {/* @ts-ignore */}
-                        <model-viewer
-                            src={stage.content.model_3d}
-                            ar
-                            ar-modes="scene-viewer quick-look webxr"
-                            camera-controls
-                            style={{ display: 'none' }}
-                        ></model-viewer>
+                        {/* Hidden model-viewer to facilitate AR activation */}
+                        {(() => {
+                            const ModelViewer = 'model-viewer' as any;
+                            return (
+                                <ModelViewer
+                                    src={stage.content.model_3d}
+                                    ar
+                                    ar-modes="scene-viewer quick-look webxr"
+                                    camera-controls
+                                    style={{ display: 'none' }}
+                                />
+                            )
+                        })()}
                     </div>
                 )}
             </div>

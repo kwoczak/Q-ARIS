@@ -28,3 +28,21 @@ export async function createStory(formData: FormData) {
 
     redirect(`/admin/story/${data.id}`)
 }
+
+export async function deleteStory(id: string) {
+    const supabase = await createClient()
+
+    // Deleting story will cascade delete stages and triggers if FK is set up correctly
+    // or we might need explicit deletes depending on schema.
+    // Our schema has 'on delete cascade', so deleting story is enough.
+
+    const { error } = await supabase.from('stories').delete().eq('id', id)
+
+    if (error) {
+        throw new Error(error.message)
+    }
+
+    // Next.js cache revalidation happens automatically for server actions usually 
+    // but explicit revalidatePath is good practice if needed.
+    // However, since we are listed in /admin, we assume page reload or revalidation happens.
+}

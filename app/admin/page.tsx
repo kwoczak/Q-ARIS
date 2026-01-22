@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CreateStoryDialog } from '@/components/admin/CreateStoryDialog'
+import { StoryCard } from '@/components/admin/StoryCard'
 import Link from 'next/link'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import type { Story } from '@/types/schema'
 
 export default async function AdminDashboard() {
@@ -28,17 +28,7 @@ export default async function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {stories.map((story) => (
                     <Link href={`/admin/story/${story.id}`} key={story.id} className="block h-full">
-                        <Card className="hover:border-blue-500 hover:shadow-md transition-all cursor-pointer h-full">
-                            <CardHeader>
-                                <CardTitle className="line-clamp-1">{story.title}</CardTitle>
-                                <CardDescription>{new Date(story.created_at).toLocaleDateString()}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-neutral-500 line-clamp-3">
-                                    {story.description || "No description provided."}
-                                </p>
-                            </CardContent>
-                        </Card>
+                        <StoryCard story={story} />
                     </Link>
                 ))}
                 {stories.length === 0 && !error && (

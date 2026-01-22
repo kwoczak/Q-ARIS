@@ -12,6 +12,7 @@ import ReactFlow, {
     Edge,
     Node,
     EdgeChange,
+    NodeChange,
     applyEdgeChanges
 } from 'reactflow'
 import 'reactflow/dist/style.css'
@@ -103,6 +104,22 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
         }
     }, [stages])
 
+    // Handle Deleting Nodes (Remove from DB)
+    const onNodesChangeWrapper = useCallback(async (changes: NodeChange[]) => {
+        onNodesChange(changes)
+
+        const removals = changes.filter(c => c.type === 'remove')
+        for (const removal of removals) {
+            if (removal.id) {
+                // Delete from DB (Cascade will kill edges and triggers usually)
+                await supabase.from('stages').delete().eq('id', removal.id)
+
+                // Update local state
+                setStages(prev => prev.filter(s => s.id !== removal.id))
+            }
+        }
+    }, [onNodesChange, supabase])
+
     const handleStageUpdate = async (updatedStage: Stage) => {
         setStages(prev => prev.map(s => s.id === updatedStage.id ? updatedStage : s))
         setNodes(prev => prev.map(n => n.id === updatedStage.id ? { ...n, data: { ...n.data, label: updatedStage.title } } : n))
@@ -185,7 +202,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
-                    onNodesChange={onNodesChange}
+                    onNodesChange={onNodesChangeWrapper}
                     onEdgesChange={onEdgesChangeWrapper}
                     onConnect={onConnect}
                     onNodeClick={handleNodeClick}

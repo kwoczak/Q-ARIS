@@ -16,6 +16,7 @@ import { ComparisonEditor } from "./ComparisonEditor"
 import { HotspotEditor } from "./HotspotEditor"
 import { CarouselEditor } from "./CarouselEditor"
 import { AccordionEditor } from "./AccordionEditor"
+import { QuizEditor } from "./QuizEditor"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { fontOptions } from "@/lib/fonts"
@@ -461,6 +462,10 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
             case 'accordion':
                 return (
                     <AccordionEditor block={block} onChange={onChange} />
+                )
+            case 'quiz':
+                return (
+                    <QuizEditor block={block} onChange={onChange} />
                 )
             default:
                 return null

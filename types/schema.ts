@@ -63,6 +63,7 @@ export interface QuizAnswer {
 export interface QuizContent {
     question: string
     answers: QuizAnswer[]
+    points: number // Points awarded for correct answer
 }
 
 export interface CarouselItem {

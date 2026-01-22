@@ -14,8 +14,10 @@ import { ComparisonBlock } from "./blocks/ComparisonBlock"
 import { HotspotBlock } from "./blocks/HotspotBlock"
 import { CarouselBlock } from "./blocks/CarouselBlock"
 import { AccordionBlock } from "./blocks/AccordionBlock"
+import { QuizBlock } from "./blocks/QuizBlock"
 import { MotionWrapper } from "./MotionWrapper"
-import { ComparisonContent, HotspotContent, CarouselItem, AccordionItem } from "@/types/schema"
+import { ScoreDisplay } from "./ScoreDisplay" // Import ScoreDisplay
+import { ComparisonContent, HotspotContent, QuizContent, CarouselItem, AccordionItem } from "@/types/schema"
 
 // Dynamically import ModelViewer to avoid SSR hydration mismatch
 const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
@@ -86,6 +88,9 @@ export function StageRenderer({ stage }: { stage: Stage }) {
                     <span className="sr-only">Close / Scan</span>
                 </Button>
             </div>
+
+            {/* Score Display (Always visible) */}
+            <ScoreDisplay />
 
             {hasBlocks ? (
                 // --- NEW BLOCK RENDERER ---
@@ -299,6 +304,14 @@ function BlockRenderer({ block }: { block: StageBlock }) {
             return (
                 <AccordionBlock
                     content={block.content as AccordionItem[]}
+                    style={style}
+                />
+            )
+        case 'quiz':
+            return (
+                <QuizBlock
+                    blockId={block.id}
+                    content={block.content as QuizContent}
                     style={style}
                 />
             )

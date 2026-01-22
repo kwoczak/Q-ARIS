@@ -30,6 +30,9 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
             case 'hotspot':
                 initialContent = { image: '', hotspots: [] }
                 break
+            case 'quiz':
+                initialContent = { question: '', answers: [], points: 10 }
+                break
             case 'comparison':
                 initialContent = { imageBefore: '', imageAfter: '' }
                 break
@@ -84,6 +87,7 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
                 <Button size="sm" variant="outline" onClick={() => addBlock('model_3d')}>+ 3D</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('comparison')}>+ Compare</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('hotspot')}>+ Hotspot</Button>
+                <Button size="sm" variant="outline" onClick={() => addBlock('quiz')}>+ Quiz</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('carousel')}>+ Gallery</Button>
                 <Button size="sm" variant="outline" onClick={() => addBlock('accordion')}>+ Accordion</Button>
             </div>

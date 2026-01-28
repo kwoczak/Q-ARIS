@@ -25,37 +25,38 @@ export function BackgroundEditor({ background, onChange }: BackgroundEditorProps
     }
 
     return (
-        <div className="space-y-4 p-4 bg-neutral-50 rounded-lg border">
-            <h3 className="font-semibold text-sm">Background Settings</h3>
+        <div className="space-y-4 p-4 bg-neutral-900 rounded-lg border border-white/10">
+            <h3 className="font-semibold text-sm text-white">Background Settings</h3>
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label>Type</Label>
+                    <Label className="text-neutral-200">Type</Label>
                     <Select value={type} onValueChange={(v: string) => handleTypeChange(v as any)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-neutral-800 border-neutral-700 text-white">
                             <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="color">Solid Color</SelectItem>
-                            <SelectItem value="gradient">Gradient</SelectItem>
-                            <SelectItem value="image">Image</SelectItem>
+                        <SelectContent className="bg-neutral-800 border-neutral-700 text-white">
+                            <SelectItem value="color" className="focus:bg-neutral-700 focus:text-white">Solid Color</SelectItem>
+                            <SelectItem value="gradient" className="focus:bg-neutral-700 focus:text-white">Gradient</SelectItem>
+                            <SelectItem value="image" className="focus:bg-neutral-700 focus:text-white">Image</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
 
                 {type === 'color' && (
                     <div className="space-y-2">
-                        <Label>Color</Label>
+                        <Label className="text-neutral-200">Color</Label>
                         <div className="flex gap-2">
                             <Input
                                 type="color"
                                 value={value}
                                 onChange={(e) => onChange({ type, value: e.target.value, overlayOpacity: opacity })}
-                                className="w-12 p-1 h-10"
+                                className="w-12 p-1 h-10 bg-neutral-800 border-neutral-700"
                             />
                             <Input
                                 value={value}
                                 onChange={(e) => onChange({ type, value: e.target.value, overlayOpacity: opacity })}
+                                className="bg-neutral-800 border-neutral-700 text-white"
                             />
                         </div>
                     </div>
@@ -64,7 +65,7 @@ export function BackgroundEditor({ background, onChange }: BackgroundEditorProps
 
             {type === 'gradient' && (
                 <div className="space-y-2">
-                    <Label>CSS Gradient</Label>
+                    <Label className="text-neutral-200">CSS Gradient</Label>
                     <Input
                         value={value}
                         onChange={(e) => onChange({ type, value: e.target.value, overlayOpacity: opacity })}

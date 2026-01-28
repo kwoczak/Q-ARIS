@@ -92,34 +92,29 @@ export function EditMuseumDialog({ museum }: { museum: any }) {
                             />
                         </div>
 
-                        {isPasswordChanged && (
-                            <>
-                                <div className="flex flex-col gap-2">
-                                    <Label htmlFor="confirmPassword">
-                                        Confirm New Password
-                                    </Label>
-                                    <Input
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        type="password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        required
-                                    />
-                                </div>
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="confirmPassword">
+                                Confirm New Password
+                            </Label>
+                            <Input
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                        </div>
 
-                                <div className="flex flex-col gap-1 text-xs bg-gray-50 p-3 rounded-md border text-gray-600">
-                                    <p className="font-semibold mb-1">New Password Requirements:</p>
-                                    <ul className="list-disc pl-4 space-y-0.5">
-                                        <li className={password.length >= 8 ? "text-green-600" : ""}>Min 8 characters</li>
-                                        <li className={/[A-Z]/.test(password) ? "text-green-600" : ""}>One uppercase letter</li>
-                                        <li className={/\d/.test(password) ? "text-green-600" : ""}>One number</li>
-                                        <li className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? "text-green-600" : ""}>One special character</li>
-                                        <li className={isMatch && confirmPassword.length > 0 ? "text-green-600" : confirmPassword.length > 0 ? "text-red-500" : ""}>Passwords match</li>
-                                    </ul>
-                                </div>
-                            </>
-                        )}
+                        <div className="flex flex-col gap-1 text-xs bg-neutral-900 p-3 rounded-md border border-white/10 text-neutral-400">
+                            <p className="font-semibold mb-1 text-neutral-300">New Password Requirements:</p>
+                            <ul className="list-disc pl-4 space-y-0.5">
+                                <li className={password.length >= 8 ? "text-green-500" : ""}>Min 8 characters</li>
+                                <li className={/[A-Z]/.test(password) ? "text-green-500" : ""}>One uppercase letter</li>
+                                <li className={/\d/.test(password) ? "text-green-500" : ""}>One number</li>
+                                <li className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? "text-green-500" : ""}>One special character</li>
+                                <li className={isMatch && confirmPassword.length > 0 ? "text-green-500" : confirmPassword.length > 0 ? "text-red-400" : ""}>Passwords match</li>
+                            </ul>
+                        </div>
                     </div>
                     {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                     <DialogFooter>

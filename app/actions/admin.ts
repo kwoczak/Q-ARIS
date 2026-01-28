@@ -1,6 +1,7 @@
 'use server'
+// Rebuild trigger
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { hashPassword, getSession } from '@/lib/auth-lib';
 import { revalidatePath } from 'next/cache';
 import { createLicense } from '@/lib/users';
@@ -160,15 +161,52 @@ export async function updateAdminProfileAction(formData: FormData) {
 
 
 
+
+
 export async function deleteMuseumAction(museumId: string) {
-    const supabase = await createClient();
+    // Use Admin Client to bypass RLS for cascading deletes
+    const supabase = await createAdminClient();
+
+    // 1. Get associated curators
+    const { data: curators } = await supabase
+        .from('users')
+        .select('id')
+        .eq('museum_id', museumId);
+
+    // 2. Delete Stories assigned to these curators (Manual Cascade)
+    if (curators && curators.length > 0) {
+        const curatorIds = curators.map(c => c.id);
+        const { error: storiesError } = await supabase
+            .from('stories')
+            .delete()
+            .in('curator_id', curatorIds);
+
+        if (storiesError) {
+            console.error("Error deleting stories:", storiesError);
+            return { error: 'Failed to delete dependencies (stories): ' + storiesError.message };
+        }
+    }
+
+    // 3. Delete Curators
+    const { error: curatorError } = await supabase
+        .from('users')
+        .delete()
+        .eq('museum_id', museumId);
+
+    if (curatorError) {
+        console.error("Error deleting curators:", curatorError);
+        return { error: 'Failed to delete associated curators: ' + curatorError.message };
+    }
+
+    // 4. Delete the museum user
     const { error } = await supabase
         .from('users')
         .delete()
-        .eq('id', museumId); // Cascade should handle licenses
+        .eq('id', museumId);
 
     if (error) return { error: error.message };
     revalidatePath('/admin');
+    return { success: true };
 }
 
 export async function updateLicenseAction(formData: FormData) {

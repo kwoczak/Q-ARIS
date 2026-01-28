@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CreateMuseumDialog } from '@/components/admin/CreateMuseumDialog'
 import { EditLicenseDialog } from '@/components/admin/EditLicenseDialog'
+import { EditMuseumDialog } from '@/components/admin/EditMuseumDialog'
 import { MuseumActions } from '@/components/admin/MuseumActions'
 import { getSession } from '@/lib/auth-lib'
 import { Badge } from '@/components/ui/badge'
@@ -78,6 +79,7 @@ export default async function AdminDashboard() {
                                             currentSeats={museum.max_seats || 3}
                                             currentExpiry={museum.expires_at}
                                         />
+                                        <EditMuseumDialog museum={museum} />
                                         <MuseumActions museumId={museum.id} suspended={museum.suspended || false} />
                                     </td>
                                 </tr>

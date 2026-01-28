@@ -23,6 +23,7 @@ export function StoryCard({ story }: { story: Story }) {
         setIsDeleting(true)
         try {
             await deleteStory(story.id)
+            await deleteStory(story.id)
             router.refresh() // Refresh server component data
         } catch (error) {
             console.error(error)

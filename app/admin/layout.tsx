@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { logout } from "@/app/actions/auth"
 
 export default function AdminLayout({
     children,
@@ -15,7 +16,9 @@ export default function AdminLayout({
                     </Link>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="sm">Logout</Button>
+                    <form action={logout}>
+                        <Button variant="ghost" size="sm" type="submit">Logout</Button>
+                    </form>
                 </div>
             </header>
             <main className="p-6 max-w-7xl mx-auto">

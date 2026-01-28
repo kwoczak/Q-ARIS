@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getSession } from '@/lib/auth-lib'
 
 export async function createStory(formData: FormData) {
     const title = formData.get('title') as string
@@ -13,9 +14,18 @@ export async function createStory(formData: FormData) {
 
     const supabase = await createClient()
 
+    const session = await getSession()
+
+    // Assign to curator if logged in
+    const curatorId = session?.role === 'curator' ? session.userId : null
+
     const { data, error } = await supabase
         .from('stories')
-        .insert({ title, description })
+        .insert({
+            title,
+            description,
+            curator_id: curatorId
+        })
         .select()
         .single()
 
@@ -26,7 +36,11 @@ export async function createStory(formData: FormData) {
         throw new Error(error.message)
     }
 
-    redirect(`/admin/story/${data.id}`)
+    // Redirect to editor - keeping path as /admin/story/[id] for now, 
+    // assuming we will use middleware or page logic to allow curators there.
+    // Or we should verify if the user is a curator and redirect accordingly.
+
+    redirect(`/curator/story/${data.id}`)
 }
 
 export async function deleteStory(id: string) {

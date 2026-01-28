@@ -21,18 +21,18 @@ export default async function AdminLayout({
         .single();
 
     return (
-        <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 border-neutral-200">
-            <header className="border-b bg-white dark:bg-neutral-950 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans">
+            <header className="border-b border-white/5 bg-neutral-950/60 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-10">
                 <div className="flex items-center gap-4">
                     <Link href="/admin" className="text-xl font-bold tracking-tight">
-                        Museum<span className="text-blue-600">Story</span> CMS
+                        Museum<span className="text-blue-500">Story</span> CMS
                     </Link>
                 </div>
                 <div className="flex items-center gap-3">
                     {adminUser && <EditAdminDialog adminUser={adminUser} />}
-                    <div className="h-4 w-px bg-gray-200" />
+                    <div className="h-4 w-px bg-white/10" />
                     <form action={logout}>
-                        <Button variant="ghost" size="sm" type="submit">Logout</Button>
+                        <Button variant="ghost" size="sm" type="submit" className="text-neutral-400 hover:text-white hover:bg-white/5">Logout</Button>
                     </form>
                 </div>
             </header>

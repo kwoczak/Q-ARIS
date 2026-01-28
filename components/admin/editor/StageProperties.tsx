@@ -117,25 +117,25 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
 
     return (
         <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent className="w-screen sm:w-screen max-w-none sm:max-w-none flex flex-col h-full bg-white transition-all p-0 gap-0">
-                <SheetHeader className="p-4 border-b shrink-0 flex flex-row items-center justify-between space-y-0 h-16">
+            <SheetContent className="w-screen sm:w-screen max-w-none sm:max-w-none flex flex-col h-full bg-neutral-950 border-none transition-all p-0 gap-0 text-white">
+                <SheetHeader className="p-4 border-b border-white/10 shrink-0 flex flex-row items-center justify-between space-y-0 h-16 bg-neutral-900">
                     <div className="flex items-center gap-4">
                         <div>
-                            <SheetTitle>Edit Stage: {formData.title}</SheetTitle>
-                            <SheetDescription className="hidden sm:block">
+                            <SheetTitle className="text-white">Edit Stage: {formData.title}</SheetTitle>
+                            <SheetDescription className="hidden sm:block text-neutral-400">
                                 Real-time preview active
                             </SheetDescription>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={onClose}>Cancel</Button>
-                        <Button onClick={handleSave}>Save Changes</Button>
+                        <Button variant="outline" onClick={onClose} className="border-neutral-700 hover:bg-neutral-800 text-white hover:text-white bg-transparent">Cancel</Button>
+                        <Button onClick={handleSave} className="bg-blue-600 text-white hover:bg-blue-500">Save Changes</Button>
                     </div>
                 </SheetHeader>
 
                 <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-2">
                     {/* LEFT PANEL: EDITOR */}
-                    <div className="h-full overflow-y-auto border-r bg-gray-50/50">
+                    <div className="h-full overflow-y-auto border-r border-white/10 bg-neutral-950">
                         <div className="p-6 space-y-8 max-w-2xl mx-auto">
                             {/* Basic Info */}
                             <div className="space-y-2">
@@ -174,14 +174,14 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
                             )}
 
                             {/* QR Code Section */}
-                            <div className="space-y-4 pt-4 border-t">
-                                <div className="flex bg-neutral-100 p-4 rounded-lg items-center justify-between">
+                            <div className="space-y-4 pt-4 border-t border-white/10">
+                                <div className="flex bg-neutral-900 p-4 rounded-lg items-center justify-between border border-white/5">
                                     <div className="flex items-center gap-2">
-                                        <QrCode className="w-5 h-5 text-neutral-600" />
-                                        <span className="font-semibold text-sm">Action Trigger</span>
+                                        <QrCode className="w-5 h-5 text-neutral-400" />
+                                        <span className="font-semibold text-sm text-neutral-200">Action Trigger</span>
                                     </div>
                                     {!trigger && (
-                                        <Button size="sm" onClick={handleCreateTrigger} disabled={isLoadingQr}>
+                                        <Button size="sm" onClick={handleCreateTrigger} disabled={isLoadingQr} variant="secondary">
                                             {isLoadingQr && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                                             Generate QR Code
                                         </Button>
@@ -189,9 +189,9 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
                                 </div>
 
                                 {trigger && qrCodeDataUrl && (
-                                    <div className="flex flex-col items-center p-4 border rounded-lg bg-white">
+                                    <div className="flex flex-col items-center p-4 border border-white/10 rounded-lg bg-white">
                                         <img src={qrCodeDataUrl} alt="QR Code" className="w-48 h-48" />
-                                        <p className="font-mono text-xs mt-2 text-neutral-500">Code: {trigger.code}</p>
+                                        <p className="font-mono text-xs mt-2 text-neutral-900">Code: {trigger.code}</p>
                                         <Button variant="link" className="h-auto p-0 text-blue-600" onClick={() => {
                                             const link = document.createElement('a');
                                             link.download = `qr-${trigger.code}.png`;

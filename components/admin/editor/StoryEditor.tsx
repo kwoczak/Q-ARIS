@@ -30,11 +30,12 @@ const getInitialNodes = (stages: Stage[]): Node[] => {
         position: { x: s.position_x || 0, y: s.position_y || 0 },
         data: { label: s.title, type: s.type },
         style: {
-            border: '1px solid #e5e5e5',
+            border: '1px solid #404040',
             padding: '10px 20px',
             borderRadius: '8px',
-            background: 'white',
-            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+            background: '#171717',
+            color: 'white',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
             minWidth: '150px',
             textAlign: 'center',
             fontWeight: 500
@@ -253,7 +254,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                                 alert("Error updating title")
                             }
                         }}
-                        className="font-bold text-lg h-auto p-0 border-transparent hover:border-neutral-200 focus-visible:ring-0 bg-transparent px-1 -ml-1 w-full max-w-md transition-all shadow-none"
+                        className="font-bold text-lg h-auto p-0 border-transparent hover:border-neutral-700 focus-visible:ring-0 bg-transparent px-1 -ml-1 w-full max-w-md transition-all shadow-none text-white hover:bg-neutral-800"
                     />
                     <p className="text-xs text-neutral-500">
                         {stages.length} Stages • Drag nodes to plan. Draw lines to connect.
@@ -268,7 +269,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                     </Button>
                 </div>
             </div>
-            <div className="flex-1 w-full bg-neutral-100">
+            <div className="flex-1 w-full bg-neutral-950">
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -280,9 +281,9 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                     edgeTypes={edgeTypes}
                     fitView
                 >
-                    <Background gap={12} size={1} />
-                    <Controls />
-                    <MiniMap />
+                    <Background gap={12} size={1} color="#333" />
+                    <Controls className="bg-neutral-800 border-neutral-700 fill-white [&>button]:fill-white [&>button]:text-white [&>button:hover]:bg-neutral-700" />
+                    <MiniMap style={{ background: '#171717' }} nodeStrokeColor="#444" nodeColor="#262626" maskColor="rgba(0, 0, 0, 0.7)" />
                 </ReactFlow>
             </div>
 

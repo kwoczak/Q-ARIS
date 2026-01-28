@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server';
-import { hashPassword } from '@/lib/auth-lib';
+import { hashPassword, getSession } from '@/lib/auth-lib';
 import { revalidatePath } from 'next/cache';
 import { createLicense } from '@/lib/users';
 import { validatePassword } from '@/lib/password-utils';
@@ -100,6 +100,53 @@ export async function updateMuseumAction(formData: FormData) {
             .update(updates)
             .eq('id', museumId)
             .eq('role', 'museum'); // Security check
+
+        if (error) {
+            if (error.code === '23505') return { error: 'Username already taken' };
+            return { error: error.message };
+        }
+    }
+
+    revalidatePath('/admin');
+    return { success: true };
+}
+
+export async function updateAdminProfileAction(formData: FormData) {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
+        return { error: 'Unauthorized' };
+    }
+
+    const supabase = await createClient();
+    const userId = session.userId;
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
+
+    const updates: any = {};
+
+    // 1. Username Update
+    if (username) {
+        const cleanUsername = sanitizeInput(username, 50);
+        const usernameValidation = validateUsername(cleanUsername);
+        if (!usernameValidation.isValid) return { error: usernameValidation.error };
+        updates.username = cleanUsername;
+    }
+
+    // 2. Password Update
+    if (password && password.trim() !== '') {
+        const cleanPassword = sanitizeInput(password, 72);
+        const validation = validatePassword(cleanPassword);
+        if (!validation.isValid) {
+            return { error: 'Password does not meet complexity requirements: ' + validation.errors.join(', ') };
+        }
+        updates.password_hash = await hashPassword(cleanPassword);
+    }
+
+    if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('id', userId);
 
         if (error) {
             if (error.code === '23505') return { error: 'Username already taken' };

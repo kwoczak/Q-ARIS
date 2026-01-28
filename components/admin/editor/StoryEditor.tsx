@@ -21,7 +21,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createClient } from '@/lib/supabase/client'
 import { StageProperties } from './StageProperties'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Pencil, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 // Helper to convert DB Stages to ReactFlow Nodes
 const getInitialNodes = (stages: Stage[]): Node[] => {
@@ -240,31 +241,41 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
     }
 
     return (
-        <div className="h-[calc(100vh-140px)] w-full border rounded-lg overflow-hidden bg-white dark:bg-black flex flex-col relative">
-            <div className="p-4 border-b flex justify-between items-center bg-neutral-50 dark:bg-neutral-900 shrink-0">
-                <div>
-                    <Input
-                        value={storyTitle}
-                        onChange={(e) => setStoryTitle(e.target.value)}
-                        onBlur={async () => {
-                            if (storyTitle.trim() === story.title) return
-                            const { error } = await supabase.from('stories').update({ title: storyTitle }).eq('id', story.id)
-                            if (error) {
-                                console.error(error)
-                                alert("Error updating title")
-                            }
-                        }}
-                        className="font-bold text-lg h-auto p-0 border-transparent hover:border-neutral-700 focus-visible:ring-0 bg-transparent px-1 -ml-1 w-full max-w-md transition-all shadow-none text-white hover:bg-neutral-800"
-                    />
-                    <p className="text-xs text-neutral-500">
-                        {stages.length} Stages • Drag nodes to plan. Draw lines to connect.
-                    </p>
+        <div className="h-[calc(100vh-140px)] w-full border border-white/10 rounded-lg overflow-hidden bg-neutral-950 flex flex-col relative">
+            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-neutral-900 shrink-0">
+                <div className="flex items-center gap-4">
+                    <Link href="/curator">
+                        <Button size="icon" variant="ghost" className="text-neutral-400 hover:text-white hover:bg-white/10">
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
+                    </Link>
+                    <div>
+                        <div className="flex items-center gap-2 group">
+                            <Input
+                                value={storyTitle}
+                                onChange={(e) => setStoryTitle(e.target.value)}
+                                onBlur={async () => {
+                                    if (storyTitle.trim() === story.title) return
+                                    const { error } = await supabase.from('stories').update({ title: storyTitle }).eq('id', story.id)
+                                    if (error) {
+                                        console.error(error)
+                                        alert("Error updating title")
+                                    }
+                                }}
+                                className="font-bold text-lg h-auto p-0 border-transparent hover:border-neutral-700 focus-visible:ring-0 bg-transparent px-1 -ml-1 w-full max-w-md transition-all shadow-none text-white hover:bg-neutral-800"
+                            />
+                            <Pencil className="w-4 h-4 text-neutral-500 opacity-50 group-hover:opacity-100 transition-opacity cursor-pointer" />
+                        </div>
+                        <p className="text-xs text-neutral-400">
+                            {stages.length} Stages • Drag nodes to plan. Draw lines to connect.
+                        </p>
+                    </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button size="sm" variant="secondary" onClick={handleAddStage} disabled={isSaving}>
+                    <Button size="sm" variant="secondary" onClick={handleAddStage} disabled={isSaving} className="bg-neutral-800 text-white hover:bg-neutral-700 border border-white/10">
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "+ Add Stage"}
                     </Button>
-                    <Button size="sm" onClick={handleSaveGraphPositions} disabled={isSaving}>
+                    <Button size="sm" onClick={handleSaveGraphPositions} disabled={isSaving} className="bg-neutral-800 text-white hover:bg-neutral-700 border border-white/10">
                         Save Positions
                     </Button>
                 </div>

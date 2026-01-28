@@ -33,33 +33,33 @@ export default async function MuseumDashboard() {
     const canAddCurator = seatsAvailable > 0 && !isLicenseExpired;
 
     return (
-        <div className="space-y-6 p-8">
+        <div className="space-y-6 pt-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Museum Dashboard</h1>
-                    <p className="text-gray-500">Manage your curators and license.</p>
+                    <p className="text-neutral-400">Manage your curators and license.</p>
                 </div>
                 <LogoutButton />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Stats Cards */}
-                <div className="p-6 bg-white rounded-lg border shadow-sm">
-                    <h3 className="font-medium text-gray-500">Seats Used</h3>
+                <div className="p-6 bg-neutral-900 rounded-lg border border-white/10 shadow-sm">
+                    <h3 className="font-medium text-neutral-400">Seats Used</h3>
                     <div className="mt-2 flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-gray-900">{seatsUsed}</span>
-                        <span className="text-gray-500">/ {maxSeats}</span>
+                        <span className="text-3xl font-bold text-white">{seatsUsed}</span>
+                        <span className="text-neutral-500">/ {maxSeats}</span>
                     </div>
                 </div>
-                <div className="p-6 bg-white rounded-lg border shadow-sm">
-                    <h3 className="font-medium text-gray-500">License Status</h3>
+                <div className="p-6 bg-neutral-900 rounded-lg border border-white/10 shadow-sm">
+                    <h3 className="font-medium text-neutral-400">License Status</h3>
                     <div className="mt-2">
                         {isLicenseExpired ? (
                             <Badge variant="destructive">Expired</Badge>
                         ) : (
                             <div className="flex flex-col">
-                                <Badge variant="outline" className="w-fit border-green-200 text-green-700 bg-green-50">Active</Badge>
-                                <span className="text-sm text-gray-500 mt-1">Expires: {license?.expires_at ? new Date(license.expires_at).toLocaleDateString() : 'Never'}</span>
+                                <Badge variant="outline" className="w-fit border-green-900 text-green-400 bg-green-900/20">Active</Badge>
+                                <span className="text-sm text-neutral-500 mt-1">Expires: {license?.expires_at ? new Date(license.expires_at).toLocaleDateString() : 'Never'}</span>
                             </div>
                         )}
                     </div>
@@ -73,23 +73,23 @@ export default async function MuseumDashboard() {
                 </div>
             </div>
 
-            <div className="rounded-md border bg-white">
-                <div className="p-4 border-b">
-                    <h2 className="text-lg font-semibold">Curators</h2>
+            <div className="rounded-lg border border-white/10 overflow-hidden bg-neutral-900/50">
+                <div className="p-4 border-b border-white/10">
+                    <h2 className="text-lg font-semibold text-white">Curators</h2>
                 </div>
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50 border-b">
+                    <thead className="bg-neutral-900 border-b border-white/10">
                         <tr>
-                            <th className="px-4 py-3 font-medium">Username</th>
-                            <th className="px-4 py-3 font-medium">Created At</th>
-                            <th className="px-4 py-3 font-medium text-right">Actions</th>
+                            <th className="px-4 py-3 font-medium text-neutral-400">Username</th>
+                            <th className="px-4 py-3 font-medium text-neutral-400">Created At</th>
+                            <th className="px-4 py-3 font-medium text-right text-neutral-400">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y divide-white/10">
                         {curators?.map((curator) => (
-                            <tr key={curator.id}>
-                                <td className="px-4 py-3 font-medium">{curator.username}</td>
-                                <td className="px-4 py-3 text-gray-500">
+                            <tr key={curator.id} className="hover:bg-neutral-900 transition-colors">
+                                <td className="px-4 py-3 font-medium text-white">{curator.username}</td>
+                                <td className="px-4 py-3 text-neutral-400">
                                     {new Date(curator.created_at).toLocaleDateString()}
                                 </td>
                                 <td className="px-4 py-3 text-right flex justify-end items-center gap-2">
@@ -100,7 +100,7 @@ export default async function MuseumDashboard() {
                         ))}
                         {(!curators || curators.length === 0) && (
                             <tr>
-                                <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
+                                <td colSpan={3} className="px-4 py-8 text-center text-neutral-500">
                                     No curators yet. Add one to get started.
                                 </td>
                             </tr>

@@ -158,9 +158,9 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                             </div>
 
                             {block.overlay && (
-                                <div className="space-y-3 bg-neutral-50 p-2 rounded text-xs">
+                                <div className="space-y-3 bg-neutral-900 border border-white/10 p-2 rounded text-xs">
                                     <div className="space-y-1">
-                                        <Label className="text-[10px]">Caption</Label>
+                                        <Label className="text-[10px] text-neutral-400">Caption</Label>
                                         <Textarea
                                             value={block.overlay.text}
                                             onChange={(e) => onChange({
@@ -168,13 +168,13 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                                                 overlay: { ...block.overlay!, text: e.target.value }
                                             })}
                                             rows={2}
-                                            className="text-xs"
+                                            className="text-xs bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
-                                            <Label className="text-[10px]">Position</Label>
+                                            <Label className="text-[10px] text-neutral-400">Position</Label>
                                             <Select
                                                 value={block.overlay.position}
                                                 onValueChange={(v: any) => onChange({
@@ -182,10 +182,10 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                                                     overlay: { ...block.overlay!, position: v }
                                                 })}
                                             >
-                                                <SelectTrigger className="h-7 text-[10px]">
+                                                <SelectTrigger className="h-7 text-[10px] bg-neutral-800 border-neutral-700 text-white">
                                                     <SelectValue />
                                                 </SelectTrigger>
-                                                <SelectContent>
+                                                <SelectContent className="bg-neutral-800 border-neutral-700 text-white">
                                                     <SelectItem value="top-left">Top Left</SelectItem>
                                                     <SelectItem value="top-center">Top Center</SelectItem>
                                                     <SelectItem value="top-right">Top Right</SelectItem>
@@ -197,7 +197,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                                             </Select>
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-[10px]">Width</Label>
+                                            <Label className="text-[10px] text-neutral-400">Width</Label>
                                             <Select
                                                 value={block.overlay.width}
                                                 onValueChange={(v: any) => onChange({
@@ -205,10 +205,10 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                                                     overlay: { ...block.overlay!, width: v }
                                                 })}
                                             >
-                                                <SelectTrigger className="h-7 text-[10px]">
+                                                <SelectTrigger className="h-7 text-[10px] bg-neutral-800 border-neutral-700 text-white">
                                                     <SelectValue />
                                                 </SelectTrigger>
-                                                <SelectContent>
+                                                <SelectContent className="bg-neutral-800 border-neutral-700 text-white">
                                                     <SelectItem value="auto">Auto</SelectItem>
                                                     <SelectItem value="50%">50%</SelectItem>
                                                     <SelectItem value="75%">75%</SelectItem>
@@ -517,12 +517,12 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
             <div className="grid grid-cols-2 gap-2">
                 {(block.type === 'text' || block.type === 'quiz') && (
                     <div className="space-y-1">
-                        <Label className="text-xs">Alignment</Label>
-                        <div className="flex border rounded overflow-hidden">
+                        <Label className="text-xs text-neutral-400">Alignment</Label>
+                        <div className="flex border border-neutral-700 rounded overflow-hidden">
                             {(['left', 'center', 'right', 'justify'] as const).map(align => (
                                 <button
                                     key={align}
-                                    className={`flex-1 p-1 flex justify-center hover:bg-neutral-100 ${block.styles?.textAlign === align ? 'bg-neutral-200' : ''}`}
+                                    className={`flex-1 p-1 flex justify-center hover:bg-neutral-800 ${block.styles?.textAlign === align ? 'bg-neutral-800 text-white' : 'text-neutral-400'}`}
                                     onClick={() => updateStyle('textAlign', align)}
                                 >
                                     {align === 'left' && <AlignLeft className="w-4 h-4" />}
@@ -537,15 +537,15 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
 
                 {(block.type === 'text' || block.type === 'accordion' || block.type === 'quiz') && (
                     <div className="space-y-1">
-                        <Label className="text-xs">Size</Label>
+                        <Label className="text-xs text-neutral-400">Size</Label>
                         <Select
                             value={block.styles?.fontSize?.includes('px') ? block.styles.fontSize : '16px'}
                             onValueChange={(v: string) => updateStyle('fontSize', v)}
                         >
-                            <SelectTrigger className="h-8 text-xs">
+                            <SelectTrigger className="h-8 text-xs bg-neutral-800 border-neutral-700 text-white">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-neutral-800 border-neutral-700 text-white">
                                 {fontSizes.map((size) => (
                                     <SelectItem key={size.value} value={size.value}>
                                         {size.label}
@@ -557,15 +557,15 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                 )}
                 {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz' || block.type === 'accordion') && (
                     <div className="space-y-1">
-                        <Label className="text-xs">Font Family</Label>
+                        <Label className="text-xs text-neutral-400">Font Family</Label>
                         <Select
                             value={block.styles?.fontFamily || 'sans'}
                             onValueChange={(v: string) => updateStyle('fontFamily', v)}
                         >
-                            <SelectTrigger className="h-8 text-xs">
+                            <SelectTrigger className="h-8 text-xs bg-neutral-800 border-neutral-700 text-white">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-neutral-800 border-neutral-700 text-white">
                                 {fontOptions.map(font => (
                                     <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.fontFamily }}>
                                         {font.label}
@@ -578,13 +578,13 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
 
                 {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz' || block.type === 'accordion') && (
                     <div className="space-y-1">
-                        <Label className="text-xs">Text Color</Label>
+                        <Label className="text-xs text-neutral-400">Text Color</Label>
                         <div className="flex items-center gap-2">
                             <Input
                                 type="color"
                                 value={block.styles?.color || '#000000'}
                                 onChange={(e) => updateStyle('color', e.target.value)}
-                                className="w-8 h-8 p-1"
+                                className="w-8 h-8 p-1 bg-neutral-800 border-neutral-700"
                             />
                         </div>
                     </div>
@@ -592,8 +592,8 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
 
                 {(block.type === 'text' || block.type === 'hotspot' || block.type === 'quiz' || block.type === 'accordion') && (
                     <div className="space-y-1 col-span-2">
-                        <Label className="text-xs">Background (Color + Transparency)</Label>
-                        <div className="flex items-center gap-4 border p-2 rounded-md">
+                        <Label className="text-xs text-neutral-400">Background (Color + Transparency)</Label>
+                        <div className="flex items-center gap-4 border border-neutral-700 p-2 rounded-md bg-neutral-900">
                             <Input
                                 type="color"
                                 value={block.styles?.backgroundColor?.startsWith('#') ? block.styles.backgroundColor.substring(0, 7) : '#ffffff'}
@@ -693,15 +693,34 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                 </div>
 
                 <div className="space-y-1">
-                    <Label className="text-xs">Vertical Space (Margin)</Label>
+                    <Label className="text-xs text-neutral-400">Padding</Label>
+                    <Select
+                        value={block.styles?.padding || '1rem'}
+                        onValueChange={(v: string) => updateStyle('padding', v)}
+                    >
+                        <SelectTrigger className="h-8 text-xs bg-neutral-800 border-neutral-700 text-white">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-neutral-800 border-neutral-700 text-white">
+                            <SelectItem value="0">None</SelectItem>
+                            <SelectItem value="0.5rem">Small</SelectItem>
+                            <SelectItem value="1rem">Medium</SelectItem>
+                            <SelectItem value="2rem">Large</SelectItem>
+                            <SelectItem value="4rem">Extra Large</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-1">
+                    <Label className="text-xs text-neutral-400">Vertical Space (Margin)</Label>
                     <Select
                         value={block.styles?.marginBottom || '0'}
                         onValueChange={(v: string) => updateStyle('marginBottom', v)}
                     >
-                        <SelectTrigger className="h-8 text-xs">
+                        <SelectTrigger className="h-8 text-xs bg-neutral-800 border-neutral-700 text-white">
                             <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-neutral-800 border-neutral-700 text-white">
                             <SelectItem value="0">None</SelectItem>
                             <SelectItem value="0.5rem">Small</SelectItem>
                             <SelectItem value="1rem">Medium</SelectItem>
@@ -713,15 +732,15 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
 
                 {block.type === 'text' && (
                     <div className="space-y-1">
-                        <Label className="text-xs">Corner Radius</Label>
+                        <Label className="text-xs text-neutral-400">Corner Radius</Label>
                         <Select
                             value={block.styles?.borderRadius || '0'}
                             onValueChange={(v: string) => updateStyle('borderRadius', v)}
                         >
-                            <SelectTrigger className="h-8 text-xs">
+                            <SelectTrigger className="h-8 text-xs bg-neutral-800 border-neutral-700 text-white">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-neutral-800 border-neutral-700 text-white">
                                 <SelectItem value="0">None</SelectItem>
                                 <SelectItem value="0.5rem">Small (8px)</SelectItem>
                                 <SelectItem value="1rem">Medium (16px)</SelectItem>

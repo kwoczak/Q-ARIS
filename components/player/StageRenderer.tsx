@@ -29,6 +29,11 @@ const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
 
 export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPreview?: boolean }) {
     const [isScanning, setIsScanning] = useState(false)
+    const [debugLogs, setDebugLogs] = useState<string[]>([])
+
+    const addLog = (msg: string) => {
+        setDebugLogs(prev => [`${new Date().toLocaleTimeString()} ${msg}`, ...prev])
+    }
 
     // --- Analytics Tracking ---
     useEffect(() => {
@@ -36,24 +41,28 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
         if (isPreview || !stage) return
 
         const trackView = async () => {
+            addLog(`Init tracking for stage: ${stage.id.slice(0, 4)}...`)
             try {
                 // 1. Get or Create Session ID
                 let sessionId = ''
                 try {
                     sessionId = localStorage.getItem('visitor_session_id') || ''
+                    addLog(`Session from storage: ${sessionId ? 'FOUND' : 'EMPTY'}`)
                 } catch (e) {
-                    console.warn("LocalStorage access denied", e)
+                    addLog(`Storage ERROR: ${e}`)
                 }
 
                 if (!sessionId) {
                     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
                         sessionId = crypto.randomUUID()
+                        addLog('Created UUID (crypto)')
                     } else {
                         // Fallback implementation
                         sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
                             return v.toString(16);
                         });
+                        addLog('Created UUID (fallback)')
                     }
                     try {
                         localStorage.setItem('visitor_session_id', sessionId)
@@ -61,9 +70,12 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
                 }
 
                 // 2. Log Event
+                addLog(`Sending event: stage_view...`)
                 const { logAnalyticsEvent } = await import('@/lib/actions/analytics')
                 await logAnalyticsEvent(stage.story_id, stage.id, 'stage_view', sessionId)
-            } catch (error) {
+                addLog('Event SENT success!')
+            } catch (error: any) {
+                addLog(`TRACKING ERROR: ${error?.message || error}`)
                 console.error("Analytics tracking error:", error)
             }
         }
@@ -83,25 +95,7 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
     const bgStyle: React.CSSProperties = {}
     let isDarkBackground = true
 
-
-    if (content.background) {
-        if (content.background.type === 'color') {
-            bgStyle.backgroundColor = content.background.value
-            if (content.background.value === '#ffffff' || content.background.value.toLowerCase() === '#fff') {
-                isDarkBackground = false
-            }
-        } else if (content.background.type === 'gradient') {
-            bgStyle.background = content.background.value
-        } else if (content.background.type === 'image') {
-            bgStyle.backgroundImage = `url(${content.background.value})`
-            bgStyle.backgroundSize = 'cover'
-            bgStyle.backgroundPosition = 'center'
-        }
-    }
-
-
-    // --- Block Rendering Logic ---
-    const hasBlocks = content.blocks && content.blocks.length > 0
+    // ... logic ...
 
     const containerClasses = [
         "flex flex-col h-[100dvh] w-full relative transition-colors duration-500 overflow-hidden",
@@ -113,6 +107,13 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
             className={containerClasses}
             style={bgStyle}
         >
+            {/* DEBUG OVERLAY */}
+            <div className="fixed bottom-0 left-0 w-full h-32 bg-black/90 text-green-400 text-[10px] font-mono p-2 overflow-y-auto z-[100] opacity-80 pointer-events-none border-t border-green-900">
+                <div className="font-bold text-white mb-1">Analytics Debugger</div>
+                {debugLogs.map((log, i) => (
+                    <div key={i}>{log}</div>
+                ))}
+            </div>
             {/* Optional Overlay for readability on image backgrounds */}
             {content.background?.overlayOpacity ? (
                 <div

@@ -17,6 +17,9 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Loader2, QrCode } from "lucide-react"
+import { BackgroundEditor } from "./blocks/BackgroundEditor"
+import { BlockList } from "./blocks/BlockList"
+import { StageRenderer } from "@/components/player/StageRenderer"
 
 
 

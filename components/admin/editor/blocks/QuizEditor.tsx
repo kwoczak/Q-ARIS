@@ -85,10 +85,10 @@ export function QuizEditor({ block, onChange }: QuizEditorProps) {
                 <Label>Answers</Label>
                 <div className="space-y-2">
                     {content.answers?.map((answer, index) => (
-                        <div key={answer.id} className="flex items-center gap-2 p-2 bg-neutral-50 rounded border">
+                        <div key={answer.id} className="flex items-center gap-2 p-2 bg-neutral-900 border border-white/10 rounded">
                             <button
                                 onClick={() => updateAnswer(answer.id, { isCorrect: !answer.isCorrect })}
-                                className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-colors ${answer.isCorrect ? 'bg-green-100 text-green-600' : 'bg-neutral-100 text-neutral-300 hover:bg-neutral-200'}`}
+                                className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-colors ${answer.isCorrect ? 'bg-green-500/20 text-green-500 ring-1 ring-green-500' : 'bg-neutral-800 text-neutral-500 hover:bg-neutral-700'}`}
                                 title="Mark as Correct Answer"
                             >
                                 {answer.isCorrect ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
@@ -97,7 +97,7 @@ export function QuizEditor({ block, onChange }: QuizEditorProps) {
                                 value={answer.text}
                                 onChange={(e) => updateAnswer(answer.id, { text: e.target.value })}
                                 placeholder={`Answer ${index + 1}`}
-                                className="h-8 border-transparent bg-transparent focus:bg-white focus:border-input"
+                                className="h-8 border-transparent bg-transparent text-white focus:bg-neutral-800 focus:border-neutral-700 placeholder:text-neutral-500"
                             />
                             <Button
                                 size="icon"

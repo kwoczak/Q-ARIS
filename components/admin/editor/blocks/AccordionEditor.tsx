@@ -53,8 +53,8 @@ export function AccordionEditor({ block, onChange }: AccordionEditorProps) {
                 )}
 
                 {items.map((item) => (
-                    <div key={item.id} className="p-3 border rounded-lg bg-neutral-50 flex gap-4 items-start">
-                        <div className="mt-2 text-neutral-300">
+                    <div key={item.id} className="p-3 border rounded-lg bg-neutral-900 border-white/10 flex gap-4 items-start">
+                        <div className="mt-2 text-neutral-500">
                             <GripVertical className="w-4 h-4" />
                         </div>
                         <div className="flex-1 space-y-2">
@@ -62,14 +62,14 @@ export function AccordionEditor({ block, onChange }: AccordionEditorProps) {
                                 value={item.title}
                                 onChange={(e) => updateItem(item.id, { title: e.target.value })}
                                 placeholder="Section Title"
-                                className="font-medium"
+                                className="font-medium bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
                             />
                             <Textarea
                                 value={item.content}
                                 onChange={(e) => updateItem(item.id, { content: e.target.value })}
                                 placeholder="Content text..."
                                 rows={2}
-                                className="text-sm"
+                                className="text-sm bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
                             />
                         </div>
                         <Button size="icon" variant="ghost" className="text-red-500 h-8 w-8" onClick={() => removeItem(item.id)}>

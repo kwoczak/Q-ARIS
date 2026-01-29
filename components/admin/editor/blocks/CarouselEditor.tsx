@@ -53,8 +53,8 @@ export function CarouselEditor({ block, onChange }: CarouselEditorProps) {
                 )}
 
                 {items.map((item, index) => (
-                    <div key={item.id} className="p-3 border rounded-lg bg-neutral-50 flex gap-4 items-start">
-                        <div className="mt-2 text-neutral-300">
+                    <div key={item.id} className="p-3 border rounded-lg bg-neutral-900 border-white/10 flex gap-4 items-start">
+                        <div className="mt-2 text-neutral-500">
                             <GripVertical className="w-4 h-4" />
                         </div>
 
@@ -68,19 +68,14 @@ export function CarouselEditor({ block, onChange }: CarouselEditorProps) {
                                         onUploadComplete={(url) => updateItem(item.id, { url })}
                                         label="Image"
                                     />
-                                    {item.url && (
-                                        <div className="w-full h-12 rounded bg-neutral-200 overflow-hidden">
-                                            <img src={item.url} className="w-full h-full object-cover" />
-                                        </div>
-                                    )}
                                 </div>
                                 <div className="space-y-1">
-                                    <Label className="text-xs">Caption</Label>
+                                    <Label className="text-xs text-neutral-400">Caption</Label>
                                     <Input
                                         value={item.caption || ''}
                                         onChange={(e) => updateItem(item.id, { caption: e.target.value })}
                                         placeholder="Optional caption..."
-                                        className="h-8 text-xs"
+                                        className="h-8 text-xs bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
                                     />
                                 </div>
                             </div>

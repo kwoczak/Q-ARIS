@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/brand/Logo"
-import { ArrowRight, QrCode, Smartphone, BarChart3, Globe, Lock } from "lucide-react"
+import { ArrowRight, QrCode, Smartphone, BarChart3, Globe, Lock, Share2 } from "lucide-react"
 
 export default function Home() {
   return (
@@ -15,7 +15,7 @@ export default function Home() {
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-400">
             <Link href="#features" className="hover:text-white transition-colors">Features</Link>
             <Link href="#how-it-works" className="hover:text-white transition-colors">How it Works</Link>
-            <Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link>
+            <Link href="/pricing" className="hover:text-white transition-colors text-white">Pricing</Link>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -73,30 +73,110 @@ export default function Home() {
         </div>
       </section>
 
-      {/* --- FEATURES GRID --- */}
-      <section id="features" className="py-24 bg-neutral-900/50 border-y border-white/5">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold mb-4">Everything you need to engage visitors</h2>
-            <p className="text-neutral-400">Powerful tools for curators, seamless experiences for guests.</p>
-          </div>
+      {/* --- MAJOR FEATURE SEGMENTS --- */}
 
+      {/* Segment 1: No App Required */}
+      <section id="features" className="py-24 border-t border-white/5 bg-neutral-900/30">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+          <div className="space-y-6">
+            <div className="w-12 h-12 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-400">
+              <QrCode className="w-6 h-6" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold">Absolutely No Code. <br />No App Download.</h2>
+            <p className="text-lg text-neutral-400 leading-relaxed">
+              Remove the biggest barrier to entry for museum visitors. Q-ARIS works directly in the mobile browser.
+              Visitors simply scan a QR code at the exhibit and instantly start the experience.
+            </p>
+            <ul className="space-y-3 pt-4">
+              {['Works on iOS and Android', 'Instant load times', 'Zero friction onboarding'].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-neutral-300">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="relative aspect-square md:aspect-video rounded-2xl bg-gradient-to-tr from-neutral-800 to-neutral-900 border border-white/5 overflow-hidden group">
+            {/* Visual Placeholder for "Scan to Play" */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center space-y-4 opacity-50">
+                <QrCode className="w-24 h-24 mx-auto text-neutral-600" />
+                <p className="text-sm font-mono text-neutral-500">SCAN_ME.svg</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Segment 2: WebAR */}
+      <section className="py-24 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+          <div className="order-2 md:order-1 relative aspect-square md:aspect-video rounded-2xl bg-gradient-to-bl from-neutral-900 to-black border border-white/5 overflow-hidden">
+            {/* Visual Placeholder for "AR Model" */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Smartphone className="w-24 h-24 text-neutral-700" />
+            </div>
+          </div>
+          <div className="order-1 md:order-2 space-y-6">
+            <div className="w-12 h-12 rounded-lg bg-purple-600/20 flex items-center justify-center text-purple-400">
+              <Smartphone className="w-6 h-6" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold">Immersive 3D Models in Your Browser</h2>
+            <p className="text-lg text-neutral-400 leading-relaxed">
+              Bring history to life. Display high-fidelity 3D artifacts, reconstructions, and animated content
+              directly in the visitor's physical space using advanced WebAR technology.
+            </p>
+            <ul className="space-y-3 pt-4">
+              {['Interactive 3D viewing', 'Contextual info overlays', 'Seamless reality blending'].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-neutral-300">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Segment 3: Analytics */}
+      <section className="py-24 border-t border-white/5 bg-neutral-900/30">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+          <div className="space-y-6">
+            <div className="w-12 h-12 rounded-lg bg-green-600/20 flex items-center justify-center text-green-400">
+              <BarChart3 className="w-6 h-6" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold">Understand Your Visitors Like Never Before</h2>
+            <p className="text-lg text-neutral-400 leading-relaxed">
+              Go beyond ticket sales. Our deep analytics dashboard lets you track visitor flow through the exhibition,
+              measure engagement time at specific artifacts, and identify popular routes.
+            </p>
+            <ul className="space-y-3 pt-4">
+              {['Heatmaps & Visitor Flow', 'Engagement retention stats', 'Exportable reports'].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-neutral-300">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="relative aspect-square md:aspect-video rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/5 overflow-hidden">
+            {/* Visual Placeholder for "Dashboard" */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <BarChart3 className="w-24 h-24 text-neutral-700" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* --- SECONDARY FEATURES GRID --- */}
+      <section className="py-24 border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h3 className="text-2xl font-bold">Enterprise-Grade Reliability</h3>
+          </div>
           <div className="grid md:grid-cols-3 gap-8">
-            <FeatureCard
-              icon={<QrCode />}
-              title="Instant Access"
-              description="Zero friction. Visitors simply scan a QR code to launch the experience instantly in their browser."
-            />
-            <FeatureCard
-              icon={<Smartphone />}
-              title="WebAR Technology"
-              description="Display interactive 3D models and digital exhibits directly in the browser using advanced Augmented Reality."
-            />
-            <FeatureCard
-              icon={<BarChart3 />}
-              title="Deep Analytics"
-              description="Track visitor flow, engagement times, and popular exhibits with our comprehensive dashboard."
-            />
             <FeatureCard
               icon={<Globe />}
               title="Multi-Language"
@@ -108,19 +188,9 @@ export default function Home() {
               description="Role-based access control, secure data storage, and guaranteed uptime for major institutions."
             />
             <FeatureCard
-              icon={<div className="font-bold text-xl">CMS</div>}
-              title="Curator Studio"
-              description="A drag-and-drop editor designed for museum professionals, not just developers."
-            />
-            <FeatureCard
-              icon={<QrCode />}
-              title="No App Download"
-              description="Remove barriers to entry. Visitors scan a code and start exploring instantly, no installation required."
-            />
-            <FeatureCard
-              icon={<div className="font-bold text-xl">AI</div>}
-              title="AI Narrator"
-              description="Generate voiceovers for your stories automatically using advanced text-to-speech technology."
+              icon={<Share2 />}
+              title="Easy Sharing"
+              description="Visitors can seamlessly share their favorite exhibits on social media, amplifying your reach."
             />
           </div>
         </div>

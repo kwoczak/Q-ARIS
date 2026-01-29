@@ -169,6 +169,67 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Segment 4: Curator Studio */}
+      <section className="py-24 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+          <div className="order-2 md:order-1 relative aspect-square md:aspect-video rounded-2xl bg-gradient-to-tr from-neutral-900 to-neutral-800 border border-white/5 overflow-hidden">
+            {/* Visual Placeholder for "Editor" */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="font-mono text-neutral-600 text-sm border border-neutral-700 p-4 rounded bg-neutral-950/50">
+                [Story Graph Editor]
+              </div>
+            </div>
+          </div>
+          <div className="order-1 md:order-2 space-y-6">
+            <div className="w-12 h-12 rounded-lg bg-orange-600/20 flex items-center justify-center text-orange-400">
+              <div className="font-bold text-xl">CMS</div>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold">Powerful Visual Editor for Curators</h2>
+            <p className="text-lg text-neutral-400 leading-relaxed">
+              No technical skills required. Create complex, branching narratives using our intuitive node-based editor.
+              Upload content, link stages, and preview your changes in real-time.
+            </p>
+            <ul className="space-y-3 pt-4">
+              {['Drag & drop interface', 'Branching logic support', 'Instant preview mode'].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-neutral-300">
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Segment 5: Interactive Learning */}
+      <section className="py-24 border-t border-white/5 bg-neutral-900/30">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+          <div className="space-y-6">
+            <div className="w-12 h-12 rounded-lg bg-pink-600/20 flex items-center justify-center text-pink-400">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold">Interactive Learning & Quizzes</h2>
+            <p className="text-lg text-neutral-400 leading-relaxed">
+              Transform passive observation into active engagement. Embed quizzes, polls, and interactive challenges directly into your stories to test knowledge and reward exploration.
+            </p>
+            <ul className="space-y-3 pt-4">
+              {['Multiple choice quizzes', 'Instant feedback', 'Gamified progression'].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-neutral-300">
+                  <div className="w-1.5 h-1.5 rounded-full bg-pink-500" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="relative aspect-square md:aspect-video rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/5 overflow-hidden">
+            {/* Visual Placeholder for "Quiz" */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <CheckCircle2 className="w-24 h-24 text-neutral-700" />
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* --- SECONDARY FEATURES GRID --- */}
       <section className="py-24 border-y border-white/5">
@@ -178,11 +239,6 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard
-              icon={<Globe />}
-              title="Multi-Language"
-              description="Automatically translate tours into multiple languages to welcome international visitors."
-            />
-            <FeatureCard
               icon={<Lock />}
               title="Enterprise Security"
               description="Role-based access control, secure data storage, and guaranteed uptime for major institutions."
@@ -191,6 +247,11 @@ export default function Home() {
               icon={<Share2 />}
               title="Easy Sharing"
               description="Visitors can seamlessly share their favorite exhibits on social media, amplifying your reach."
+            />
+            <FeatureCard
+              icon={<Globe />}
+              title="Cloud Hosted"
+              description="Content is served globally via high-performance CDNs for instant loading anywhere."
             />
           </div>
         </div>

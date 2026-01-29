@@ -293,7 +293,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                     fitView
                 >
                     <Background gap={12} size={1} color="#333" />
-                    <Controls className="bg-neutral-800 border-neutral-700 fill-white [&>button]:fill-white [&>button]:text-white [&>button:hover]:bg-neutral-700" />
+                    <Controls className="bg-neutral-800 border-neutral-700 [&>button]:!bg-neutral-800 [&>button]:!border-neutral-700 [&>button]:!text-white [&>button:hover]:!bg-neutral-700 [&_svg]:!fill-white [&_path]:!fill-white" />
                     <MiniMap style={{ background: '#171717' }} nodeStrokeColor="#444" nodeColor="#262626" maskColor="rgba(0, 0, 0, 0.7)" />
                 </ReactFlow>
             </div>

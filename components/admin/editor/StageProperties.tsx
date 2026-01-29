@@ -247,7 +247,7 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
                                 {/* Only render if we have data to prevent errors */}
                                 {formData && (
                                     <div className="stage-renderer-preview-wrapper h-full w-full overflow-y-auto">
-                                        <StageRenderer stage={formData} />
+                                        <StageRenderer stage={formData} isPreview={true} />
                                     </div>
                                 )}
                             </div>

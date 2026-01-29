@@ -27,7 +27,7 @@ const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
     loading: () => <div className="w-full h-full bg-neutral-100/10 animate-pulse rounded-xl" />
 })
 
-export function StageRenderer({ stage }: { stage: Stage }) {
+export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPreview?: boolean }) {
     const [isScanning, setIsScanning] = useState(false)
 
     if (!stage) return <div>Loading...</div>
@@ -84,8 +84,9 @@ export function StageRenderer({ stage }: { stage: Stage }) {
                 <Button
                     size="icon"
                     variant="secondary"
-                    className="rounded-full bg-black/50 backdrop-blur-md text-white border border-white/20 hover:bg-black/70"
+                    className="rounded-full bg-black/50 backdrop-blur-md text-white border border-white/20 hover:bg-black/70 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => setIsScanning(true)}
+                    disabled={isPreview}
                 >
                     <X className="w-5 h-5" />
                     <span className="sr-only">Close / Scan</span>

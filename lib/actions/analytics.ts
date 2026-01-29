@@ -73,9 +73,13 @@ export async function getStoryAnalytics(storyId: string) {
 
     const stageViews: Record<string, number> = {}
 
-    // --- Visitor Flow Calculation ---
+    // --- Visitor Flow & Engagement Time Calculation ---
     const flows: Record<string, number> = {} // "StageA_ID -> StageB_ID": count
     const sessionPaths: Record<string, { stageId: string, timestamp: string }[]> = {}
+
+    // Engagement stats
+    const stageDurations: Record<string, number[]> = {} // stageId -> array of durations in ms
+    const sessionDurations: number[] = [] // Total duration of each session in ms
 
     events.forEach(e => {
         if (e.stage_id) {
@@ -92,27 +96,49 @@ export async function getStoryAnalytics(storyId: string) {
         }
     })
 
-    // Analyze transitions
+    // Analyze transitions and time
     Object.values(sessionPaths).forEach(path => {
         // Sort by time
         path.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
 
-        // Find links
+        let sessionTotalTime = 0
+
+        // Loop through path to find links and duration
         for (let i = 0; i < path.length - 1; i++) {
-            const source = path[i].stageId
-            const target = path[i + 1].stageId
-            if (source !== target) { // Ignore refreshing same page
-                const key = `${source}|${target}`
+            const current = path[i]
+            const next = path[i + 1]
+
+            // Flow
+            if (current.stageId !== next.stageId) {
+                const key = `${current.stageId}|${next.stageId}`
                 flows[key] = (flows[key] || 0) + 1
             }
+
+            // Duration
+            const duration = new Date(next.timestamp).getTime() - new Date(current.timestamp).getTime()
+
+            // Filter realistic durations (e.g., > 1s and < 30min) to avoid glitches or huge idle times
+            if (duration > 1000 && duration < 30 * 60 * 1000) {
+                if (!stageDurations[current.stageId]) stageDurations[current.stageId] = []
+                stageDurations[current.stageId].push(duration)
+                sessionTotalTime += duration
+            }
+        }
+
+        if (sessionTotalTime > 0) {
+            sessionDurations.push(sessionTotalTime)
         }
     })
+
+    // Calculate Averages
+    const avgSessionTimeMs = sessionDurations.length > 0
+        ? sessionDurations.reduce((a, b) => a + b, 0) / sessionDurations.length
+        : 0
 
     // Fetch stage titles to map
     const { data: stages } = await supabase
         .from('stages')
         .select('id, title')
-        .eq('story_id', storyId)
 
     const stageMap = new Map(stages?.map(s => [s.id, s.title]))
 

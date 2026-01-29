@@ -67,30 +67,36 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2">
-                        <div className="h-[300px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={data.popularStages} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#333" />
-                                    <XAxis type="number" stroke="#888888" fontSize={12} />
-                                    <YAxis
-                                        dataKey="name"
-                                        type="category"
-                                        width={100}
-                                        stroke="#888888"
-                                        fontSize={12}
-                                        tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: '#171717', border: '1px solid #333', color: '#fff' }}
-                                        cursor={{ fill: '#33333333' }}
-                                    />
-                                    <Bar dataKey="views" radius={[0, 4, 4, 0]}>
-                                        {data.popularStages.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                        <div className="h-[300px] w-full min-w-0">
+                            {data.popularStages.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={data.popularStages} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#333" />
+                                        <XAxis type="number" stroke="#888888" fontSize={12} />
+                                        <YAxis
+                                            dataKey="name"
+                                            type="category"
+                                            width={100}
+                                            stroke="#888888"
+                                            fontSize={12}
+                                            tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: '#171717', border: '1px solid #333', color: '#fff' }}
+                                            cursor={{ fill: '#33333333' }}
+                                        />
+                                        <Bar dataKey="views" radius={[0, 4, 4, 0]}>
+                                            {data.popularStages.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                                    No data available
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

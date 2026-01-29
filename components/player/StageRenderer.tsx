@@ -30,23 +30,14 @@ const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
 export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPreview?: boolean }) {
     const [isScanning, setIsScanning] = useState(false)
 
-    if (!stage) return <div>Loading...</div>
-
-    if (isScanning) {
-        return <QRScanner onClose={() => setIsScanning(false)} />
-    }
-
-    const { content } = stage
-
     // --- Analytics Tracking ---
     useEffect(() => {
-        // Don't track if in preview mode
-        if (isPreview) return
+        // Don't track if in preview mode or stage is invalid
+        if (isPreview || !stage) return
 
         const trackView = async () => {
             try {
                 // 1. Get or Create Session ID
-                // Safe UUID generation for older devices
                 let sessionId = ''
                 try {
                     sessionId = localStorage.getItem('visitor_session_id') || ''
@@ -58,7 +49,7 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
                     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
                         sessionId = crypto.randomUUID()
                     } else {
-                        // Fallback for older browsers
+                        // Fallback implementation
                         sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
                             return v.toString(16);
@@ -66,13 +57,10 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
                     }
                     try {
                         localStorage.setItem('visitor_session_id', sessionId)
-                    } catch (e) {
-                        // Ignore storage errors
-                    }
+                    } catch (e) { }
                 }
 
                 // 2. Log Event
-                // Dynamic import to avoid server-side issues if any, though actions are safe
                 const { logAnalyticsEvent } = await import('@/lib/actions/analytics')
                 await logAnalyticsEvent(stage.story_id, stage.id, 'stage_view', sessionId)
             } catch (error) {
@@ -81,7 +69,15 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
         }
 
         trackView()
-    }, [stage.id, stage.story_id, isPreview])
+    }, [stage?.id, stage?.story_id, isPreview])
+
+    if (!stage) return <div>Loading...</div>
+
+    if (isScanning) {
+        return <QRScanner onClose={() => setIsScanning(false)} />
+    }
+
+    const { content } = stage
 
     // --- Background Style Logic ---
     const bgStyle: React.CSSProperties = {}

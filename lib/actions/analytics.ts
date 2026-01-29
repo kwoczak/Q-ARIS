@@ -36,7 +36,13 @@ export async function logAnalyticsEvent(storyId: string, stageId: string, eventT
 }
 
 export async function getStoryAnalytics(storyId: string) {
-    const supabase = await createClient()
+    // Use Admin Client to bypass RLS for fetching stats (temporary fix/debugging)
+    let supabase
+    try {
+        supabase = await createAdminClient()
+    } catch (e) {
+        supabase = await createClient()
+    }
 
     // 1. Total Views
     const { count: totalViews } = await supabase

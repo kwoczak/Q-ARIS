@@ -12,6 +12,11 @@ interface AnalyticsData {
         views: number
         id: string
     }[]
+    topPaths?: {
+        source: string
+        target: string
+        count: number
+    }[]
 }
 
 export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
@@ -98,6 +103,44 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
                             ) : (
                                 <div className="h-full w-full flex items-center justify-center text-muted-foreground bg-neutral-900/20 rounded-lg border border-neutral-800/50 border-dashed">
                                     No data available
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="col-span-1 bg-neutral-900/50 border-neutral-800 text-white backdrop-blur-sm">
+                    <CardHeader>
+                        <CardTitle>Popular Journeys</CardTitle>
+                        <CardDescription className="text-neutral-400">
+                            Most common paths taken by visitors (Source → Target)
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {data.topPaths && data.topPaths.length > 0 ? (
+                                data.topPaths.map((path, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/30 border border-white/5 hover:bg-neutral-800/50 transition-colors">
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <div className="w-2 h-2 rounded-full bg-neutral-500/50 flex-shrink-0" />
+                                                <span className="text-sm font-medium text-neutral-300 truncate">{path.source}</span>
+                                            </div>
+                                            <div className="text-neutral-600 px-1">→</div>
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                                                <span className="text-sm font-medium text-white truncate">{path.target}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 pl-4 flex-shrink-0">
+                                            <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-mono">COUNT</span>
+                                            <span className="text-lg font-bold text-blue-400 font-mono">{path.count}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center text-neutral-500 py-8 text-sm italic">
+                                    Not enough data to determine paths yet
                                 </div>
                             )}
                         </div>

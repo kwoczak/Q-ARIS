@@ -61,19 +61,50 @@ export async function getStoryAnalytics(storyId: string) {
 
     const uniqueVisitors = new Set(sessionData?.map(d => d.visitor_session_id)).size
 
-    // 3. Views per Stage
-    // We need to join with stages to get titles. 
-    // Ideally use RPC for aggregation, but for now we fetch events and aggregate in JS
-    const { data: events } = await supabase
+    // 3. Views per Stage & Visitor Flow
+    // We fetch all relevant events to aggregate in JS given lack of complex join/group support in simple client
+    const { data: allEvents } = await supabase
         .from('analytics_events')
-        .select('stage_id, created_at')
+        .select('stage_id, created_at, visitor_session_id')
         .eq('story_id', storyId)
         .eq('event_type', 'stage_view')
 
+    const events = allEvents || []
+
     const stageViews: Record<string, number> = {}
-    events?.forEach(e => {
+
+    // --- Visitor Flow Calculation ---
+    const flows: Record<string, number> = {} // "StageA_ID -> StageB_ID": count
+    const sessionPaths: Record<string, { stageId: string, timestamp: string }[]> = {}
+
+    events.forEach(e => {
         if (e.stage_id) {
             stageViews[e.stage_id] = (stageViews[e.stage_id] || 0) + 1
+
+            // Group by session
+            if (!sessionPaths[e.visitor_session_id]) {
+                sessionPaths[e.visitor_session_id] = []
+            }
+            sessionPaths[e.visitor_session_id].push({
+                stageId: e.stage_id,
+                timestamp: e.created_at
+            })
+        }
+    })
+
+    // Analyze transitions
+    Object.values(sessionPaths).forEach(path => {
+        // Sort by time
+        path.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+
+        // Find links
+        for (let i = 0; i < path.length - 1; i++) {
+            const source = path[i].stageId
+            const target = path[i + 1].stageId
+            if (source !== target) { // Ignore refreshing same page
+                const key = `${source}|${target}`
+                flows[key] = (flows[key] || 0) + 1
+            }
         }
     })
 
@@ -83,16 +114,31 @@ export async function getStoryAnalytics(storyId: string) {
         .select('id, title')
         .eq('story_id', storyId)
 
+    const stageMap = new Map(stages?.map(s => [s.id, s.title]))
+
     const popularStages = stages?.map(stage => ({
         name: stage.title,
         views: stageViews[stage.id] || 0,
         id: stage.id
     })).sort((a, b) => b.views - a.views).slice(0, 5) // Top 5
 
+    // Format Flows for UI
+    const topPaths = Object.entries(flows)
+        .map(([key, count]) => {
+            const [sourceId, targetId] = key.split('|')
+            return {
+                source: stageMap.get(sourceId) || 'Unknown',
+                target: stageMap.get(targetId) || 'Unknown',
+                count
+            }
+        })
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5) // Top 5 paths
 
     return {
         totalViews: totalViews || 0,
         uniqueVisitors,
-        popularStages: popularStages || []
+        popularStages: popularStages || [],
+        topPaths
     }
 }

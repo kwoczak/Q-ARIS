@@ -17,11 +17,8 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Loader2, QrCode } from "lucide-react"
-import { BackgroundEditor } from "./blocks/BackgroundEditor"
-import { BlockList } from "./blocks/BlockList"
-import { StageRenderer } from "@/components/player/StageRenderer"
-import { fontOptions } from "@/lib/fonts"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+
 
 interface StagePropertiesProps {
     stage: Stage | null
@@ -119,7 +116,7 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
 
     return (
         <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent className="w-screen sm:w-screen max-w-none sm:max-w-none flex flex-col h-full bg-neutral-950 border-none transition-all p-0 gap-0 text-white">
+            <SheetContent className="w-screen sm:w-screen max-w-none sm:max-w-none flex flex-col h-full bg-neutral-950 border-none transition-all p-0 gap-0 text-white [&>button]:hidden">
                 <SheetHeader className="p-4 border-b border-white/10 shrink-0 flex flex-row items-center justify-between space-y-0 h-16 bg-neutral-900">
                     <div className="flex items-center gap-4">
                         <div>
@@ -151,22 +148,13 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Stage Font (Global)</Label>
-                                <Select
-                                    value={formData.content?.fontFamily || 'sans'}
-                                    onValueChange={(v) => handleContentChange('fontFamily', v)}
-                                >
-                                    <SelectTrigger className="bg-neutral-900 border-white/10">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-neutral-900 border-white/10 h-[300px]">
-                                        {fontOptions.map(font => (
-                                            <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.fontFamily }}>
-                                                {font.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Label htmlFor="stage-title">Stage Title (Internal)</Label>
+                                <Input
+                                    id="stage-title"
+                                    value={formData.title}
+                                    onChange={handleTitleChange}
+                                    className="bg-neutral-900 border-white/10"
+                                />
                             </div>
 
                             {/* --- ADVANCED BUILDER --- */}

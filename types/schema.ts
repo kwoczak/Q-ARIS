@@ -113,7 +113,6 @@ export type StageContent = {
     // New fields
     background?: StageBackground
     blocks?: StageBlock[]
-    fontFamily?: string
 }
 
 export type Stage = {

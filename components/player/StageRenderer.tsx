@@ -56,9 +56,7 @@ export function StageRenderer({ stage }: { stage: Stage }) {
             bgStyle.backgroundPosition = 'center'
         }
     }
-    if (content.fontFamily) {
-        bgStyle.fontFamily = getFontFamily(content.fontFamily)
-    }
+
 
     // --- Block Rendering Logic ---
     const hasBlocks = content.blocks && content.blocks.length > 0

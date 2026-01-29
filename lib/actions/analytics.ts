@@ -1,21 +1,37 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 export async function logAnalyticsEvent(storyId: string, stageId: string, eventType: string, visitorSessionId: string, metadata: any = {}) {
-    const supabase = await createClient()
+    // Use Admin Client (Service Role) to bypass RLS policies for analytics logging
+    // This ensures tracking works even if the user is anonymous
+    let supabase
+    try {
+        supabase = await createAdminClient()
+    } catch (e) {
+        // Fallback to normal client if service role key is missing
+        console.warn("Service Role Key missing, falling back to anon client")
+        supabase = await createClient()
+    }
 
     try {
-        await supabase.from('analytics_events').insert({
+        const { error } = await supabase.from('analytics_events').insert({
             story_id: storyId,
             stage_id: stageId,
             event_type: eventType,
             visitor_session_id: visitorSessionId,
             metadata
         })
+
+        if (error) {
+            console.error("Supabase Analytics Insert Error:", error)
+            throw error
+        }
     } catch (error) {
         console.error("Failed to log analytics event:", error)
-        // Fail silently to not impact user experience
+        // We throw here so the client can potentially see it if wrapped,
+        // but typically analytics failures shouldn't break the UX.
+        // However, for debugging now, we want to know.
     }
 }
 

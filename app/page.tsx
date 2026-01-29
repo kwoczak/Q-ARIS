@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/brand/Logo"
-import { ArrowRight, QrCode, Smartphone, BarChart3, Globe, Lock, Share2 } from "lucide-react"
+import { ArrowRight, QrCode, Smartphone, BarChart3, Globe, Lock, Share2, CheckCircle2 } from "lucide-react"
 
 export default function Home() {
   return (

@@ -90,7 +90,7 @@ export default function Home() {
             <FeatureCard
               icon={<Smartphone />}
               title="WebAR Technology"
-              description="Overlay digital stories onto physical exhibits using advanced Augmented Reality, directly on the web."
+              description="Display interactive 3D models and digital exhibits directly in the browser using advanced Augmented Reality."
             />
             <FeatureCard
               icon={<BarChart3 />}
@@ -111,6 +111,16 @@ export default function Home() {
               icon={<div className="font-bold text-xl">CMS</div>}
               title="Curator Studio"
               description="A drag-and-drop editor designed for museum professionals, not just developers."
+            />
+            <FeatureCard
+              icon={<QrCode />}
+              title="No App Download"
+              description="Remove barriers to entry. Visitors scan a code and start exploring instantly, no installation required."
+            />
+            <FeatureCard
+              icon={<div className="font-bold text-xl">AI</div>}
+              title="AI Narrator"
+              description="Generate voiceovers for your stories automatically using advanced text-to-speech technology."
             />
           </div>
         </div>

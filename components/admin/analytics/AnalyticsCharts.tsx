@@ -11,15 +11,24 @@ interface AnalyticsData {
         name: string
         views: number
         id: string
+        avgTime?: number
     }[]
     topPaths?: {
         source: string
         target: string
         count: number
     }[]
+    avgSessionDuration?: number
 }
 
 export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
+    const formatDuration = (seconds: number) => {
+        if (!seconds) return "0s"
+        const m = Math.floor(seconds / 60)
+        const s = seconds % 60
+        return m > 0 ? `${m}m ${s}s` : `${s}s`
+    }
+
     return (
         <div className="space-y-6">
             {/* KPI Cards */}
@@ -28,10 +37,10 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
                     { title: "Total Visitors", icon: Users, value: data.uniqueVisitors, sub: "Unique sessions tracked" },
                     { title: "Total Views", icon: Eye, value: data.totalViews, sub: "Page/Simulated views" },
                     {
-                        title: "Engagement Rate",
+                        title: "Avg. Session Time",
                         icon: Trophy,
-                        value: data.uniqueVisitors > 0 ? (data.totalViews / data.uniqueVisitors).toFixed(1) : 0,
-                        sub: "Avg. views per visitor"
+                        value: formatDuration(data.avgSessionDuration || 0),
+                        sub: "Engagement duration"
                     }
                 ].map((item, i) => (
                     <Card key={i} className="bg-neutral-900/50 border-neutral-800 backdrop-blur-sm text-white hover:bg-neutral-900/80 transition-colors">
@@ -91,6 +100,11 @@ export function AnalyticsCharts({ data }: { data: AnalyticsData }) {
                                                             <p className="text-sm text-blue-400">
                                                                 Views: <span className="font-bold text-white ml-1">{payload[0].value}</span>
                                                             </p>
+                                                            {payload[0].payload.avgTime > 0 && (
+                                                                <p className="text-xs text-neutral-400 mt-1">
+                                                                    Avg Time: <span className="text-white">{Math.floor(payload[0].payload.avgTime / 60)}m {payload[0].payload.avgTime % 60}s</span>
+                                                                </p>
+                                                            )}
                                                         </div>
                                                     )
                                                 }

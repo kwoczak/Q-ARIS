@@ -116,11 +116,19 @@ export async function getStoryAnalytics(storyId: string) {
 
     const stageMap = new Map(stages?.map(s => [s.id, s.title]))
 
-    const popularStages = stages?.map(stage => ({
-        name: stage.title,
-        views: stageViews[stage.id] || 0,
-        id: stage.id
-    })).sort((a, b) => b.views - a.views).slice(0, 5) // Top 5
+    const popularStages = stages?.map(stage => {
+        const durations = stageDurations[stage.id] || []
+        const avgTimeMs = durations.length > 0
+            ? durations.reduce((a, b) => a + b, 0) / durations.length
+            : 0
+
+        return {
+            name: stage.title,
+            views: stageViews[stage.id] || 0,
+            avgTime: Math.round(avgTimeMs / 1000), // convert to seconds
+            id: stage.id
+        }
+    }).sort((a, b) => b.views - a.views).slice(0, 5) // Top 5
 
     // Format Flows for UI
     const topPaths = Object.entries(flows)
@@ -139,6 +147,7 @@ export async function getStoryAnalytics(storyId: string) {
         totalViews: totalViews || 0,
         uniqueVisitors,
         popularStages: popularStages || [],
-        topPaths
+        topPaths,
+        avgSessionDuration: Math.round(avgSessionTimeMs / 1000) // Seconds
     }
 }

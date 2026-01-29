@@ -37,8 +37,9 @@ create policy "Admins can view all analytics"
   on analytics_events for select
   using (
     exists (
+    exists (
       select 1 from users
       where users.id = auth.uid()
-      and users.role in ('admin', 'museum_admin')
+      and users.role in ('admin', 'museum')
     )
   );

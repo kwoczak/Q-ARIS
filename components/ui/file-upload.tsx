@@ -46,11 +46,11 @@ export function FileUpload({ label, accept, folder, onUploadComplete, currentUrl
     return (
         <div className={className}>
             {currentUrl && accept.includes('image') && (
-                <div className="mb-3 relative w-full aspect-video bg-neutral-900 rounded-md overflow-hidden border border-neutral-800">
+                <div className="mb-3 relative w-full h-40 bg-neutral-900/50 rounded-md overflow-hidden border border-white/10 flex items-center justify-center">
                     <img
                         src={currentUrl}
                         alt="Preview"
-                        className="w-full h-full object-cover"
+                        className="max-w-full max-h-full object-contain"
                     />
                 </div>
             )}

@@ -59,7 +59,7 @@ export function FileUpload({ label, accept, folder, onUploadComplete, currentUrl
                     variant="outline"
                     disabled={isUploading}
                     type="button" // Prevent form submission
-                    className="relative cursor-pointer w-full justify-start text-neutral-500 hover:text-neutral-900 border-dashed border-2"
+                    className="relative cursor-pointer w-full justify-start text-neutral-400 hover:text-white hover:bg-neutral-800 border-dashed border-2 border-neutral-700 hover:border-neutral-500 transition-all"
                     onClick={() => document.getElementById(uniqueId)?.click()}
                 >
                     {isUploading ? (

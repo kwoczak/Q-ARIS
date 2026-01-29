@@ -20,6 +20,8 @@ import { Loader2, QrCode } from "lucide-react"
 import { BackgroundEditor } from "./blocks/BackgroundEditor"
 import { BlockList } from "./blocks/BlockList"
 import { StageRenderer } from "@/components/player/StageRenderer"
+import { fontOptions } from "@/lib/fonts"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface StagePropertiesProps {
     stage: Stage | null
@@ -144,7 +146,27 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
                                     id="stage-title"
                                     value={formData.title}
                                     onChange={handleTitleChange}
+                                    className="bg-neutral-900 border-white/10"
                                 />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Stage Font (Global)</Label>
+                                <Select
+                                    value={formData.content?.fontFamily || 'sans'}
+                                    onValueChange={(v) => handleContentChange('fontFamily', v)}
+                                >
+                                    <SelectTrigger className="bg-neutral-900 border-white/10">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-neutral-900 border-white/10 h-[300px]">
+                                        {fontOptions.map(font => (
+                                            <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.fontFamily }}>
+                                                {font.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             {/* --- ADVANCED BUILDER --- */}

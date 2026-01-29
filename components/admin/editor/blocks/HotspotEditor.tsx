@@ -131,16 +131,16 @@ export function HotspotEditor({ block, onChange }: HotspotEditorProps) {
                         <p className="text-xs text-neutral-400 italic">No hotspots added.</p>
                     )}
                     {content.hotspots.map(spot => (
-                        <div key={spot.id} className="flex items-center justify-between p-2 bg-neutral-50 rounded text-xs border">
-                            <span className="font-medium truncate flex-1">{spot.label || 'Point'}</span>
+                        <div key={spot.id} className="flex items-center justify-between p-2 bg-neutral-900 border border-white/10 rounded text-xs">
+                            <span className="font-medium truncate flex-1 text-white">{spot.label || 'Point'}</span>
                             <div className="flex gap-1">
-                                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => {
+                                <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-neutral-800 text-neutral-400" onClick={() => {
                                     setEditingHotspot(spot)
                                     setIsDialogOpen(true)
                                 }}>
                                     <MapPin className="w-3 h-3" />
                                 </Button>
-                                <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500" onClick={() => deleteHotspot(spot.id)}>
+                                <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:bg-neutral-800" onClick={() => deleteHotspot(spot.id)}>
                                     <Trash2 className="w-3 h-3" />
                                 </Button>
                             </div>
@@ -162,6 +162,7 @@ export function HotspotEditor({ block, onChange }: HotspotEditorProps) {
                                 <Input
                                     value={editingHotspot.label}
                                     onChange={(e) => setEditingHotspot({ ...editingHotspot, label: e.target.value })}
+                                    className="bg-neutral-800 border-neutral-700 text-white"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -169,6 +170,7 @@ export function HotspotEditor({ block, onChange }: HotspotEditorProps) {
                                 <Textarea
                                     value={editingHotspot.text}
                                     onChange={(e) => setEditingHotspot({ ...editingHotspot, text: e.target.value })}
+                                    className="bg-neutral-800 border-neutral-700 text-white"
                                 />
                             </div>
                         </div>

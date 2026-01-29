@@ -57,6 +57,7 @@ export function QuizBlock({ blockId, content, style }: QuizBlockProps) {
         backgroundColor: style.backgroundColor || 'rgba(255, 255, 255, 0.5)',
         color: style.color || 'inherit',
         fontFamily: style.fontFamily,
+        textAlign: style.textAlign,
         fontSize: style.fontSize,
         borderRadius: style.borderRadius || '0.75rem',
         padding: style.padding || '1.5rem',

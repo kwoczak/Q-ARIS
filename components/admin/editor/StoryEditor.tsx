@@ -272,6 +272,11 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                     </div>
                 </div>
                 <div className="flex gap-2">
+                    <Link href={`/curator/story/${story.id}/analytics`}>
+                        <Button size="sm" variant="outline" className="bg-transparent text-white border-neutral-700 hover:bg-neutral-800 hover:text-white">
+                            Analytics
+                        </Button>
+                    </Link>
                     <Button size="sm" variant="secondary" onClick={handleAddStage} disabled={isSaving} className="bg-neutral-800 text-white hover:bg-neutral-700 border border-white/10">
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "+ Add Stage"}
                     </Button>

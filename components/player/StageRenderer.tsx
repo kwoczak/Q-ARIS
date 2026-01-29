@@ -38,9 +38,32 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
 
     const { content } = stage
 
+    // --- Analytics Tracking ---
+    useEffect(() => {
+        // Don't track if in preview mode
+        if (isPreview) return
+
+        const trackView = async () => {
+            // 1. Get or Create Session ID
+            let sessionId = localStorage.getItem('visitor_session_id')
+            if (!sessionId) {
+                sessionId = crypto.randomUUID()
+                localStorage.setItem('visitor_session_id', sessionId)
+            }
+
+            // 2. Log Event
+            // Dynamic import to avoid server-side issues if any, though actions are safe
+            const { logAnalyticsEvent } = await import('@/lib/actions/analytics')
+            await logAnalyticsEvent(stage.story_id, stage.id, 'stage_view', sessionId)
+        }
+
+        trackView()
+    }, [stage.id, stage.story_id, isPreview])
+
     // --- Background Style Logic ---
     const bgStyle: React.CSSProperties = {}
     let isDarkBackground = true
+
 
     if (content.background) {
         if (content.background.type === 'color') {

@@ -45,6 +45,15 @@ export function FileUpload({ label, accept, folder, onUploadComplete, currentUrl
 
     return (
         <div className={className}>
+            {currentUrl && accept.includes('image') && (
+                <div className="mb-3 relative w-full aspect-video bg-neutral-900 rounded-md overflow-hidden border border-neutral-800">
+                    <img
+                        src={currentUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            )}
             <div className="flex items-center gap-4">
                 <Button
                     variant="outline"

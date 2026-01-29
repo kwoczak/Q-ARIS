@@ -2,9 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { StageRenderer } from '@/components/player/StageRenderer'
 import { notFound } from 'next/navigation'
 import type { Stage } from '@/types/schema'
+import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary'
 
-export default async function PlayerPage({ params }: { params: Promise<{ code: string }> }) {
-    const { code } = await params
+export default async function PlayerPage(props: { params: Promise<{ code: string }> }) {
+    const params = await props.params;
+    const { code } = params
     const supabase = await createClient()
 
     // 1. Resolve Trigger Code -> Stage ID
@@ -58,7 +60,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ code: s
 
     return (
         <main className="min-h-screen bg-black">
-            <StageRenderer stage={stage as Stage} />
+            <GlobalErrorBoundary>
+                <StageRenderer stage={stage as Stage} />
+            </GlobalErrorBoundary>
         </main>
     )
 }

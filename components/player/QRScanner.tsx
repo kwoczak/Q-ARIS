@@ -60,8 +60,12 @@ export function QRScanner({ onClose }: { onClose: () => void }) {
 
         return () => {
             mounted.current = false
-            if (scanner && scanner.isScanning) {
-                scanner.stop().catch(e => console.error("Failed to stop scanner", e))
+            try {
+                if (scanner && scanner.isScanning) {
+                    scanner.stop().catch(e => console.warn("Failed to stop scanner", e))
+                }
+            } catch (e) {
+                console.warn("Error during scanner cleanup", e)
             }
         }
     }, [router])

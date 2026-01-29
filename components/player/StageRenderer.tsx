@@ -44,17 +44,40 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
         if (isPreview) return
 
         const trackView = async () => {
-            // 1. Get or Create Session ID
-            let sessionId = localStorage.getItem('visitor_session_id')
-            if (!sessionId) {
-                sessionId = crypto.randomUUID()
-                localStorage.setItem('visitor_session_id', sessionId)
-            }
+            try {
+                // 1. Get or Create Session ID
+                // Safe UUID generation for older devices
+                let sessionId = ''
+                try {
+                    sessionId = localStorage.getItem('visitor_session_id') || ''
+                } catch (e) {
+                    console.warn("LocalStorage access denied", e)
+                }
 
-            // 2. Log Event
-            // Dynamic import to avoid server-side issues if any, though actions are safe
-            const { logAnalyticsEvent } = await import('@/lib/actions/analytics')
-            await logAnalyticsEvent(stage.story_id, stage.id, 'stage_view', sessionId)
+                if (!sessionId) {
+                    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                        sessionId = crypto.randomUUID()
+                    } else {
+                        // Fallback for older browsers
+                        sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        });
+                    }
+                    try {
+                        localStorage.setItem('visitor_session_id', sessionId)
+                    } catch (e) {
+                        // Ignore storage errors
+                    }
+                }
+
+                // 2. Log Event
+                // Dynamic import to avoid server-side issues if any, though actions are safe
+                const { logAnalyticsEvent } = await import('@/lib/actions/analytics')
+                await logAnalyticsEvent(stage.story_id, stage.id, 'stage_view', sessionId)
+            } catch (error) {
+                console.error("Analytics tracking error:", error)
+            }
         }
 
         trackView()

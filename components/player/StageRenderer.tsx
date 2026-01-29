@@ -95,7 +95,24 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
     const bgStyle: React.CSSProperties = {}
     let isDarkBackground = true
 
-    // ... logic ...
+    if (content.background) {
+        if (content.background.type === 'color') {
+            bgStyle.backgroundColor = content.background.value
+            if (content.background.value === '#ffffff' || content.background.value.toLowerCase() === '#fff') {
+                isDarkBackground = false
+            }
+        } else if (content.background.type === 'gradient') {
+            bgStyle.background = content.background.value
+        } else if (content.background.type === 'image') {
+            bgStyle.backgroundImage = `url(${content.background.value})`
+            bgStyle.backgroundSize = 'cover'
+            bgStyle.backgroundPosition = 'center'
+        }
+    }
+
+
+    // --- Block Rendering Logic ---
+    const hasBlocks = content.blocks && content.blocks.length > 0
 
     const containerClasses = [
         "flex flex-col h-[100dvh] w-full relative transition-colors duration-500 overflow-hidden",

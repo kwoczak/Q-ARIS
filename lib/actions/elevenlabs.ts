@@ -27,7 +27,11 @@ export type Voice = {
 }
 
 export async function getVoices(): Promise<Voice[]> {
-    if (!ELEVENLABS_API_KEY) return []
+    console.log("Fetching voices...")
+    if (!ELEVENLABS_API_KEY) {
+        console.warn("getVoices: No API Key")
+        return []
+    }
 
     try {
         const response = await fetch('https://api.elevenlabs.io/v1/voices', {
@@ -38,8 +42,7 @@ export async function getVoices(): Promise<Voice[]> {
         })
 
         if (!response.ok) {
-            console.error("Failed to fetch voices", await response.text())
-            // Fallback to empty or default if error
+            console.error("Failed to fetch voices:", response.status, await response.text())
             return []
         }
 
@@ -67,10 +70,12 @@ export async function generateAndSaveTTS({
     voice_name: string
     label: string
 }) {
+    console.log("Generating TTS...")
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (authError || !user) {
+        console.error("Auth error:", authError)
         throw new Error("Unauthorized")
     }
 
@@ -79,6 +84,7 @@ export async function generateAndSaveTTS({
     }
 
     // 1. Generate Audio
+    console.log("Calling ElevenLabs API...")
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`, {
         method: 'POST',
         headers: {
@@ -87,7 +93,7 @@ export async function generateAndSaveTTS({
         },
         body: JSON.stringify({
             text,
-            model_id: "eleven_multilingual_v2", // Best for general use including Polish
+            model_id: "eleven_multilingual_v2",
             voice_settings: {
                 stability: 0.5,
                 similarity_boost: 0.75
@@ -106,6 +112,7 @@ export async function generateAndSaveTTS({
     // 2. Upload to Supabase Storage
     const fileName = `tts_${user.id}_${Date.now()}.mp3`
     const filePath = `tts/${user.id}/${fileName}`
+    console.log("Uploading to storage:", filePath)
 
     const { error: uploadError } = await supabase.storage
         .from('assets')
@@ -125,6 +132,7 @@ export async function generateAndSaveTTS({
         .getPublicUrl(filePath)
 
     // 4. Save Metadata to DB
+    console.log("Saving metadata to DB...")
     const { data: asset, error: dbError } = await supabase
         .from('tts_assets')
         .insert({
@@ -151,18 +159,18 @@ export async function generateAndSaveTTS({
 export async function deleteTTSAsset(id: string, filePath: string) {
     const supabase = await createClient()
 
-    // Check permissions (RLS will handle DB, but we need to check for Storage)
-    // Actually, RLS on DELETE tts_assets ensures owner. 
-    // We should delete from DB first or verify ownership.
+    // Auth check implicitly handled by RLS, but explicit check doesn't hurt
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Unauthorized")
 
     const { error: dbError } = await supabase
         .from('tts_assets')
         .delete()
         .eq('id', id)
+        .eq('curator_id', user.id) // Extra safety
 
     if (dbError) throw dbError
 
-    // Clean up file
     await supabase.storage
         .from('assets')
         .remove([filePath])
@@ -171,16 +179,31 @@ export async function deleteTTSAsset(id: string, filePath: string) {
 }
 
 export async function getTTSAssets(): Promise<TTSAsset[]> {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    console.log("Fetching TTS assets...")
+    try {
+        const supabase = await createClient()
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!user) return []
+        if (authError || !user) {
+            console.warn("getTTSAssets: No user or auth error", authError)
+            return []
+        }
 
-    const { data } = await supabase
-        .from('tts_assets')
-        .select('*')
-        .eq('curator_id', user.id)
-        .order('created_at', { ascending: false })
+        const { data, error } = await supabase
+            .from('tts_assets')
+            .select('*')
+            .eq('curator_id', user.id)
+            .order('created_at', { ascending: false })
 
-    return (data as TTSAsset[]) || []
+        if (error) {
+            console.error("getTTSAssets: DB Error", error)
+            // Return empty array instead of throwing to prevent page crash
+            return []
+        }
+
+        return (data as TTSAsset[]) || []
+    } catch (error) {
+        console.error("getTTSAssets: Unexpected error", error)
+        return []
+    }
 }

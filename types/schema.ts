@@ -4,7 +4,11 @@ export type Story = {
     description: string | null
     created_at: string
     updated_at: string
+    supported_languages?: string[] // e.g. ['en', 'pl']
+    default_language?: string
 }
+
+export type Language = 'en' | 'pl' | 'de' | 'es' | 'fr' | 'it' | 'cs' | 'ua';
 
 export type StageType = 'content' | 'ar_model' | 'quiz' | 'ending'
 
@@ -93,6 +97,11 @@ export interface StageBlock {
     content: string | ComparisonContent | HotspotContent | QuizContent | ScratchContent | CarouselItem[] | AccordionItem[] | any
     styles?: BlockStyle
     overlay?: BlockOverlay
+
+    // Internationalization overrides
+    // Keys are language codes (e.g., 'pl', 'de')
+    content_i18n?: Record<string, any>
+    overlay_i18n?: Record<string, { text: string }>
 }
 
 export interface StageBackground {

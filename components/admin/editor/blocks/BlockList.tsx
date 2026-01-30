@@ -12,12 +12,15 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 
+
 interface BlockListProps {
     blocks: StageBlock[]
     onChange: (blocks: StageBlock[]) => void
+    currentLanguage: string
+    defaultLanguage: string
 }
 
-export function BlockList({ blocks, onChange }: BlockListProps) {
+export function BlockList({ blocks, onChange, currentLanguage, defaultLanguage }: BlockListProps) {
 
     const addBlock = (type: BlockType) => {
         let initialContent: any = ''
@@ -132,7 +135,12 @@ export function BlockList({ blocks, onChange }: BlockListProps) {
                             </div>
                         </div>
                         <AccordionContent className="p-4 border-t border-white/10 bg-neutral-900 text-white">
-                            <BlockEditor block={block} onChange={(updated) => updateBlock(index, updated)} />
+                            <BlockEditor
+                                block={block}
+                                onChange={(updated) => updateBlock(index, updated)}
+                                currentLanguage={currentLanguage}
+                                defaultLanguage={defaultLanguage}
+                            />
                         </AccordionContent>
                     </AccordionItem>
                 ))}

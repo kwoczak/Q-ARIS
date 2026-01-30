@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { Stage, StageContent, Trigger } from "@/types/schema"
+import { Stage, StageContent, Trigger, Story } from "@/types/schema" // Added Story
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,11 +21,26 @@ import { Loader2, QrCode } from "lucide-react"
 import { BackgroundEditor } from "./blocks/BackgroundEditor"
 import { BlockList } from "./blocks/BlockList"
 import { StageRenderer } from "@/components/player/StageRenderer"
+import { translateStageContent } from "@/app/actions/translate"
+import { Sparkles } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 
 
 interface StagePropertiesProps {
     stage: Stage | null
+    story: Story // Added story prop
     isOpen: boolean
     onClose: () => void
     onSave: (updatedStage: Stage) => void
@@ -32,11 +48,12 @@ interface StagePropertiesProps {
     onDuplicate: () => void
 }
 
-export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDuplicate }: StagePropertiesProps) {
+export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelete, onDuplicate }: StagePropertiesProps) {
     const [formData, setFormData] = useState<Stage | null>(null)
     const [trigger, setTrigger] = useState<Trigger | null>(null)
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
     const [isLoadingQr, setIsLoadingQr] = useState(false)
+    const [currentLanguage, setCurrentLanguage] = useState<string>(story.default_language || 'en')
 
     const supabase = createClient()
 
@@ -138,18 +155,89 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
                 <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-2">
                     {/* LEFT PANEL: EDITOR */}
                     <div className="h-full overflow-y-auto border-r border-white/10 bg-neutral-950">
+                        {/* Language Switcher */}
+                        {story.supported_languages && story.supported_languages.length > 0 && (
+                            <div className="p-4 border-b border-white/10 bg-neutral-900/50 sticky top-0 z-10 backdrop-blur-sm flex justify-between items-start">
+                                <div>
+                                    <Label className="text-xs text-neutral-400 mb-2 block">Editing Language</Label>
+                                    <div className="flex gap-2 flex-wrap">
+                                        {story.supported_languages.map(lang => (
+                                            <button
+                                                key={lang}
+                                                onClick={() => setCurrentLanguage(lang)}
+                                                className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${currentLanguage === lang
+                                                    ? 'bg-blue-600 border-blue-500 text-white'
+                                                    : 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-700'
+                                                    }`}
+                                            >
+                                                {lang.toUpperCase()}
+                                                {lang === story.default_language && <span className="ml-1 opacity-50 text-[10px]">(Default)</span>}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="bg-purple-900/20 text-purple-400 border-purple-500/30 hover:bg-purple-900/40 hover:text-purple-300"
+                                            disabled={story.supported_languages.length <= 1}
+                                        >
+                                            <Sparkles className="w-3.5 h-3.5 mr-2" />
+                                            Auto-Translate
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent className="bg-neutral-900 border-neutral-800 text-white">
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Auto-Translate Content?</AlertDialogTitle>
+                                            <AlertDialogDescription className="text-neutral-400">
+                                                This will use AI to translate content from the default language ({story.default_language?.toUpperCase()})
+                                                to all other supported languages ({story.supported_languages.filter(l => l !== story.default_language).join(', ').toUpperCase()}).
+                                                <br /><br />
+                                                <strong className="text-red-400">Warning: This will overwrite any existing translations you have manually entered.</strong>
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel className="bg-transparent border-neutral-700 text-white hover:bg-neutral-800 hover:text-white">Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                className="bg-purple-600 hover:bg-purple-700 text-white"
+                                                onClick={async () => {
+                                                    if (!formData || !story.supported_languages) return
+                                                    const targetLangs = story.supported_languages.filter(l => l !== story.default_language)
+                                                    if (targetLangs.length === 0) return
+
+                                                    try {
+                                                        const result = await translateStageContent(formData.id, targetLangs)
+                                                        if (result.success) {
+                                                            // Ideally we should reload data, but for now we might need to close/re-open or force refresh
+                                                            // We can call onSave to trigger parent refresh or similar if available, or just alert success
+                                                            // Actually, since this updates DB on server, we need to refresh local formData
+                                                            // But formData is just local state seeded from props. 
+                                                            // We should probably invoke a refresh callback if passed, or just close.
+                                                            // Let's rely on user closing/re-opening or add a toast. 
+                                                            // Better: Close this sheet to force refresh when re-opened, or try to fetch again?
+                                                            // Let's just alert for now as a simple step.
+                                                            alert("Translation completed successfully! Please close and re-open the stage to see changes.")
+                                                            onClose()
+                                                        }
+                                                    } catch (e) {
+                                                        console.error(e)
+                                                        alert("Translation failed. Please check logs.")
+                                                    }
+                                                }}
+                                            >
+                                                Start Translation
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        )}
+
                         <div className="p-6 space-y-8 max-w-2xl mx-auto">
                             {/* Basic Info */}
-                            <div className="space-y-2">
-                                <Label htmlFor="stage-title">Stage Title (Internal)</Label>
-                                <Input
-                                    id="stage-title"
-                                    value={formData.title}
-                                    onChange={handleTitleChange}
-                                    className="bg-neutral-900 border-white/10"
-                                />
-                            </div>
-
                             <div className="space-y-2">
                                 <Label htmlFor="stage-title">Stage Title (Internal)</Label>
                                 <Input
@@ -172,6 +260,8 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
                                     <BlockList
                                         blocks={formData.content?.blocks || []}
                                         onChange={(blocks) => handleContentChange('blocks', blocks)}
+                                        currentLanguage={currentLanguage}
+                                        defaultLanguage={story.default_language || 'en'}
                                     />
                                 </div>
                             </div>
@@ -247,7 +337,7 @@ export function StageProperties({ stage, isOpen, onClose, onSave, onDelete, onDu
                                 {/* Only render if we have data to prevent errors */}
                                 {formData && (
                                     <div className="stage-renderer-preview-wrapper h-full w-full overflow-y-auto">
-                                        <StageRenderer stage={formData} isPreview={true} />
+                                        <StageRenderer stage={formData} isPreview={true} language={currentLanguage} />
                                     </div>
                                 )}
                             </div>

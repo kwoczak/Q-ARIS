@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { StageRenderer } from '@/components/player/StageRenderer'
+import { PlayerWrapper } from '@/components/player/PlayerWrapper'
 import { notFound } from 'next/navigation'
 import type { Stage } from '@/types/schema'
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary'
@@ -30,11 +31,11 @@ export default async function PlayerPage(props: { params: Promise<{ code: string
 
     if (!stage) return notFound()
 
-    // 3. Check License
+    // 3. Check License and Get Story Info
     // Get story owner to find museum
     const { data: story } = await supabase
         .from('stories')
-        .select('curator_id, curator:users!curator_id(museum_id)')
+        .select('id, curator_id, supported_languages, default_language, curator:users!curator_id(museum_id)')
         .eq('id', stage.story_id)
         .single()
 
@@ -58,10 +59,19 @@ export default async function PlayerPage(props: { params: Promise<{ code: string
         }
     }
 
+    // Prepare story minimal object for PlayerWrapper
+    const storyInfo = {
+        id: story!.id,
+        supported_languages: story!.supported_languages || ['en'],
+        default_language: story!.default_language || 'en'
+    }
+
     return (
         <main className="min-h-screen bg-black">
             <GlobalErrorBoundary>
-                <StageRenderer stage={stage as Stage} />
+                {/* Dynamically import PlayerWrapper to avoid SSR issues with localStorage if component uses it directly on mount, 
+                    though PlayerWrapper uses useEffect so it is safe. */}
+                <PlayerWrapper stage={stage as Stage} story={storyInfo} />
             </GlobalErrorBoundary>
         </main>
     )

@@ -23,6 +23,7 @@ import { createClient } from '@/lib/supabase/client'
 import { StageProperties } from './StageProperties'
 import { Loader2, Pencil, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { LanguageManager } from '../LanguageManager'
 
 // Helper to convert DB Stages to ReactFlow Nodes
 const getInitialNodes = (stages: Stage[]): Node[] => {
@@ -277,6 +278,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                             Analytics
                         </Button>
                     </Link>
+                    <LanguageManager story={story} />
                     <Link href="/curator/tts">
                         <Button size="sm" variant="outline" className="bg-transparent text-blue-400 border-neutral-700 hover:bg-neutral-800 hover:text-blue-300 border-dashed">
                             TTS Studio
@@ -310,6 +312,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
 
             <StageProperties
                 stage={selectedStage}
+                story={story}
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
                 onSave={handleStageUpdate}

@@ -2,7 +2,7 @@
 
 import { Stage, StageBlock, BlockStyle } from "@/types/schema" // Added Block imports
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ArrowRight, Play, Pause, ScanLine, X } from "lucide-react"
+import { ArrowRight, Play, Pause, ScanLine, X, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
@@ -27,7 +27,7 @@ const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
     loading: () => <div className="w-full h-full bg-neutral-100/10 animate-pulse rounded-xl" />
 })
 
-export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPreview?: boolean }) {
+export function StageRenderer({ stage, isPreview = false, language = 'en', onChangeLanguage }: { stage: Stage, isPreview?: boolean, language?: string, onChangeLanguage?: () => void }) {
     const [isScanning, setIsScanning] = useState(false)
     const [debugLogs, setDebugLogs] = useState<string[]>([])
 
@@ -133,7 +133,7 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
             ) : null}
 
             {/* Close / Scan Button */}
-            <div className="absolute top-4 right-4 z-50">
+            <div className="absolute top-4 right-4 z-50 flex flex-col gap-2">
                 <Button
                     size="icon"
                     variant="secondary"
@@ -144,6 +144,19 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
                     <X className="w-5 h-5" />
                     <span className="sr-only">Close / Scan</span>
                 </Button>
+
+                {/* Change Language Button */}
+                {onChangeLanguage && (
+                    <Button
+                        size="icon"
+                        variant="secondary"
+                        className="rounded-full bg-black/50 backdrop-blur-md text-white border border-white/20 hover:bg-black/70"
+                        onClick={onChangeLanguage}
+                    >
+                        <Globe className="w-5 h-5" />
+                        <span className="sr-only">Change Language</span>
+                    </Button>
+                )}
             </div>
 
             {/* Score Display (Always visible) */}
@@ -153,9 +166,28 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
                 // --- NEW BLOCK RENDERER ---
                 <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden touch-pan-y">
                     <div className="flex flex-col min-h-full pb-32">
-                        {content.blocks!.map((block) => (
-                            <BlockRenderer key={block.id} block={block} />
-                        ))}
+                        {content.blocks!.map((block) => {
+                            // Resolve Localized Content
+                            // If we have an override for the current language, use it.
+                            // Note: We don't have defaultLanguage here easily, but valid override implies intention.
+                            const localizedContent = block.content_i18n?.[language]
+                            const effectiveContent = localizedContent !== undefined ? localizedContent : block.content
+
+                            // Resolve Localized Overlay
+                            const localizedOverlayText = block.overlay_i18n?.[language]?.text
+                            const effectiveOverlay = block.overlay ? {
+                                ...block.overlay,
+                                text: localizedOverlayText !== undefined ? localizedOverlayText : block.overlay.text
+                            } : undefined
+
+                            const effectiveBlock = {
+                                ...block,
+                                content: effectiveContent,
+                                overlay: effectiveOverlay
+                            }
+
+                            return <BlockRenderer key={block.id} block={effectiveBlock} />
+                        })}
                         {/* Audio Autoplay Logic for Blocks? Or keep global? 
                             Let's keep global audio for now if defined in legacy or specific block. 
                             Actually, let's just support the legacy audio field as "Ambient Audio" for the stage

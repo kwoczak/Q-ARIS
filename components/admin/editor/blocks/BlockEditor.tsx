@@ -27,6 +27,12 @@ import { Wand2 } from "lucide-react"
 interface BlockEditorProps {
     block: StageBlock
     onChange: (block: StageBlock) => void
+    currentLanguage?: string
+    defaultLanguage?: string
+}
+
+const isBlockLocalizable = (type: BlockType) => {
+    return ['text', 'audio', 'quiz', 'accordion'].includes(type)
 }
 
 const fontSizes = [
@@ -43,11 +49,62 @@ const fontSizes = [
     { label: '72px', value: '72px' },
 ]
 
-export function BlockEditor({ block, onChange }: BlockEditorProps) {
+export function BlockEditor({ block, onChange, currentLanguage = 'en', defaultLanguage = 'en' }: BlockEditorProps) {
     const [isCropperOpen, setIsCropperOpen] = useState(false)
     const [imageToCrop, setImageToCrop] = useState<string | null>(null)
     const [isUploading, setIsUploading] = useState(false)
     const [isTTSPickerOpen, setIsTTSPickerOpen] = useState(false)
+
+    const isDefaultLang = currentLanguage === defaultLanguage
+    const isLocalizable = isBlockLocalizable(block.type)
+
+    // Resolve Content
+    const effectiveContent = (isLocalizable && !isDefaultLang && block.content_i18n?.[currentLanguage])
+        ? block.content_i18n[currentLanguage]
+        : block.content
+
+    // Resolve Overlay Text
+    const effectiveOverlay = block.overlay ? {
+        ...block.overlay,
+        text: (!isDefaultLang && block.overlay_i18n?.[currentLanguage]?.text)
+            ? block.overlay_i18n[currentLanguage].text
+            : block.overlay.text
+    } : undefined
+
+    const updateContent = (newContent: any) => {
+        if (!isLocalizable || isDefaultLang) {
+            onChange({ ...block, content: newContent })
+        } else {
+            onChange({
+                ...block,
+                content_i18n: {
+                    ...block.content_i18n,
+                    [currentLanguage]: newContent
+                }
+            })
+        }
+    }
+
+    const updateOverlayText = (newText: string) => {
+        if (!block.overlay) return
+
+        if (isDefaultLang) {
+            onChange({
+                ...block,
+                overlay: { ...block.overlay, text: newText }
+            })
+        } else {
+            onChange({
+                ...block,
+                overlay_i18n: {
+                    ...block.overlay_i18n,
+                    [currentLanguage]: { text: newText }
+                }
+            })
+        }
+    }
+
+
 
     const updateStyle = (key: string, value: any) => {
         onChange({
@@ -90,10 +147,10 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     <div className="space-y-2">
                         <Label>Text Content</Label>
                         <Textarea
-                            value={block.content as string}
-                            onChange={(e) => onChange({ ...block, content: e.target.value })}
+                            value={effectiveContent as string}
+                            onChange={(e) => updateContent(e.target.value)}
                             rows={4}
-                            placeholder="Type your text here..."
+                            placeholder={`Type your text here (${currentLanguage})...`}
                         />
                     </div>
                 )
@@ -162,11 +219,8 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                                     <div className="space-y-1">
                                         <Label className="text-[10px] text-neutral-400">Caption</Label>
                                         <Textarea
-                                            value={block.overlay.text}
-                                            onChange={(e) => onChange({
-                                                ...block,
-                                                overlay: { ...block.overlay!, text: e.target.value }
-                                            })}
+                                            value={effectiveOverlay!.text}
+                                            onChange={(e) => updateOverlayText(e.target.value)}
                                             rows={2}
                                             className="text-xs bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500"
                                         />
@@ -427,8 +481,8 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                             label="Audio"
                             accept="audio/*"
                             folder="blocks/audio"
-                            currentUrl={block.content as string}
-                            onUploadComplete={(url) => onChange({ ...block, content: url })}
+                            currentUrl={effectiveContent as string}
+                            onUploadComplete={(url) => updateContent(url)}
                         />
                         <div className="flex items-center gap-2 mt-2">
                             <div className="h-px bg-neutral-800 flex-1" />
@@ -446,7 +500,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                         <TTSPickerModal
                             isOpen={isTTSPickerOpen}
                             onClose={() => setIsTTSPickerOpen(false)}
-                            onSelect={(url) => onChange({ ...block, content: url })}
+                            onSelect={(url) => updateContent(url)}
                         />
                         <div className="flex items-center space-x-2 mt-2">
                             <Checkbox
@@ -456,8 +510,8 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                             />
                             <Label htmlFor={`autoplay-${block.id}`} className="text-xs">Auto-play audio</Label>
                         </div>
-                        {block.content && typeof block.content === 'string' && (
-                            <audio controls src={block.content} className="w-full mt-2" />
+                        {effectiveContent && typeof effectiveContent === 'string' && (
+                            <audio controls src={effectiveContent} className="w-full mt-2" />
                         )}
                     </div>
                 )

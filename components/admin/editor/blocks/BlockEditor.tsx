@@ -120,9 +120,6 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                         <p className="text-[10px] text-neutral-500">
                             Selected images will open a cropper tool (16:9 aspect).
                         </p>
-                        {block.content && typeof block.content === 'string' && (
-                            <img src={block.content} alt="Preview" className="h-32 object-cover rounded border mt-2" />
-                        )}
 
                         {/* --- OVERLAY CONTROLS --- */}
                         <div className="pt-2 border-t border-dashed mt-4">
@@ -713,24 +710,6 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                     </Select>
                 </div>
 
-                <div className="space-y-1">
-                    <Label className="text-xs text-neutral-400">Padding</Label>
-                    <Select
-                        value={block.styles?.padding || '1rem'}
-                        onValueChange={(v: string) => updateStyle('padding', v)}
-                    >
-                        <SelectTrigger className="h-8 text-xs bg-neutral-800 border-neutral-700 text-white">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-neutral-800 border-neutral-700 text-white">
-                            <SelectItem value="0">None</SelectItem>
-                            <SelectItem value="0.5rem">Small</SelectItem>
-                            <SelectItem value="1rem">Medium</SelectItem>
-                            <SelectItem value="2rem">Large</SelectItem>
-                            <SelectItem value="4rem">Extra Large</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
 
                 <div className="space-y-1">
                     <Label className="text-xs text-neutral-400">Vertical Space (Margin)</Label>

@@ -6,6 +6,7 @@ import { Stage, StageBlock } from '@/types/schema'
 import { generateAndSaveTTS } from '@/lib/actions/elevenlabs'
 
 export async function translateStageContent(stageId: string, targetLanguages: string[]) {
+    // 1. Define debugLogs and log function FIRST
     const debugLogs: string[] = []
 
     // Internal log function to collect debug info

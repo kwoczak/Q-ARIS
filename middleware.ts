@@ -1,66 +1,49 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-    let response = NextResponse.next({
-        request: {
-            headers: request.headers,
-        },
-    })
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { decrypt } from '@/lib/auth-lib';
 
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                getAll() {
-                    return request.cookies.getAll()
-                },
-                setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) =>
-                        request.cookies.set(name, value)
-                    )
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
-                    cookiesToSet.forEach(({ name, value, options }) =>
-                        response.cookies.set(name, value, options)
-                    )
-                },
-            },
-        }
-    )
+// 1. Specify protected and public routes
+const protectedRoutes = ['/admin', '/museum', '/curator', '/dashboard'];
+const publicRoutes = ['/login', '/signup', '/'];
 
-    // IMPORTANT: Avoid writing any logic between createServerClient and
-    // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-    // issues with users being randomly logged out.
+export async function middleware(req: NextRequest) {
+    // 2. Check if the current route is protected or public
+    const path = req.nextUrl.pathname;
+    const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route));
+    const isPublicRoute = publicRoutes.includes(path);
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    // 3. Decrypt the session from the cookie
+    const cookie = req.cookies.get('session')?.value;
+    const session = cookie ? await decrypt(cookie) : null;
 
-    // Protected Routes Logic
-    const path = request.nextUrl.pathname
-    const protectedRoutes = ['/admin', '/museum', '/curator', '/dashboard']
-    const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route))
-
-    if (isProtectedRoute && !user) {
-        return NextResponse.redirect(new URL('/login', request.url))
+    // 4. Redirect to /login if the user is not authenticated
+    if (isProtectedRoute && !session) {
+        return NextResponse.redirect(new URL('/login', req.nextUrl));
     }
 
-    // Role-based redirection if user is authenticated but on a public route (like login)
-    // or just generally checking role access
-    // For now, we keep it simple. If valid user on protected route, proceed.
+    // 5. Redirect to /dashboard (or role specific) if the user is authenticated
+    if (
+        isPublicRoute &&
+        session?.userId &&
+        !req.nextUrl.pathname.startsWith('/dashboard')
+    ) {
+        // Determine redirect based on role
+        if (session.role === 'admin') return NextResponse.redirect(new URL('/admin', req.nextUrl));
+        if (session.role === 'museum') return NextResponse.redirect(new URL('/museum', req.nextUrl));
+        if (session.role === 'curator') return NextResponse.redirect(new URL('/curator', req.nextUrl));
 
-    // Note: You can add role checks here by querying a `profiles` table or checking user_metadata 
-    // if you store roles there.
-    // Example:
-    // const role = user?.user_metadata?.role
-    // if (path.startsWith('/admin') && role !== 'admin') ...
+        return NextResponse.redirect(new URL('/dashboard', req.nextUrl));
+    }
 
-    return response
+    // 6. Role based access control (Simple check)
+    if (path.startsWith('/admin') && session?.role !== 'admin') {
+        // Allow if admin is accessing generic routes? strictly enforce /admin only for admin
+        return NextResponse.redirect(new URL('/unauthorized', req.nextUrl)); // Create unauthorized page or just redirect back
+    }
+    // Similar checks for museum/curator can be added here if they have strict silos
+
+    return NextResponse.next();
 }
 
 // Routes Middleware should not run on

@@ -217,14 +217,24 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
 
                                                     try {
                                                         const result = await translateStageContent(formData.id, targetLangs)
+
+                                                        // DEBUG: Show server logs
+                                                        if (result.logs && result.logs.length > 0) {
+                                                            console.log("Server Logs:", result.logs)
+                                                            // Optional: Alert logs to user if they are debugging
+                                                            alert("Translation Logs:\n" + result.logs.join("\n"))
+                                                        }
+
                                                         if (result.success && result.data) {
                                                             setFormData(result.data as Stage)
                                                             onSave(result.data as Stage) // Propagate update to parent
                                                             setIsTranslateDialogOpen(false)
+                                                        } else {
+                                                            alert("Translation reported failure: " + result.message)
                                                         }
                                                     } catch (e) {
                                                         console.error(e)
-                                                        alert("Translation failed. Please check logs.")
+                                                        alert("Translation failed (Client Error). Check console.")
                                                     } finally {
                                                         setIsTranslating(false)
                                                     }

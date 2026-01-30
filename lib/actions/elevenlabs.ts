@@ -1,6 +1,7 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth-lib'
 import { revalidatePath } from 'next/cache'
 
 export type TTSAsset = {
@@ -79,20 +80,26 @@ export async function generateAndSaveTTS({
     console.log("Generating TTS...")
 
     try {
-        const supabase = await createClient()
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-        if (authError || !user) {
-            console.error("Auth error:", authError)
+        // 1. Verify Custom Session
+        const session = await getSession()
+        if (!session || !session.userId) {
+            console.error("Auth error: No custom session found")
             return { success: false, error: "Unauthorized: Please log in." }
         }
+        const userId = session.userId
 
         if (!ELEVENLABS_API_KEY) {
             console.error("Missing ELEVENLABS_API_KEY")
             return { success: false, error: "Server Configuration Error: Missing API Key." }
         }
 
-        // 1. Generate Audio
+        // 2. Output generation logs
+        console.log(`User ${userId} generating audio...`)
+
+        // 3. Authenticate with Supabase (Admin Client to bypass RLS since we have custom auth)
+        const supabase = await createAdminClient()
+
+        // 4. Generate Audio
         console.log("Calling ElevenLabs API...")
         const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`, {
             method: 'POST',
@@ -118,9 +125,9 @@ export async function generateAndSaveTTS({
 
         const audioBuffer = await response.arrayBuffer()
 
-        // 2. Upload to Supabase Storage
-        const fileName = `tts_${user.id}_${Date.now()}.mp3`
-        const filePath = `tts/${user.id}/${fileName}`
+        // 5. Upload to Supabase Storage
+        const fileName = `tts_${userId}_${Date.now()}.mp3`
+        const filePath = `tts/${userId}/${fileName}`
         console.log("Uploading to storage:", filePath)
 
         const { error: uploadError } = await supabase.storage
@@ -135,17 +142,17 @@ export async function generateAndSaveTTS({
             return { success: false, error: `Storage Upload Failed: ${uploadError.message}` }
         }
 
-        // 3. Get Public URL
+        // 6. Get Public URL
         const { data: { publicUrl } } = supabase.storage
             .from('assets')
             .getPublicUrl(filePath)
 
-        // 4. Save Metadata to DB
+        // 7. Save Metadata to DB
         console.log("Saving metadata to DB...")
         const { data: asset, error: dbError } = await supabase
             .from('tts_assets')
             .insert({
-                curator_id: user.id,
+                curator_id: userId, // Use session userId
                 label,
                 text_content: text,
                 voice_name,
@@ -157,6 +164,8 @@ export async function generateAndSaveTTS({
             .single()
 
         if (dbError) {
+            // Delete file if DB insert fails to maintain consistency
+            await supabase.storage.from('assets').remove([filePath])
             console.error("DB Error:", dbError)
             return { success: false, error: `Database Save Failed: ${dbError.message}` }
         }
@@ -171,17 +180,17 @@ export async function generateAndSaveTTS({
 }
 
 export async function deleteTTSAsset(id: string, filePath: string) {
-    const supabase = await createClient()
+    const session = await getSession()
+    if (!session || !session.userId) throw new Error("Unauthorized")
 
-    // Auth check implicitly handled by RLS, but explicit check doesn't hurt
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error("Unauthorized")
+    const supabase = await createAdminClient()
 
+    // Explicitly check ownership since we are using Admin Client
     const { error: dbError } = await supabase
         .from('tts_assets')
         .delete()
         .eq('id', id)
-        .eq('curator_id', user.id) // Extra safety
+        .eq('curator_id', session.userId) // Vital Security Check
 
     if (dbError) throw dbError
 
@@ -195,23 +204,22 @@ export async function deleteTTSAsset(id: string, filePath: string) {
 export async function getTTSAssets(): Promise<TTSAsset[]> {
     console.log("Fetching TTS assets...")
     try {
-        const supabase = await createClient()
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-        if (authError || !user) {
-            console.warn("getTTSAssets: No user or auth error", authError)
+        const session = await getSession()
+        if (!session || !session.userId) {
+            console.warn("getTTSAssets: No custom session")
             return []
         }
+
+        const supabase = await createAdminClient()
 
         const { data, error } = await supabase
             .from('tts_assets')
             .select('*')
-            .eq('curator_id', user.id)
+            .eq('curator_id', session.userId)
             .order('created_at', { ascending: false })
 
         if (error) {
             console.error("getTTSAssets: DB Error", error)
-            // Return empty array instead of throwing to prevent page crash
             return []
         }
 

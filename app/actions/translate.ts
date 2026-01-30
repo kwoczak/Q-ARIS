@@ -6,13 +6,21 @@ import { Stage, StageBlock } from '@/types/schema'
 import { generateAndSaveTTS } from '@/lib/actions/elevenlabs'
 
 export async function translateStageContent(stageId: string, targetLanguages: string[]) {
-    log("--- Starting Translation ---");
-    log(`StageID: ${stageId}`);
-    log(`Target Languages: ${targetLanguages}`);
+    const debugLogs: string[] = []
+
+    // Internal log function to collect debug info
+    const log = (msg: string) => {
+        console.log(msg)
+        debugLogs.push(msg)
+    }
+
+    log("--- Starting Translation ---")
+    log(`StageID: ${stageId}`)
+    log(`Target Languages: ${targetLanguages}`)
 
     if (!process.env.OPENAI_API_KEY) {
-        console.error("Missing OPENAI_API_KEY");
-        return { success: false, message: "Server configuration error: Missing API Key" };
+        console.error("Missing OPENAI_API_KEY")
+        return { success: false, message: "Server configuration error: Missing API Key" }
     }
 
     // Initialize OpenAI client
@@ -51,6 +59,8 @@ export async function translateStageContent(stageId: string, targetLanguages: st
     // Fetch TTS Assets details if any audio blocks exist
     let audioAssetsMap: Record<string, any> = {}
     if (audioUrls.length > 0) {
+        log(`Found ${audioUrls.length} audio URLs.`)
+        // 1. Try Exact Match
         const { data: assets } = await supabase
             .from('tts_assets')
             .select('*')
@@ -60,7 +70,41 @@ export async function translateStageContent(stageId: string, targetLanguages: st
             assets.forEach(a => {
                 audioAssetsMap[a.public_url] = a
             })
+            log(`Matched ${assets.length} assets by exact URL.`)
         }
+
+        // 2. Fallback: Fuzzy Match (if exact match not found)
+        for (const url of audioUrls) {
+            if (!audioAssetsMap[url]) {
+                try {
+                    const urlObj = new URL(url)
+                    const pathname = urlObj.pathname
+                    const filename = pathname.split('/').pop()
+
+                    if (filename) {
+                        const decodedFilename = decodeURIComponent(filename)
+                        log(`Checking fuzzy match for: ${decodedFilename}`)
+
+                        const { data: fuzzyAsset } = await supabase
+                            .from('tts_assets')
+                            .select('*')
+                            .ilike('file_path', `%${decodedFilename}`)
+                            .maybeSingle()
+
+                        if (fuzzyAsset) {
+                            log(`Fuzzy match found: ${decodedFilename} -> ${fuzzyAsset.id}`)
+                            audioAssetsMap[url] = fuzzyAsset
+                        } else {
+                            log(`No match for: ${decodedFilename}`)
+                        }
+                    }
+                } catch (e) {
+                    log(`Warning: Failed to parse URL: ${url}`)
+                }
+            }
+        }
+    } else {
+        log("No audio blocks present.")
     }
 
     blocks.forEach((block: StageBlock) => {
@@ -109,6 +153,9 @@ export async function translateStageContent(stageId: string, targetLanguages: st
                 // Note: We don't set item.content here because likely we don't want to translate the URL itself.
                 // The presence of audio_source_text will trigger TTS generation.
                 hasContent = true
+                log(`Audio Block ${block.id}: Prepared for TTS regeneration.`)
+            } else {
+                log(`Audio Block ${block.id}: Skipped (not a TTS asset).`)
             }
         }
 
@@ -124,32 +171,23 @@ export async function translateStageContent(stageId: string, targetLanguages: st
     })
 
     if (Object.keys(translatableData).length === 0) {
-        return { success: true, message: "No text content to translate." }
+        return { success: true, message: "No text content to translate.", logs: debugLogs }
     }
 
-    console.log("Translatable Blocks Found:", Object.keys(translatableData).length);
+    log(`Translatable Blocks: ${Object.keys(translatableData).length}`)
 
     // 3. Process each target language
     const updatedBlocks = [...blocks]
 
     for (const lang of targetLanguages) {
         try {
-            console.log(`Processing language: ${lang}...`)
+            log(`Processing language: ${lang}...`)
 
             // Step 3a: Translate Text with GPT
             const systemPrompt = `You are a professional translator and copywriter for a premium museum guide app.
-            Your goal is to provide high-quality localized content that sounds natural and engaging to native speakers of the target language: "${lang}".
-
-            Guidelines:
-            1. Tone: Professional, educational, yet accessible and engaging. Avoid overly academic jargon unless present in the source.
-            2. Style: Flowing and idiomatic. Avoid literal word-for-word translation. Rephrase if necessary to convey the meaning better in the target language.
-            3. Formatting: PRESERVE all HTML tags, Markdown, and special characters exactly.
-            4. Context: The content is for a mobile tour guide. Short texts (headlines) should be catchy. Long texts should be readable and well-structured.
-
-            Instruction:
-            Translate the values in the JSON object provided by the user into language code: "${lang}". 
-            Keep the keys exactly the same. 
-            Return ONLY the valid JSON object.`
+            Translate the JSON values to: "${lang}". Keep keys identical.
+            For 'audio_source_text', translate the text content so it can be spoken by TTS.
+            Return ONLY valid JSON.`
 
             const response = await openai.chat.completions.create({
                 model: "gpt-4o",
@@ -166,7 +204,6 @@ export async function translateStageContent(stageId: string, targetLanguages: st
                 continue
             }
 
-            console.log(`Received translation for ${lang}`);
             const translatedData = JSON.parse(contentStr)
 
             // Step 3b: Merge & Generate TTS
@@ -191,7 +228,7 @@ export async function translateStageContent(stageId: string, targetLanguages: st
                     const voiceId = translatableData[blockId].audio_voice_id
                     const voiceName = translatableData[blockId].audio_voice_name
 
-                    console.log(`Generating TTS for block ${blockId} in ${lang}...`)
+                    log(`Generating TTS for block ${blockId} in ${lang}...`)
                     const ttsResult = await generateAndSaveTTS({
                         text: translatedText,
                         voice_id: voiceId,
@@ -201,9 +238,9 @@ export async function translateStageContent(stageId: string, targetLanguages: st
 
                     if (ttsResult.success && ttsResult.data) {
                         newBlock.content_i18n[lang] = ttsResult.data.public_url
-                        console.log(`TTS generated: ${ttsResult.data.public_url}`)
+                        log(`TTS success: ${ttsResult.data.public_url}`)
                     } else {
-                        console.error(`TTS Generation failed for ${lang}:`, ttsResult.error)
+                        log(`TTS Error (${lang}): ${ttsResult.error}`)
                     }
                 }
 
@@ -246,8 +283,8 @@ export async function translateStageContent(stageId: string, targetLanguages: st
                 updatedBlocks[i] = newBlock;
             }
 
-        } catch (err) {
-            console.error(`Translation failed for ${lang}`, err)
+        } catch (err: any) {
+            log(`FATAL Error (${lang}): ${err.message}`)
         }
     }
 
@@ -263,15 +300,16 @@ export async function translateStageContent(stageId: string, targetLanguages: st
         .eq('id', stageId)
 
     if (updateError) {
-        console.error("Database update failed:", updateError);
+        log(`DB Update failed: ${updateError.message}`)
         throw new Error(updateError.message)
     }
 
-    console.log("Translation completed successfully.");
+    log("Translation Action Completed.")
 
     // Return the updated content so the UI can refresh immediately
     return {
         success: true,
+        logs: debugLogs,
         data: {
             ...stage,
             content: {

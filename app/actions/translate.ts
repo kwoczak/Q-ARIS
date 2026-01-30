@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import OpenAI from 'openai'
 import { Stage, StageBlock } from '@/types/schema'
 import { generateAndSaveTTS } from '@/lib/actions/elevenlabs'
@@ -30,6 +30,7 @@ export async function translateStageContent(stageId: string, targetLanguages: st
     })
 
     const supabase = await createClient()
+    const adminSupabase = await createAdminClient() // Use admin for RLS bypass on lookups
 
     // 1. Fetch Stage
     const { data: stage, error } = await supabase
@@ -62,7 +63,8 @@ export async function translateStageContent(stageId: string, targetLanguages: st
     if (audioUrls.length > 0) {
         log(`Found ${audioUrls.length} audio URLs.`)
         // 1. Try Exact Match
-        const { data: assets } = await supabase
+        // Use adminSupabase to bypass RLS!
+        const { data: assets } = await adminSupabase
             .from('tts_assets')
             .select('*')
             .in('public_url', audioUrls)
@@ -86,7 +88,7 @@ export async function translateStageContent(stageId: string, targetLanguages: st
                         const decodedFilename = decodeURIComponent(filename)
                         log(`Checking fuzzy match for: ${decodedFilename}`)
 
-                        const { data: fuzzyAsset } = await supabase
+                        const { data: fuzzyAsset } = await adminSupabase
                             .from('tts_assets')
                             .select('*')
                             .ilike('file_path', `%${decodedFilename}`)

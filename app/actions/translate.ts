@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import OpenAI from 'openai'
 import { Stage, StageBlock } from '@/types/schema'
+import { generateAndSaveTTS } from '@/lib/actions/elevenlabs'
 
 export async function translateStageContent(stageId: string, targetLanguages: string[]) {
     console.log("--- Starting Translation ---");
@@ -14,7 +15,7 @@ export async function translateStageContent(stageId: string, targetLanguages: st
         return { success: false, message: "Server configuration error: Missing API Key" };
     }
 
-    // Initialize OpenAI client inside the action to avoid build-time errors if env is missing
+    // Initialize OpenAI client
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
     })
@@ -38,11 +39,35 @@ export async function translateStageContent(stageId: string, targetLanguages: st
     // 2. Identify Translatable Content
     const translatableData: Record<string, any> = {}
 
+    // Pre-fetch all TTS assets for this curator to match URLs
+    const audioUrls: string[] = []
+
+    blocks.forEach((block: StageBlock) => {
+        if (block.type === 'audio' && typeof block.content === 'string') {
+            audioUrls.push(block.content)
+        }
+    })
+
+    // Fetch TTS Assets details if any audio blocks exist
+    let audioAssetsMap: Record<string, any> = {}
+    if (audioUrls.length > 0) {
+        const { data: assets } = await supabase
+            .from('tts_assets')
+            .select('*')
+            .in('public_url', audioUrls)
+
+        if (assets) {
+            assets.forEach(a => {
+                audioAssetsMap[a.public_url] = a
+            })
+        }
+    }
+
     blocks.forEach((block: StageBlock) => {
         const item: any = {}
         let hasContent = false
 
-        // A. Main Content
+        // A. Main Text Content
         if (block.type === 'text' && typeof block.content === 'string') {
             item.content = block.content
             hasContent = true
@@ -73,8 +98,21 @@ export async function translateStageContent(stageId: string, targetLanguages: st
             }))
             hasContent = true
         }
+        // B. Audio Blocks (TTS)
+        else if (block.type === 'audio' && typeof block.content === 'string') {
+            const asset = audioAssetsMap[block.content]
+            if (asset) {
+                // This is a TTS audio! We can translate its source text.
+                item.audio_source_text = asset.text_content
+                item.audio_voice_id = asset.voice_id
+                item.audio_voice_name = asset.voice_name
+                // Note: We don't set item.content here because likely we don't want to translate the URL itself.
+                // The presence of audio_source_text will trigger TTS generation.
+                hasContent = true
+            }
+        }
 
-        // B. Overlay
+        // C. Overlay
         if (block.overlay && block.overlay.text) {
             item.overlay = block.overlay.text
             hasContent = true
@@ -96,7 +134,9 @@ export async function translateStageContent(stageId: string, targetLanguages: st
 
     for (const lang of targetLanguages) {
         try {
-            // Enhanced System Prompt for Quality and Style
+            console.log(`Processing language: ${lang}...`)
+
+            // Step 3a: Translate Text with GPT
             const systemPrompt = `You are a professional translator and copywriter for a premium museum guide app.
             Your goal is to provide high-quality localized content that sounds natural and engaging to native speakers of the target language: "${lang}".
 
@@ -120,61 +160,91 @@ export async function translateStageContent(stageId: string, targetLanguages: st
                 response_format: { type: "json_object" }
             })
 
-            const content = response.choices[0].message.content
-            if (!content) {
-                console.error(`Empty response from OpenAI for ${lang}`);
-                continue;
+            const contentStr = response.choices[0].message.content
+            if (!contentStr) {
+                console.error(`Empty response for ${lang}`)
+                continue
             }
 
             console.log(`Received translation for ${lang}`);
-            const translatedData = JSON.parse(content)
+            const translatedData = JSON.parse(contentStr)
 
-            // 4. Merge back into blocks
-            updatedBlocks.forEach((block, index) => {
-                const translatedItem = translatedData[block.id]
-                if (!translatedItem) return
+            // Step 3b: Merge & Generate TTS
+            for (let i = 0; i < updatedBlocks.length; i++) {
+                const block = updatedBlocks[i];
+                const blockId = block.id
+                const translatedItem = translatedData[blockId]
 
-                const newBlock = { ...block }
+                if (!translatedItem) continue
 
-                if (!newBlock.content_i18n) newBlock.content_i18n = {}
-                if (!newBlock.overlay_i18n) newBlock.overlay_i18n = {}
+                // Create a mutable copy of the block to update
+                // Ensure maps exist
+                const newBlock = {
+                    ...block,
+                    content_i18n: { ...(block.content_i18n || {}) },
+                    overlay_i18n: { ...(block.overlay_i18n || {}) }
+                }
 
-                // Merge Content
-                if (translatedItem.content && block.type === 'text') {
+                // 1. Handle TTS Generation for Audio Blocks
+                if (block.type === 'audio' && translatedItem.audio_source_text) {
+                    const translatedText = translatedItem.audio_source_text
+                    const voiceId = translatableData[blockId].audio_voice_id
+                    const voiceName = translatableData[blockId].audio_voice_name
+
+                    console.log(`Generating TTS for block ${blockId} in ${lang}...`)
+                    const ttsResult = await generateAndSaveTTS({
+                        text: translatedText,
+                        voice_id: voiceId,
+                        voice_name: voiceName,
+                        label: `Auto-translated (${lang}): ${translatedText.substring(0, 20)}...`
+                    })
+
+                    if (ttsResult.success && ttsResult.data) {
+                        newBlock.content_i18n[lang] = ttsResult.data.public_url
+                        console.log(`TTS generated: ${ttsResult.data.public_url}`)
+                    } else {
+                        console.error(`TTS Generation failed for ${lang}:`, ttsResult.error)
+                    }
+                }
+
+                // 2. Handle Text Content
+                else if (translatedItem.content && block.type === 'text') {
                     newBlock.content_i18n[lang] = translatedItem.content
-                } else if (translatedItem.quiz && block.type === 'quiz') {
+                }
+                // 3. Handle Complex Blocks
+                else if (translatedItem.quiz && block.type === 'quiz') {
                     const originalQuiz = block.content as any
                     newBlock.content_i18n[lang] = {
                         ...originalQuiz,
                         question: translatedItem.quiz.question,
-                        answers: originalQuiz.answers.map((ans: any, i: number) => ({
+                        answers: originalQuiz.answers.map((ans: any, idx: number) => ({
                             ...ans,
-                            text: translatedItem.quiz.answers[i]?.text || ans.text,
-                            feedback: translatedItem.quiz.answers[i]?.feedback || ans.feedback
+                            text: translatedItem.quiz.answers[idx]?.text || ans.text,
+                            feedback: translatedItem.quiz.answers[idx]?.feedback || ans.feedback
                         }))
                     }
                 } else if (translatedItem.accordion && block.type === 'accordion') {
                     const originalAcc = block.content as any[]
-                    newBlock.content_i18n[lang] = originalAcc.map((item, i) => ({
+                    newBlock.content_i18n[lang] = originalAcc.map((item: any, idx: number) => ({
                         ...item,
-                        title: translatedItem.accordion[i]?.title || item.title,
-                        content: translatedItem.accordion[i]?.content || item.content
+                        title: translatedItem.accordion[idx]?.title || item.title,
+                        content: translatedItem.accordion[idx]?.content || item.content
                     }))
                 } else if (translatedItem.carousel && block.type === 'carousel') {
                     const originalCar = block.content as any[]
-                    newBlock.content_i18n[lang] = originalCar.map((item, i) => ({
+                    newBlock.content_i18n[lang] = originalCar.map((item: any, idx: number) => ({
                         ...item,
-                        caption: translatedItem.carousel[i]?.caption || item.caption
+                        caption: translatedItem.carousel[idx]?.caption || item.caption
                     }))
                 }
 
-                // Merge Overlay
+                // 4. Handle Overlay
                 if (translatedItem.overlay) {
                     newBlock.overlay_i18n[lang] = { text: translatedItem.overlay }
                 }
 
-                updatedBlocks[index] = newBlock
-            })
+                updatedBlocks[i] = newBlock;
+            }
 
         } catch (err) {
             console.error(`Translation failed for ${lang}`, err)

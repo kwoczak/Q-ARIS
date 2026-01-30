@@ -124,13 +124,6 @@ export function StageRenderer({ stage, isPreview = false }: { stage: Stage, isPr
             className={containerClasses}
             style={bgStyle}
         >
-            {/* DEBUG OVERLAY */}
-            <div className="fixed bottom-0 left-0 w-full h-32 bg-black/90 text-green-400 text-[10px] font-mono p-2 overflow-y-auto z-[100] opacity-80 pointer-events-none border-t border-green-900">
-                <div className="font-bold text-white mb-1">Analytics Debugger</div>
-                {debugLogs.map((log, i) => (
-                    <div key={i}>{log}</div>
-                ))}
-            </div>
             {/* Optional Overlay for readability on image backgrounds */}
             {content.background?.overlayOpacity ? (
                 <div

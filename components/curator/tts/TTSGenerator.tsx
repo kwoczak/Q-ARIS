@@ -23,18 +23,24 @@ export function TTSGenerator({ voices }: { voices: Voice[] }) {
         try {
             setLoading(true)
             const selectedVoice = voices.find(v => v.voice_id === voiceId)
-            await generateAndSaveTTS({
+            const result = await generateAndSaveTTS({
                 text,
                 label,
                 voice_id: voiceId,
                 voice_name: selectedVoice?.name || 'Unknown'
             })
+
+            if (!result.success) {
+                alert(`Error: ${result.error}`)
+                return
+            }
+
             setLabel('')
             setText('')
             router.refresh() // Refresh server components to show new asset
         } catch (error) {
             console.error(error)
-            alert("Failed to generate audio. Check console for details.")
+            alert("Unexpected error occurred. Check network connection.")
         } finally {
             setLoading(false)
         }

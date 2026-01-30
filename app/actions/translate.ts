@@ -6,9 +6,9 @@ import { Stage, StageBlock } from '@/types/schema'
 import { generateAndSaveTTS } from '@/lib/actions/elevenlabs'
 
 export async function translateStageContent(stageId: string, targetLanguages: string[]) {
-    console.log("--- Starting Translation ---");
-    console.log("StageID:", stageId);
-    console.log("Target Languages:", targetLanguages);
+    log("--- Starting Translation ---");
+    log(`StageID: ${stageId}`);
+    log(`Target Languages: ${targetLanguages}`);
 
     if (!process.env.OPENAI_API_KEY) {
         console.error("Missing OPENAI_API_KEY");

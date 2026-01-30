@@ -21,6 +21,8 @@ import { ScratchCardEditor } from "./ScratchCardEditor"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { fontOptions } from "@/lib/fonts"
+import { TTSPickerModal } from "@/components/curator/tts/TTSPickerModal"
+import { Wand2 } from "lucide-react"
 
 interface BlockEditorProps {
     block: StageBlock
@@ -45,6 +47,7 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
     const [isCropperOpen, setIsCropperOpen] = useState(false)
     const [imageToCrop, setImageToCrop] = useState<string | null>(null)
     const [isUploading, setIsUploading] = useState(false)
+    const [isTTSPickerOpen, setIsTTSPickerOpen] = useState(false)
 
     const updateStyle = (key: string, value: any) => {
         onChange({
@@ -429,6 +432,24 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
                             folder="blocks/audio"
                             currentUrl={block.content as string}
                             onUploadComplete={(url) => onChange({ ...block, content: url })}
+                        />
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className="h-px bg-neutral-800 flex-1" />
+                            <span className="text-[10px] text-neutral-500 uppercase">OR</span>
+                            <div className="h-px bg-neutral-800 flex-1" />
+                        </div>
+                        <Button
+                            variant="outline"
+                            className="w-full bg-neutral-800 border-dashed border-neutral-700 hover:bg-neutral-700 text-neutral-400 hover:text-white"
+                            onClick={() => setIsTTSPickerOpen(true)}
+                        >
+                            <Wand2 className="w-4 h-4 mr-2" />
+                            Select from TTS Library
+                        </Button>
+                        <TTSPickerModal
+                            isOpen={isTTSPickerOpen}
+                            onClose={() => setIsTTSPickerOpen(false)}
+                            onSelect={(url) => onChange({ ...block, content: url })}
                         />
                         <div className="flex items-center space-x-2 mt-2">
                             <Checkbox

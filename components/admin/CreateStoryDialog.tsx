@@ -13,17 +13,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { createStory } from "@/app/actions/story"
-import { useTransition } from "react"
+
+
+import { useFormStatus } from "react-dom"
+
+function SubmitButton() {
+    const { pending } = useFormStatus()
+
+    return (
+        <Button type="submit" className="w-full" disabled={pending}>
+            {pending ? "Creating..." : "Create Story"}
+        </Button>
+    )
+}
 
 export function CreateStoryDialog() {
-    const [isPending, startTransition] = useTransition()
-
-    // Wrapper to handle form submit with transition state if needed,
-    // though 'action' prop usually handles pending state with useFormStatus.
-    // But here we use standard action which is simplest.
-    // To get loading state on button, we can use useFormStatus inside a button component,
-    // but for simplicity here we rely on the action.
-
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -45,9 +49,7 @@ export function CreateStoryDialog() {
                         <Label htmlFor="description">Description</Label>
                         <Textarea id="description" name="description" placeholder="Brief overview..." />
                     </div>
-                    <Button type="submit" className="w-full">
-                        Create Story
-                    </Button>
+                    <SubmitButton />
                 </form>
             </DialogContent>
         </Dialog>

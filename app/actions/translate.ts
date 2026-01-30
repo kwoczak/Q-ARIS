@@ -4,11 +4,21 @@ import { createClient } from '@/lib/supabase/server'
 import OpenAI from 'openai'
 import { Stage, StageBlock } from '@/types/schema'
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-})
-
 export async function translateStageContent(stageId: string, targetLanguages: string[]) {
+    console.log("--- Starting Translation ---");
+    console.log("StageID:", stageId);
+    console.log("Target Languages:", targetLanguages);
+
+    if (!process.env.OPENAI_API_KEY) {
+        console.error("Missing OPENAI_API_KEY");
+        return { success: false, message: "Server configuration error: Missing API Key" };
+    }
+
+    // Initialize OpenAI client inside the action to avoid build-time errors if env is missing
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
+    })
+
     const supabase = await createClient()
 
     // 1. Fetch Stage
@@ -26,8 +36,6 @@ export async function translateStageContent(stageId: string, targetLanguages: st
     const blocks = content.blocks || []
 
     // 2. Identify Translatable Content
-    // We will extract all text that needs translation into a simplified structure
-    // Key: BlockID, Value: { content?: string, overlay?: string, quiz?: ... }
     const translatableData: Record<string, any> = {}
 
     blocks.forEach((block: StageBlock) => {
@@ -39,7 +47,6 @@ export async function translateStageContent(stageId: string, targetLanguages: st
             item.content = block.content
             hasContent = true
         } else if (block.type === 'quiz') {
-            // Complex structure handling
             const quiz = block.content as any
             item.quiz = {
                 question: quiz.question,
@@ -60,7 +67,6 @@ export async function translateStageContent(stageId: string, targetLanguages: st
             hasContent = true
         } else if (block.type === 'carousel') {
             const car = block.content as any[]
-            // Only translate captions
             item.carousel = car.map(c => ({
                 id: c.id,
                 caption: c.caption || ''
@@ -83,16 +89,27 @@ export async function translateStageContent(stageId: string, targetLanguages: st
         return { success: true, message: "No text content to translate." }
     }
 
+    console.log("Translatable Blocks Found:", Object.keys(translatableData).length);
+
     // 3. Process each target language
     const updatedBlocks = [...blocks]
 
     for (const lang of targetLanguages) {
         try {
-            const systemPrompt = `You are a professional translator for a museum app. 
+            // Enhanced System Prompt for Quality and Style
+            const systemPrompt = `You are a professional translator and copywriter for a premium museum guide app.
+            Your goal is to provide high-quality localized content that sounds natural and engaging to native speakers of the target language: "${lang}".
+
+            Guidelines:
+            1. Tone: Professional, educational, yet accessible and engaging. Avoid overly academic jargon unless present in the source.
+            2. Style: Flowing and idiomatic. Avoid literal word-for-word translation. Rephrase if necessary to convey the meaning better in the target language.
+            3. Formatting: PRESERVE all HTML tags, Markdown, and special characters exactly.
+            4. Context: The content is for a mobile tour guide. Short texts (headlines) should be catchy. Long texts should be readable and well-structured.
+
+            Instruction:
             Translate the values in the JSON object provided by the user into language code: "${lang}". 
             Keep the keys exactly the same. 
-            Preserve any HTML tags or Markdown formatting. 
-            Return ONLY the valid JSON.`
+            Return ONLY the valid JSON object.`
 
             const response = await openai.chat.completions.create({
                 model: "gpt-4o",
@@ -104,8 +121,12 @@ export async function translateStageContent(stageId: string, targetLanguages: st
             })
 
             const content = response.choices[0].message.content
-            if (!content) continue
+            if (!content) {
+                console.error(`Empty response from OpenAI for ${lang}`);
+                continue;
+            }
 
+            console.log(`Received translation for ${lang}`);
             const translatedData = JSON.parse(content)
 
             // 4. Merge back into blocks
@@ -115,7 +136,6 @@ export async function translateStageContent(stageId: string, targetLanguages: st
 
                 const newBlock = { ...block }
 
-                // Init i18n containers if missing
                 if (!newBlock.content_i18n) newBlock.content_i18n = {}
                 if (!newBlock.overlay_i18n) newBlock.overlay_i18n = {}
 
@@ -123,7 +143,6 @@ export async function translateStageContent(stageId: string, targetLanguages: st
                 if (translatedItem.content && block.type === 'text') {
                     newBlock.content_i18n[lang] = translatedItem.content
                 } else if (translatedItem.quiz && block.type === 'quiz') {
-                    // Reconstruct quiz object with translated strings but keeping structure
                     const originalQuiz = block.content as any
                     newBlock.content_i18n[lang] = {
                         ...originalQuiz,
@@ -159,7 +178,6 @@ export async function translateStageContent(stageId: string, targetLanguages: st
 
         } catch (err) {
             console.error(`Translation failed for ${lang}`, err)
-            // Continue to next language if one fails
         }
     }
 
@@ -175,8 +193,21 @@ export async function translateStageContent(stageId: string, targetLanguages: st
         .eq('id', stageId)
 
     if (updateError) {
+        console.error("Database update failed:", updateError);
         throw new Error(updateError.message)
     }
 
-    return { success: true }
+    console.log("Translation completed successfully.");
+
+    // Return the updated content so the UI can refresh immediately
+    return {
+        success: true,
+        data: {
+            ...stage,
+            content: {
+                ...content,
+                blocks: updatedBlocks
+            }
+        }
+    }
 }

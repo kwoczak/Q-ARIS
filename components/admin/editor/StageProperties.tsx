@@ -53,6 +53,8 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
     const [trigger, setTrigger] = useState<Trigger | null>(null)
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
     const [isLoadingQr, setIsLoadingQr] = useState(false)
+    const [isTranslating, setIsTranslating] = useState(false)
+    const [isTranslateDialogOpen, setIsTranslateDialogOpen] = useState(false)
     const [currentLanguage, setCurrentLanguage] = useState<string>(story.default_language || 'en')
 
     const supabase = createClient()
@@ -177,7 +179,7 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                     </div>
                                 </div>
 
-                                <AlertDialog>
+                                <AlertDialog open={isTranslateDialogOpen} onOpenChange={setIsTranslateDialogOpen}>
                                     <AlertDialogTrigger asChild>
                                         <Button
                                             size="sm"
@@ -200,35 +202,42 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
-                                            <AlertDialogCancel className="bg-transparent border-neutral-700 text-white hover:bg-neutral-800 hover:text-white">Cancel</AlertDialogCancel>
+                                            <AlertDialogCancel className="bg-transparent border-neutral-700 text-white hover:bg-neutral-800 hover:text-white" disabled={isTranslating}>Cancel</AlertDialogCancel>
                                             <AlertDialogAction
                                                 className="bg-purple-600 hover:bg-purple-700 text-white"
-                                                onClick={async () => {
+                                                disabled={isTranslating}
+                                                onClick={async (e) => {
+                                                    e.preventDefault()
                                                     if (!formData || !story.supported_languages) return
+
                                                     const targetLangs = story.supported_languages.filter(l => l !== story.default_language)
                                                     if (targetLangs.length === 0) return
 
+                                                    setIsTranslating(true)
+
                                                     try {
                                                         const result = await translateStageContent(formData.id, targetLangs)
-                                                        if (result.success) {
-                                                            // Ideally we should reload data, but for now we might need to close/re-open or force refresh
-                                                            // We can call onSave to trigger parent refresh or similar if available, or just alert success
-                                                            // Actually, since this updates DB on server, we need to refresh local formData
-                                                            // But formData is just local state seeded from props. 
-                                                            // We should probably invoke a refresh callback if passed, or just close.
-                                                            // Let's rely on user closing/re-opening or add a toast. 
-                                                            // Better: Close this sheet to force refresh when re-opened, or try to fetch again?
-                                                            // Let's just alert for now as a simple step.
-                                                            alert("Translation completed successfully! Please close and re-open the stage to see changes.")
-                                                            onClose()
+                                                        if (result.success && result.data) {
+                                                            setFormData(result.data as Stage)
+                                                            onSave(result.data as Stage) // Propagate update to parent
+                                                            setIsTranslateDialogOpen(false)
                                                         }
                                                     } catch (e) {
                                                         console.error(e)
                                                         alert("Translation failed. Please check logs.")
+                                                    } finally {
+                                                        setIsTranslating(false)
                                                     }
                                                 }}
                                             >
-                                                Start Translation
+                                                {isTranslating ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                        Translating...
+                                                    </>
+                                                ) : (
+                                                    "Start Translation"
+                                                )}
                                             </AlertDialogAction>
                                         </AlertDialogFooter>
                                     </AlertDialogContent>

@@ -3,7 +3,7 @@ import { TTSGenerator } from '@/components/curator/tts/TTSGenerator'
 import { TTSBrowser } from '@/components/curator/tts/TTSBrowser'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { BackButton } from '@/components/ui/back-button'
 
 
 export default async function TTSPage() {
@@ -13,12 +13,7 @@ export default async function TTSPage() {
     return (
         <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
             <div>
-                <Link href="/curator" className="inline-block mb-4">
-                    <Button variant="ghost" size="sm" className="pl-0 hover:bg-transparent text-neutral-400 hover:text-white">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Dashboard
-                    </Button>
-                </Link>
+                <BackButton />
                 <h1 className="text-3xl font-bold mb-2">Text to Speech Studio</h1>
                 <p className="text-neutral-400">
                     Generate high-quality AI voiceovers using Eleven Labs.

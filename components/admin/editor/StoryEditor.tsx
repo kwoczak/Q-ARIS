@@ -277,7 +277,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                             Analytics
                         </Button>
                     </Link>
-                    <Link href="/curator/tts" target="_blank">
+                    <Link href="/curator/tts">
                         <Button size="sm" variant="outline" className="bg-transparent text-blue-400 border-neutral-700 hover:bg-neutral-800 hover:text-blue-300 border-dashed">
                             TTS Studio
                         </Button>

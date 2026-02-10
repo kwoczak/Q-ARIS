@@ -33,20 +33,30 @@ export default async function PlayerPage(props: { params: Promise<{ code: string
 
     // 3. Check License and Get Story Info
     // Get story owner to find museum
+    // Get story without join first to verify existence
     const { data: story, error: storyError } = await supabase
         .from('stories')
-        .select('id, curator_id, supported_languages, default_language, is_gamified, curator:users!curator_id(museum_id)')
+        .select('id, curator_id, supported_languages, default_language, is_gamified')
         .eq('id', stage.story_id)
         .single()
 
     if (!story || storyError) {
-        console.error(`Story not found for stage ${stage.id} (story_id: ${stage.story_id})`)
+        console.error(`CRITICAL: Story not found for stage ${stage.id} (story_id: ${stage.story_id})`)
         console.error("Supabase Error:", storyError)
         return notFound()
     }
 
-    // @ts-ignore
-    const museumId = story?.curator?.museum_id;
+    // Now try to get museum info separately (graceful failure)
+    let museumId = null;
+    if (story.curator_id) {
+        const { data: curator } = await supabase
+            .from('users')
+            .select('museum_id')
+            .eq('id', story.curator_id)
+            .single()
+
+        museumId = curator?.museum_id;
+    }
 
     if (museumId) {
         const { data: license } = await supabase

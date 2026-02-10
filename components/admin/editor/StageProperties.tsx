@@ -17,6 +17,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
+import { Slider } from "@/components/ui/slider"
 import { Loader2, QrCode } from "lucide-react"
 import { BackgroundEditor } from "./blocks/BackgroundEditor"
 import { BlockList } from "./blocks/BlockList"
@@ -252,13 +253,28 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                     </div>
                                                 </div>
 
-                                                <div className="space-y-2">
-                                                    <Label>Initial Scale (x y z)</Label>
-                                                    <Input
-                                                        value={stage?.content?.model_scale || ''}
-                                                        onChange={(e) => handleContentChange('model_scale', e.target.value)}
-                                                        placeholder="e.g. 0.5 0.5 0.5 (Default: 1 1 1)"
+                                                <div className="space-y-4 pt-2">
+                                                    <div className="flex justify-between">
+                                                        <Label>Initial Scale (x y z)</Label>
+                                                        <span className="text-xs font-mono text-neutral-400">
+                                                            {stage?.content?.model_scale || '1 1 1'}
+                                                        </span>
+                                                    </div>
+                                                    <Slider
+                                                        min={0.1}
+                                                        max={3}
+                                                        step={0.1}
+                                                        value={[parseFloat((stage?.content?.model_scale || '1').split(' ')[0]) || 1]}
+                                                        onValueChange={(vals) => {
+                                                            const val = vals[0]
+                                                            handleContentChange('model_scale', `${val} ${val} ${val}`)
+                                                        }}
                                                     />
+                                                    <div className="flex justify-between text-[10px] text-neutral-500 px-1">
+                                                        <span>0.1x</span>
+                                                        <span>1.0x</span>
+                                                        <span>3.0x</span>
+                                                    </div>
                                                 </div>
 
                                                 <div className="space-y-2">

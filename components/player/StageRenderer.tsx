@@ -186,7 +186,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
                                 overlay: effectiveOverlay
                             }
 
-                            return <BlockRenderer key={block.id} block={effectiveBlock} />
+                            return <BlockRenderer key={block.id} block={effectiveBlock} isGamified={isGamified} />
                         })}
                         {/* Audio Autoplay Logic for Blocks? Or keep global? 
                             Let's keep global audio for now if defined in legacy or specific block. 
@@ -265,7 +265,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
     )
 }
 
-function BlockRenderer({ block }: { block: StageBlock }) {
+function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGamified?: boolean }) {
     const style: React.CSSProperties = {
         textAlign: block.styles?.textAlign || 'left',
         padding: block.styles?.padding ? block.styles.padding : '1rem', // Default padding

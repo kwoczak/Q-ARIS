@@ -39,6 +39,11 @@ export default async function PlayerPage(props: { params: Promise<{ code: string
         .eq('id', stage.story_id)
         .single()
 
+    if (!story) {
+        console.error(`Story not found for stage ${stage.id} (story_id: ${stage.story_id})`)
+        return notFound()
+    }
+
     // @ts-ignore
     const museumId = story?.curator?.museum_id;
 

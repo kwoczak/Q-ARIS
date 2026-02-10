@@ -355,17 +355,54 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                 </div>
 
                                 {trigger && qrCodeDataUrl && (
-                                    <div className="flex flex-col items-center p-4 border border-white/10 rounded-lg bg-white">
+                                    <div className="flex flex-col items-center p-4 border border-white/10 rounded-lg bg-white gap-3">
                                         <img src={qrCodeDataUrl} alt="QR Code" className="w-48 h-48" />
-                                        <p className="font-mono text-xs mt-2 text-neutral-900">Code: {trigger.code}</p>
-                                        <Button variant="link" className="h-auto p-0 text-blue-600" onClick={() => {
-                                            const link = document.createElement('a');
-                                            link.download = `qr-${trigger.code}.png`;
-                                            link.href = qrCodeDataUrl;
-                                            link.click();
-                                        }}>
-                                            Download PNG
-                                        </Button>
+                                        <p className="font-mono text-xs text-neutral-900 bg-neutral-100 px-2 py-1 rounded">Code: {trigger.code}</p>
+
+                                        <div className="flex flex-col gap-2 w-full">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
+                                                onClick={async () => {
+                                                    try {
+                                                        const url = `${window.location.origin}/play/${trigger.code}`
+                                                        const highResUrl = await QRCode.toDataURL(url, { width: 1500, margin: 2 })
+                                                        const link = document.createElement('a');
+                                                        link.download = `qr-${trigger.code}-1500px.png`;
+                                                        link.href = highResUrl;
+                                                        link.click();
+                                                    } catch (e) {
+                                                        console.error(e)
+                                                        alert("Error generating High-Res QR")
+                                                    }
+                                                }}
+                                            >
+                                                Download High-Res PNG (1500px)
+                                            </Button>
+
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
+                                                onClick={async () => {
+                                                    try {
+                                                        const url = `${window.location.origin}/play/${trigger.code}`
+                                                        const svgString = await QRCode.toString(url, { type: 'svg', margin: 2 })
+                                                        const blob = new Blob([svgString], { type: 'image/svg+xml' });
+                                                        const link = document.createElement('a');
+                                                        link.download = `qr-${trigger.code}.svg`;
+                                                        link.href = URL.createObjectURL(blob);
+                                                        link.click();
+                                                    } catch (e) {
+                                                        console.error(e)
+                                                        alert("Error generating SVG QR")
+                                                    }
+                                                }}
+                                            >
+                                                Download SVG (Vector)
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
                             </div>

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { StageRenderer } from '@/components/player/StageRenderer'
 import { PlayerWrapper } from '@/components/player/PlayerWrapper'
 import { notFound } from 'next/navigation'
@@ -8,7 +8,7 @@ import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary'
 export default async function PlayerPage(props: { params: Promise<{ code: string }> }) {
     const params = await props.params;
     const { code } = params
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
     // 1. Resolve Trigger Code -> Stage ID
     const { data: trigger, error: triggerError } = await supabase

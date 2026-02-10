@@ -33,14 +33,15 @@ export default async function PlayerPage(props: { params: Promise<{ code: string
 
     // 3. Check License and Get Story Info
     // Get story owner to find museum
-    const { data: story } = await supabase
+    const { data: story, error: storyError } = await supabase
         .from('stories')
         .select('id, curator_id, supported_languages, default_language, is_gamified, curator:users!curator_id(museum_id)')
         .eq('id', stage.story_id)
         .single()
 
-    if (!story) {
+    if (!story || storyError) {
         console.error(`Story not found for stage ${stage.id} (story_id: ${stage.story_id})`)
+        console.error("Supabase Error:", storyError)
         return notFound()
     }
 

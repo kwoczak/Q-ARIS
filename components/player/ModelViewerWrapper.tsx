@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { useEffect, useState } from 'react'
 
-export default function ModelViewerWrapper({ src }: { src: string }) {
+export default function ModelViewerWrapper({ src, scale = '1 1 1' }: { src: string, scale?: string }) {
     const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
@@ -22,6 +22,7 @@ export default function ModelViewerWrapper({ src }: { src: string }) {
                 ar
                 ar-modes="scene-viewer quick-look webxr"
                 camera-controls
+                scale={scale}
                 style={{ width: '100%', height: '100%' }}
                 ar-status="not-presenting"
             />

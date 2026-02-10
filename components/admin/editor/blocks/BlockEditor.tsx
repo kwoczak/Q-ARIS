@@ -550,6 +550,29 @@ export function BlockEditor({ block, onChange, currentLanguage = 'en', defaultLa
                             currentUrl={block.content as string}
                             onUploadComplete={(url) => onChange({ ...block, content: url })}
                         />
+                        <div className="space-y-4 pt-4 border-t border-neutral-800 mt-4">
+                            <div className="flex justify-between">
+                                <Label>Initial Scale (x y z)</Label>
+                                <span className="text-xs font-mono text-neutral-400">
+                                    {block.styles?.modelScale || '1 1 1'}
+                                </span>
+                            </div>
+                            <Slider
+                                min={0.1}
+                                max={3}
+                                step={0.1}
+                                value={[parseFloat((block.styles?.modelScale || '1').split(' ')[0]) || 1]}
+                                onValueChange={(vals) => {
+                                    const val = vals[0]
+                                    updateStyle('modelScale', `${val} ${val} ${val}`)
+                                }}
+                            />
+                            <div className="flex justify-between text-[10px] text-neutral-500 px-1">
+                                <span>0.1x</span>
+                                <span>1.0x</span>
+                                <span>3.0x</span>
+                            </div>
+                        </div>
                     </div>
                 )
             case 'comparison':

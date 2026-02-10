@@ -31,6 +31,7 @@ export interface BlockStyle {
     filter?: 'sepia' | 'grayscale' | 'vintage' | 'blur' | 'none'
     backdropBlur?: boolean
     autoplayMedia?: boolean
+    modelScale?: string // e.g. "0.5 0.5 0.5"
 }
 
 export interface BlockOverlay {

@@ -370,7 +370,7 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
             if (!block.content) return null
             return (
                 <div style={style} className="w-full h-[50vh] relative bg-neutral-100/5 dark:bg-neutral-800/50 rounded-xl overflow-hidden">
-                    <ModelViewer src={block.content as string} />
+                    <ModelViewer src={block.content as string} scale={block.styles?.modelScale || '1 1 1'} />
                 </div>
             )
         case 'video':

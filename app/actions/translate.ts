@@ -122,11 +122,19 @@ export async function translateStageContent(stageId: string, targetLanguages: st
             const quiz = block.content as any
             item.quiz = {
                 question: quiz.question,
+                submitButtonText: quiz.submitButtonText, // Added
                 answers: quiz.answers.map((a: any) => ({
                     id: a.id,
                     text: a.text,
                     feedback: a.feedback
                 }))
+            }
+            hasContent = true
+        } else if (block.type === 'scratchpad') { // Added Scratchpad
+            const scratch = block.content as any
+            item.scratchpad = {
+                coverText: scratch.coverText,
+                scratchText: scratch.scratchText
             }
             hasContent = true
         } else if (block.type === 'accordion') {
@@ -173,6 +181,13 @@ export async function translateStageContent(stageId: string, targetLanguages: st
         }
     })
 
+    // D. Global Stage Content (AR Button)
+    if (content.arButtonText) {
+        translatableData['stage_global'] = {
+            arButtonText: content.arButtonText
+        }
+    }
+
     if (Object.keys(translatableData).length === 0) {
         return { success: true, message: "No text content to translate.", logs: debugLogs }
     }
@@ -181,6 +196,8 @@ export async function translateStageContent(stageId: string, targetLanguages: st
 
     // 3. Process each target language
     const updatedBlocks = [...blocks]
+    // Use a separate object to track global updates since we can't mutate 'content' directly easily in the loop logic below
+    const globalUpdates: Record<string, any> = {}
 
     for (const lang of targetLanguages) {
         try {
@@ -210,6 +227,13 @@ export async function translateStageContent(stageId: string, targetLanguages: st
             const translatedData = JSON.parse(contentStr)
 
             // Step 3b: Merge & Generate TTS
+
+            // Handle Global Updates First
+            if (translatedData['stage_global']) {
+                if (!globalUpdates[lang]) globalUpdates[lang] = {}
+                globalUpdates[lang].arButtonText = translatedData['stage_global'].arButtonText
+            }
+
             for (let i = 0; i < updatedBlocks.length; i++) {
                 const block = updatedBlocks[i];
                 const blockId = block.id
@@ -257,11 +281,19 @@ export async function translateStageContent(stageId: string, targetLanguages: st
                     newBlock.content_i18n[lang] = {
                         ...originalQuiz,
                         question: translatedItem.quiz.question,
+                        submitButtonText: translatedItem.quiz.submitButtonText || originalQuiz.submitButtonText,
                         answers: originalQuiz.answers.map((ans: any, idx: number) => ({
                             ...ans,
                             text: translatedItem.quiz.answers[idx]?.text || ans.text,
                             feedback: translatedItem.quiz.answers[idx]?.feedback || ans.feedback
                         }))
+                    }
+                } else if (translatedItem.scratchpad && block.type === 'scratchpad') { // Added Scratchpad
+                    const originalScratch = block.content as any
+                    newBlock.content_i18n[lang] = {
+                        ...originalScratch,
+                        coverText: translatedItem.scratchpad.coverText || originalScratch.coverText,
+                        scratchText: translatedItem.scratchpad.scratchText || originalScratch.scratchText
                     }
                 } else if (translatedItem.accordion && block.type === 'accordion') {
                     const originalAcc = block.content as any[]
@@ -291,14 +323,52 @@ export async function translateStageContent(stageId: string, targetLanguages: st
         }
     }
 
+    // Prepare updated content including global fields overrides
+    // We need to store global overrides somewhere. `StageContent` doesn't have `i18n` field?
+    // Let's modify updated content if we have global updates.
+    // NOTE: Schema doesn't have `content.arButtonText_i18n`. 
+    // We should probably add `content_i18n` to `StageContent` or store it in the same structure if we can.
+    // Looking at schema: `StageContent` has new fields but `blocks` have `content_i18n`.
+    // We might need to handle `arButtonText` translation differently or add a field to `StageContent`.
+    // For now, let's assume we can add `arButtonText_i18n` to `StageContent` as a generic record or similar.
+    // Checking schema... `StageContent` is strict.
+    // Let's add `arButtonText_i18n` to schema first? Or just `i18n`?
+    // Actually, let's check `types/schema.ts` again. `StageContent` does NOT have `i18n`.
+    // I can't effectively save the translation for global stage buttons without a schema change.
+    // BUT, I can rely on a hack: `blocks` are flexible, `StageContent`... let's see.
+    // `StageContent` is defined as:
+    // export type StageContent = { ... background?: ..., blocks?: ..., arButtonText?: ... }
+    // It does not have a catch-all or i18n field.
+    // I MUST ADD `i18n` or specific fields to `StageContent`.
+
+    // START INTERJECTION: I need to update schema for StageContent i18n.
+    // Let's assume I will do that in a separate step or just do it here implicitly if TS is loose, but it's better to be explicit.
+    // Wait, the user asked for translation.
+    // Let's add `arButtonText_i18n` to StageContent in schema.ts.
+
+    // For this rewrite, I'll proceed assuming I'll fix the schema in a moment.
+    // I will write the code to use `arButtonText_i18n`.
+
+    const updatedContent: any = {
+        ...content,
+        blocks: updatedBlocks
+    }
+
+    if (Object.keys(globalUpdates).length > 0) {
+        updatedContent.i18n = updatedContent.i18n || {}
+        for (const lang in globalUpdates) {
+            updatedContent.i18n[lang] = {
+                ...updatedContent.i18n[lang],
+                ...globalUpdates[lang]
+            }
+        }
+    }
+
     // 5. Save updates
     const { error: updateError } = await supabase
         .from('stages')
         .update({
-            content: {
-                ...content,
-                blocks: updatedBlocks
-            }
+            content: updatedContent
         })
         .eq('id', stageId)
 
@@ -309,16 +379,13 @@ export async function translateStageContent(stageId: string, targetLanguages: st
 
     log("Translation Action Completed.")
 
-    // Return the updated content so the UI can refresh immediately
+    // Return the updated content
     return {
         success: true,
         logs: debugLogs,
         data: {
             ...stage,
-            content: {
-                ...content,
-                blocks: updatedBlocks
-            }
+            content: updatedContent
         }
     }
 }

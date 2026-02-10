@@ -222,7 +222,10 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
                                         if (modelViewer) modelViewer.activateAR();
                                     }}
                                 >
-                                    👀 View in 3D
+                                    {(() => {
+                                        const localizedArText = stage.content?.i18n?.[language]?.arButtonText
+                                        return localizedArText || stage.content?.arButtonText || "👀 View in 3D"
+                                    })()}
                                 </Button>
                                 {(() => {
                                     const ModelViewer = 'model-viewer' as any;

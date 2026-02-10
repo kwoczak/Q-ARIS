@@ -240,7 +240,26 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                     }
                                                 }}
                                             >
-                                                {isTranslating ? (
+                                                <div className="space-y-2">
+                                                    <Label>3D Model URL (.glb)</Label>
+                                                    <div className="flex gap-2">
+                                                        <Input
+                                                            value={stage?.content?.model_3d || ''}
+                                                            onChange={(e) => handleContentChange('model_3d', e.target.value)}
+                                                            placeholder="https://.../model.glb"
+                                                        />
+                                                        {/* File upload trigger could go here */}
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label>AR Button Text</Label>
+                                                    <Input
+                                                        value={stage?.content?.arButtonText || ''}
+                                                        onChange={(e) => handleContentChange('arButtonText', e.target.value)}
+                                                        placeholder="Default: 👀 View in 3D"
+                                                    />
+                                                </div>        {isTranslating ? (
                                                     <>
                                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                                         Translating...

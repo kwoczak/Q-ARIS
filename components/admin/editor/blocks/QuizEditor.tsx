@@ -70,6 +70,15 @@ export function QuizEditor({ block, onChange }: QuizEditorProps) {
             </div>
 
             <div className="space-y-2">
+                <Label>Submit Button Text</Label>
+                <Input
+                    value={content.submitButtonText || ''}
+                    onChange={(e) => updateContent({ submitButtonText: e.target.value })}
+                    placeholder="Default: Submit Answer"
+                />
+            </div>
+
+            <div className="space-y-2">
                 <div className="flex justify-between items-center">
                     <Label>Points Awarded</Label>
                     <Input

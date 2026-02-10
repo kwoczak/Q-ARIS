@@ -50,11 +50,20 @@ export function ScratchCardEditor({ block, onChange }: ScratchCardEditorProps) {
                 </div>
 
                 <div className="space-y-2">
-                    <Label>Cover Text</Label>
+                    <Label>Cover Text (Overlay)</Label>
                     <Input
                         value={content.coverText || ''}
                         onChange={(e) => updateContent({ coverText: e.target.value })}
                         placeholder="e.g. Scratch to reveal!"
+                    />
+                </div>
+
+                <div className="space-y-2 col-span-2">
+                    <Label>Scratch Instruction Text</Label>
+                    <Input
+                        value={content.scratchText || ''}
+                        onChange={(e) => updateContent({ scratchText: e.target.value })}
+                        placeholder="Default: (Rub to reveal)"
                     />
                 </div>
             </div>

@@ -140,7 +140,7 @@ export function ScratchCardBlock({ content, style }: ScratchCardBlockProps) {
                 context.fillText(content.coverText, width / 2, height / 2)
 
                 context.font = '14px sans-serif'
-                context.fillText("(Rub to reveal)", width / 2, height / 2 + 30)
+                context.fillText(content.scratchText || "(Rub to reveal)", width / 2, height / 2 + 30)
             }
         }
 

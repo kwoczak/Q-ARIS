@@ -52,6 +52,7 @@ export interface ScratchContent {
     hiddenImage: string
     coverColor?: string // hex
     coverText?: string // "Scratch me!" overlay on the cover
+    scratchText?: string // "(Rub to reveal)" instruction text
 }
 
 export interface HotspotItem {
@@ -78,6 +79,7 @@ export interface QuizContent {
     question: string
     answers: QuizAnswer[]
     points: number // Points awarded for correct answer
+    submitButtonText?: string // Custom text for submit button
 }
 
 export interface CarouselItem {
@@ -123,6 +125,8 @@ export type StageContent = {
     // New fields
     background?: StageBackground
     blocks?: StageBlock[]
+    arButtonText?: string // Custom text for "View in AR" button
+    i18n?: Record<string, any> // Global translations (e.g. { 'pl': { arButtonText: 'Zobacz w AR' } })
 }
 
 export type Stage = {

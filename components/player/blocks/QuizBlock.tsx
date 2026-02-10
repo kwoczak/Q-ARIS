@@ -132,7 +132,7 @@ export function QuizBlock({ blockId, content, style, enablePoints = true }: Quiz
                         disabled={!selectedAnswerId}
                         onClick={handleSubmit}
                     >
-                        Submit Answer
+                        {content.submitButtonText || "Submit Answer"}
                     </Button>
                 )}
 

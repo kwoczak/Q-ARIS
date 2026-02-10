@@ -24,6 +24,7 @@ import { StageProperties } from './StageProperties'
 import { Loader2, Pencil, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { LanguageManager } from '../LanguageManager'
+import { StorySettingsDialog } from './StorySettingsDialog'
 
 // Helper to convert DB Stages to ReactFlow Nodes
 const getInitialNodes = (stages: Stage[]): Node[] => {
@@ -279,6 +280,18 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                         </Button>
                     </Link>
                     <LanguageManager story={story} />
+                    <StorySettingsDialog
+                        story={story}
+                        onUpdate={(updated) => {
+                            // We need to update the story prop locally if it was state, 
+                            // but currently story is a prop. 
+                            //Ideally we should have story state or refresh. 
+                            // For now, let's just assume parent refresh or we act as if it updated.
+                            // Actually, let's just reload the page or rely on DB update.
+                            // A better way is to move story to state or use router.refresh()
+                            window.location.reload()
+                        }}
+                    />
                     <Link href="/curator/tts">
                         <Button size="sm" variant="outline" className="bg-transparent text-blue-400 border-neutral-700 hover:bg-neutral-800 hover:text-blue-300 border-dashed">
                             TTS Studio

@@ -27,7 +27,7 @@ const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
     loading: () => <div className="w-full h-full bg-neutral-100/10 animate-pulse rounded-xl" />
 })
 
-export function StageRenderer({ stage, isPreview = false, language = 'en', onChangeLanguage }: { stage: Stage, isPreview?: boolean, language?: string, onChangeLanguage?: () => void }) {
+export function StageRenderer({ stage, isPreview = false, language = 'en', onChangeLanguage, isGamified = true }: { stage: Stage, isPreview?: boolean, language?: string, onChangeLanguage?: () => void, isGamified?: boolean }) {
     const [isScanning, setIsScanning] = useState(false)
     const [debugLogs, setDebugLogs] = useState<string[]>([])
 
@@ -159,8 +159,8 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
                 )}
             </div>
 
-            {/* Score Display (Always visible) */}
-            <ScoreDisplay />
+            {/* Score Display (Always visible if gamified) */}
+            {isGamified && <ScoreDisplay />}
 
             {hasBlocks ? (
                 // --- NEW BLOCK RENDERER ---
@@ -416,6 +416,7 @@ function BlockRenderer({ block }: { block: StageBlock }) {
                     blockId={block.id}
                     content={block.content as QuizContent}
                     style={{ ...style, fontSize }}
+                    enablePoints={isGamified}
                 />
             )
         case 'scratchpad':

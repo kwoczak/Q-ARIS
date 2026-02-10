@@ -35,7 +35,7 @@ export default async function PlayerPage(props: { params: Promise<{ code: string
     // Get story owner to find museum
     const { data: story } = await supabase
         .from('stories')
-        .select('id, curator_id, supported_languages, default_language, curator:users!curator_id(museum_id)')
+        .select('id, curator_id, supported_languages, default_language, is_gamified, curator:users!curator_id(museum_id)')
         .eq('id', stage.story_id)
         .single()
 
@@ -63,7 +63,8 @@ export default async function PlayerPage(props: { params: Promise<{ code: string
     const storyInfo = {
         id: story!.id,
         supported_languages: story!.supported_languages || ['en'],
-        default_language: story!.default_language || 'en'
+        default_language: story!.default_language || 'en',
+        is_gamified: story!.is_gamified ?? true // Default to true if null (backward compat)
     }
 
     return (

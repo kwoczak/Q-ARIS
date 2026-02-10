@@ -11,9 +11,10 @@ interface QuizBlockProps {
     blockId: string
     content: QuizContent
     style: any
+    enablePoints?: boolean
 }
 
-export function QuizBlock({ blockId, content, style }: QuizBlockProps) {
+export function QuizBlock({ blockId, content, style, enablePoints = true }: QuizBlockProps) {
     const { addPoints, hasCompletedBlock } = useVisitor()
     const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null)
     const [isSubmitted, setIsSubmitted] = useState(false)
@@ -38,14 +39,16 @@ export function QuizBlock({ blockId, content, style }: QuizBlockProps) {
         setIsCorrect(correct)
 
         if (correct) {
-            // Trigger confetti
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            })
-            // Add points
-            addPoints(content.points || 10, blockId)
+            if (enablePoints) {
+                // Trigger confetti
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                })
+                // Add points
+                addPoints(content.points || 10, blockId)
+            }
         }
     }
 
@@ -138,8 +141,17 @@ export function QuizBlock({ blockId, content, style }: QuizBlockProps) {
                         {isCorrect || alreadyCompleted ? (
                             <div className="flex flex-col items-center">
                                 <span className="font-bold flex items-center gap-2">
-                                    <Gift className="w-4 h-4" />
-                                    +{content.points || 10} Points Earned!
+                                    {enablePoints ? (
+                                        <>
+                                            <Gift className="w-4 h-4" />
+                                            +{content.points || 10} Points Earned!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            Correct Answer!
+                                        </>
+                                    )}
                                 </span>
                                 {content.answers.find(a => a.isCorrect)?.feedback && (
                                     <p className="mt-1 opacity-90">{content.answers.find(a => a.isCorrect)?.feedback}</p>

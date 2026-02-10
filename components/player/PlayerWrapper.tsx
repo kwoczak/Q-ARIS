@@ -12,6 +12,7 @@ interface PlayerWrapperProps {
         id: string
         supported_languages?: string[]
         default_language?: string
+        is_gamified?: boolean
     }
 }
 
@@ -77,6 +78,7 @@ export function PlayerWrapper({ stage, story }: PlayerWrapperProps) {
                 stage={stage}
                 language={language}
                 onChangeLanguage={handleChangeLanguageRequest}
+                isGamified={story.is_gamified ?? true}
             />
             {isSelectorOpen && (
                 <LanguageSelector

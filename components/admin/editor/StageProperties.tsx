@@ -253,6 +253,15 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                 </div>
 
                                                 <div className="space-y-2">
+                                                    <Label>Initial Scale (x y z)</Label>
+                                                    <Input
+                                                        value={stage?.content?.model_scale || ''}
+                                                        onChange={(e) => handleContentChange('model_scale', e.target.value)}
+                                                        placeholder="e.g. 0.5 0.5 0.5 (Default: 1 1 1)"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
                                                     <Label>AR Button Text</Label>
                                                     <Input
                                                         value={stage?.content?.arButtonText || ''}

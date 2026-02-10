@@ -235,6 +235,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
                                             ar
                                             ar-modes="scene-viewer quick-look webxr"
                                             camera-controls
+                                            scale={stage.content.model_scale || '1 1 1'}
                                             style={{ display: 'none' }}
                                         />
                                     )

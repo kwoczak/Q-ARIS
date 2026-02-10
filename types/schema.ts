@@ -126,6 +126,7 @@ export type StageContent = {
     background?: StageBackground
     blocks?: StageBlock[]
     arButtonText?: string // Custom text for "View in AR" button
+    model_scale?: string // Initial scale of the 3D model (e.g. "0.5 0.5 0.5")
     i18n?: Record<string, any> // Global translations (e.g. { 'pl': { arButtonText: 'Zobacz w AR' } })
 }
 

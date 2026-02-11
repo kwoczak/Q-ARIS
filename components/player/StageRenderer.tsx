@@ -27,7 +27,18 @@ const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
     loading: () => <div className="w-full h-full bg-neutral-100/10 animate-pulse rounded-xl" />
 })
 
-export function StageRenderer({ stage, isPreview = false, language = 'en', onChangeLanguage, isGamified = true }: { stage: Stage, isPreview?: boolean, language?: string, onChangeLanguage?: () => void, isGamified?: boolean }) {
+export function StageRenderer({ stage, isPreview = false, language = 'en', onChangeLanguage, isGamified = true, isPaused = false }: { stage: Stage, isPreview?: boolean, language?: string, onChangeLanguage?: () => void, isGamified?: boolean, isPaused?: boolean }) {
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    // Pause all media when isPaused is true
+    useEffect(() => {
+        if (isPaused && containerRef.current) {
+            const mediaElements = containerRef.current.querySelectorAll('video, audio')
+            mediaElements.forEach((el) => {
+                (el as HTMLMediaElement).pause()
+            })
+        }
+    }, [isPaused])
     const [isScanning, setIsScanning] = useState(false)
     const [debugLogs, setDebugLogs] = useState<string[]>([])
 
@@ -121,6 +132,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
 
     return (
         <div
+            ref={containerRef}
             className={containerClasses}
             style={bgStyle}
         >

@@ -79,6 +79,7 @@ export function PlayerWrapper({ stage, story }: PlayerWrapperProps) {
                 language={language}
                 onChangeLanguage={handleChangeLanguageRequest}
                 isGamified={story.is_gamified ?? true}
+                isPaused={isSelectorOpen}
             />
             {isSelectorOpen && (
                 <LanguageSelector

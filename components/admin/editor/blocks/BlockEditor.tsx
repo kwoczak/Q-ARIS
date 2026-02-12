@@ -146,7 +146,7 @@ export function BlockEditor({ block, onChange, currentLanguage = 'en', defaultLa
     const handleChildChange = (updatedBlock: StageBlock) => {
         // Redundant check to ensure we have the latest values
         const isCurrentDefault = currentLanguage === defaultLanguage
-        const isCurrentLocalizable = ['text', 'audio', 'quiz', 'accordion', 'scratchpad'].includes(block.type)
+        const isCurrentLocalizable = isBlockLocalizable(block.type)
 
         if (!isCurrentLocalizable || isCurrentDefault) {
             onChange(updatedBlock)

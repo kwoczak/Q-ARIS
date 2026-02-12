@@ -20,7 +20,7 @@ export default function ModelViewerWrapper({ src, scale = '1 1 1' }: { src: stri
             <ModelViewer
                 src={src}
                 ar
-                ar-modes="webxr scene-viewer quick-look"
+                ar-modes="scene-viewer quick-look webxr"
                 camera-controls
                 touch-action="pan-y"
                 scale={scale}

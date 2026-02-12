@@ -66,6 +66,20 @@ export function ScratchCardEditor({ block, onChange }: ScratchCardEditorProps) {
                         placeholder="Default: (Rub to reveal)"
                     />
                 </div>
+
+                <div className="space-y-2 col-span-2 border-t pt-4">
+                    <Label>Gamification Points (Optional)</Label>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            type="number"
+                            min={0}
+                            value={content.points || 0}
+                            onChange={(e) => updateContent({ points: parseInt(e.target.value) || 0 })}
+                            className="w-24"
+                        />
+                        <span className="text-sm text-neutral-500">points awarded upon reveal</span>
+                    </div>
+                </div>
             </div>
         </div>
     )

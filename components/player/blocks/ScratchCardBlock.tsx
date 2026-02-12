@@ -4,16 +4,24 @@ import { ScratchContent } from "@/types/schema"
 import { useEffect, useRef, useState } from "react"
 import confetti from 'canvas-confetti'
 
+import { useGamification } from "@/hooks/useGamification"
+
 interface ScratchCardBlockProps {
     content: ScratchContent
     style: any
+    blockId: string
+    isGamified?: boolean
 }
 
-export function ScratchCardBlock({ content, style }: ScratchCardBlockProps) {
+export function ScratchCardBlock({ content, style, blockId, isGamified = false }: ScratchCardBlockProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const [isRevealed, setIsRevealed] = useState(false)
     const [isInteracting, setIsInteracting] = useState(false)
+    const { addPoints, hasCompletedBlock } = useGamification()
+    // Local state to track if points were already awarded for this specific block in this session
+    // We utilize hasCompletedBlock from context now for persistence across refreshes if VisitorContext uses localStorage
+    // const [awarded, setAwarded] = useState(false)
 
     useEffect(() => {
         const canvas = canvasRef.current
@@ -109,6 +117,12 @@ export function ScratchCardBlock({ content, style }: ScratchCardBlockProps) {
 
         const revealAll = () => {
             setIsRevealed(true)
+
+            if (isGamified && content.points && content.points > 0 && !hasCompletedBlock(blockId)) {
+                addPoints(content.points, blockId)
+                // Optional: Show toast or something? Confetti handles celebration.
+            }
+
             canvas.style.transition = 'opacity 0.5s ease-out'
             canvas.style.opacity = '0'
             setTimeout(() => {

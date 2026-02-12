@@ -466,6 +466,8 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 <ScratchCardBlock
                     content={block.content as ScratchContent}
                     style={style}
+                    blockId={block.id}
+                    isGamified={isGamified}
                 />
             )
         default:

@@ -57,6 +57,7 @@ export interface ScratchContent {
     coverColor?: string // hex
     coverText?: string // "Scratch me!" overlay on the cover
     scratchText?: string // "(Rub to reveal)" instruction text
+    points?: number
 }
 
 export interface HotspotItem {

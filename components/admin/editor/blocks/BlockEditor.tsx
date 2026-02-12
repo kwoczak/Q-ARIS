@@ -32,7 +32,7 @@ interface BlockEditorProps {
 }
 
 const isBlockLocalizable = (type: BlockType) => {
-    return ['text', 'audio', 'quiz', 'accordion', 'scratchpad'].includes(type)
+    return ['text', 'audio', 'quiz', 'accordion', 'scratchpad', 'hotspot', 'carousel', 'comparison'].includes(type)
 }
 
 const fontSizes = [
@@ -622,15 +622,15 @@ export function BlockEditor({ block, onChange, currentLanguage = 'en', defaultLa
                 )
             case 'comparison':
                 return (
-                    <ComparisonEditor block={block} onChange={onChange} />
+                    <ComparisonEditor key={currentLanguage} block={effectiveBlock} onChange={handleChildChange} />
                 )
             case 'hotspot':
                 return (
-                    <HotspotEditor block={block} onChange={onChange} />
+                    <HotspotEditor key={currentLanguage} block={effectiveBlock} onChange={handleChildChange} />
                 )
             case 'carousel':
                 return (
-                    <CarouselEditor block={block} onChange={onChange} />
+                    <CarouselEditor key={currentLanguage} block={effectiveBlock} onChange={handleChildChange} />
                 )
             case 'accordion':
                 return (

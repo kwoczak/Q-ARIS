@@ -32,7 +32,7 @@ interface BlockEditorProps {
 }
 
 const isBlockLocalizable = (type: BlockType) => {
-    return ['text', 'audio', 'quiz', 'accordion'].includes(type)
+    return ['text', 'audio', 'quiz', 'accordion', 'scratchpad'].includes(type)
 }
 
 const fontSizes = [
@@ -143,7 +143,28 @@ export function BlockEditor({ block, onChange, currentLanguage = 'en', defaultLa
         }
     }
 
+    const handleChildChange = (updatedBlock: StageBlock) => {
+        // Redundant check to ensure we have the latest values
+        const isCurrentDefault = currentLanguage === defaultLanguage
+        const isCurrentLocalizable = ['text', 'audio', 'quiz', 'accordion', 'scratchpad'].includes(block.type)
+
+        if (!isCurrentLocalizable || isCurrentDefault) {
+            onChange(updatedBlock)
+        } else {
+            onChange({
+                ...updatedBlock,
+                content: block.content, // Restore original content (e.g. English)
+                content_i18n: {
+                    ...block.content_i18n,
+                    [currentLanguage]: updatedBlock.content // Save localized content (e.g. Polish)
+                }
+            })
+        }
+    }
+
     const renderContentEditor = () => {
+        const effectiveBlock = { ...block, content: effectiveContent }
+
         switch (block.type) {
             case 'text':
                 return (
@@ -613,15 +634,15 @@ export function BlockEditor({ block, onChange, currentLanguage = 'en', defaultLa
                 )
             case 'accordion':
                 return (
-                    <AccordionEditor block={block} onChange={onChange} />
+                    <AccordionEditor key={currentLanguage} block={effectiveBlock} onChange={handleChildChange} />
                 )
             case 'quiz':
                 return (
-                    <QuizEditor block={block} onChange={onChange} />
+                    <QuizEditor key={currentLanguage} block={effectiveBlock} onChange={handleChildChange} />
                 )
             case 'scratchpad':
                 return (
-                    <ScratchCardEditor block={block} onChange={onChange} />
+                    <ScratchCardEditor key={currentLanguage} block={effectiveBlock} onChange={handleChildChange} />
                 )
             default:
                 return null

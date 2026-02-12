@@ -249,6 +249,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
                                             ar-modes="scene-viewer quick-look webxr"
                                             camera-controls
                                             scale={stage.content.model_scale || '1 1 1'}
+                                            reveal="manual" // PERF: Don't load/render 3D scene, just prepare for AR intent
                                             // Fix: display:none prevents model loading/scaling. Use opacity/visibility instead.
                                             style={{
                                                 position: 'absolute',

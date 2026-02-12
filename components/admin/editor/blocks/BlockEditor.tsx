@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FileUpload } from "@/components/ui/file-upload"
-import { AlignLeft, AlignCenter, AlignRight, AlignJustify } from "lucide-react"
+import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Underline } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 import { useState } from "react"
@@ -36,6 +36,9 @@ const isBlockLocalizable = (type: BlockType) => {
 }
 
 const fontSizes = [
+    { label: '6px', value: '6px' },
+    { label: '8px', value: '8px' },
+    { label: '10px', value: '10px' },
     { label: '12px', value: '12px' },
     { label: '14px', value: '14px' },
     { label: '16px (Base)', value: '16px' },
@@ -610,6 +613,32 @@ export function BlockEditor({ block, onChange, currentLanguage = 'en', defaultLa
 
             {/* Common Styles */}
             <div className="grid grid-cols-2 gap-2">
+                {(block.type === 'text' || block.type === 'quiz') && (
+                    <div className="space-y-1">
+                        <Label className="text-xs text-neutral-400">Formatting</Label>
+                        <div className="flex border border-neutral-700 rounded overflow-hidden">
+                            <button
+                                className={`flex-1 p-1 flex justify-center hover:bg-neutral-800 ${block.styles?.fontWeight === 'bold' ? 'bg-neutral-800 text-white' : 'text-neutral-400'}`}
+                                onClick={() => updateStyle('fontWeight', block.styles?.fontWeight === 'bold' ? 'normal' : 'bold')}
+                            >
+                                <Bold className="w-4 h-4" />
+                            </button>
+                            <button
+                                className={`flex-1 p-1 flex justify-center hover:bg-neutral-800 ${block.styles?.fontStyle === 'italic' ? 'bg-neutral-800 text-white' : 'text-neutral-400'}`}
+                                onClick={() => updateStyle('fontStyle', block.styles?.fontStyle === 'italic' ? 'normal' : 'italic')}
+                            >
+                                <Italic className="w-4 h-4" />
+                            </button>
+                            <button
+                                className={`flex-1 p-1 flex justify-center hover:bg-neutral-800 ${block.styles?.textDecoration === 'underline' ? 'bg-neutral-800 text-white' : 'text-neutral-400'}`}
+                                onClick={() => updateStyle('textDecoration', block.styles?.textDecoration === 'underline' ? 'none' : 'underline')}
+                            >
+                                <Underline className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {(block.type === 'text' || block.type === 'quiz') && (
                     <div className="space-y-1">
                         <Label className="text-xs text-neutral-400">Alignment</Label>

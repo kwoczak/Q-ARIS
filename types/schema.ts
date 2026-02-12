@@ -32,6 +32,9 @@ export interface BlockStyle {
     backdropBlur?: boolean
     autoplayMedia?: boolean
     modelScale?: string // e.g. "0.5 0.5 0.5"
+    fontWeight?: 'normal' | 'bold'
+    fontStyle?: 'normal' | 'italic'
+    textDecoration?: 'none' | 'underline' | 'line-through'
 }
 
 export interface BlockOverlay {

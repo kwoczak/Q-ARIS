@@ -290,6 +290,9 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
         marginBottom: block.styles?.marginBottom || '0',
         color: block.styles?.color || 'inherit',
         fontFamily: getFontFamily(block.styles?.fontFamily || 'sans'),
+        fontWeight: block.styles?.fontWeight || 'normal',
+        fontStyle: block.styles?.fontStyle || 'normal',
+        textDecoration: block.styles?.textDecoration || 'none',
     }
 
     // FontSize map

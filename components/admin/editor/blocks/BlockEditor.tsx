@@ -521,23 +521,44 @@ export function BlockEditor({ block, onChange, currentLanguage = 'en', defaultLa
             case 'video':
                 return (
                     <div className="space-y-2">
-                        <Label>Video File</Label>
-                        <FileUpload
-                            label="Video"
-                            accept="video/*"
-                            folder="blocks/video"
-                            currentUrl={block.content as string}
-                            onUploadComplete={(url) => onChange({ ...block, content: url })}
-                        />
+                        <Label>Video Source</Label>
+                        <div className="flex flex-col gap-2">
+                            <Input
+                                placeholder="Paste YouTube URL or direct link..."
+                                value={block.content as string}
+                                onChange={(e) => onChange({ ...block, content: e.target.value })}
+                            />
+                            <div className="text-[10px] text-neutral-500 text-center">- OR -</div>
+                            <FileUpload
+                                label="Upload Video"
+                                accept="video/*"
+                                folder="blocks/video"
+                                currentUrl={block.content as string}
+                                onUploadComplete={(url) => onChange({ ...block, content: url })}
+                            />
+                        </div>
                         {block.content && typeof block.content === 'string' && (
-                            <div className="mt-2 rounded-lg overflow-hidden border bg-black">
-                                <video
-                                    controls
-                                    playsInline
-                                    preload="metadata"
-                                    src={`${block.content}#t=0.001`}
-                                    className="w-full max-h-48"
-                                />
+                            <div className="mt-2 rounded-lg overflow-hidden border bg-black aspect-video relative">
+                                {(block.content.includes('youtube.com') || block.content.includes('youtu.be')) ? (
+                                    <iframe
+                                        width="100%"
+                                        height="100%"
+                                        src={`https://www.youtube.com/embed/${(block.content.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/)([\w-]{11})/) || [])[1]}?controls=0`}
+                                        title="YouTube video player"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        className="absolute inset-0 w-full h-full"
+                                    />
+                                ) : (
+                                    <video
+                                        controls
+                                        playsInline
+                                        preload="metadata"
+                                        src={`${block.content}#t=0.001`}
+                                        className="w-full h-full object-contain"
+                                    />
+                                )}
                             </div>
                         )}
                     </div>

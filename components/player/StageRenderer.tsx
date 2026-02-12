@@ -390,6 +390,28 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
             )
         case 'video':
             if (!block.content) return null
+            const isYouTube = (block.content as string).includes('youtube.com') || (block.content as string).includes('youtu.be')
+
+            if (isYouTube) {
+                const videoId = ((block.content as string).match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/)([\w-]{11})/) || [])[1]
+                if (!videoId) return null
+
+                return (
+                    <div style={style} className="w-full aspect-video rounded-lg overflow-hidden bg-black">
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            src={`https://www.youtube.com/embed/${videoId}?autoplay=${block.styles?.autoplayMedia ? 1 : 0}&controls=1&rel=0`}
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="w-full h-full"
+                        />
+                    </div>
+                )
+            }
+
             return (
                 <div style={style} className="w-full">
                     <video
@@ -398,6 +420,7 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                         preload="metadata"
                         src={`${block.content}#t=0.001`}
                         className="w-full rounded-lg"
+                        autoPlay={block.styles?.autoplayMedia}
                     />
                 </div>
             )

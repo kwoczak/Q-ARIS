@@ -20,11 +20,13 @@ export default function ModelViewerWrapper({ src, scale = '1 1 1' }: { src: stri
             <ModelViewer
                 src={src}
                 ar
-                ar-modes="scene-viewer quick-look webxr"
+                ar-modes="webxr scene-viewer quick-look"
                 camera-controls
+                touch-action="pan-y"
                 scale={scale}
                 style={{ width: '100%', height: '100%' }}
-                ar-status="not-presenting"
+                ar-scale="auto"
+                ar-placement="floor"
             />
             <div className="absolute bottom-4 right-4">
                 <Button

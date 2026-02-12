@@ -230,7 +230,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
                                     size="lg"
                                     className="bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full shadow-xl"
                                     onClick={() => {
-                                        const modelViewer = document.querySelector('model-viewer') as any;
+                                        const modelViewer = document.getElementById(`ar-model-${stage.id}`) as any;
                                         if (modelViewer) modelViewer.activateAR();
                                     }}
                                 >
@@ -243,12 +243,26 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
                                     const ModelViewer = 'model-viewer' as any;
                                     return (
                                         <ModelViewer
+                                            id={`ar-model-${stage.id}`}
                                             src={stage.content.model_3d}
                                             ar
                                             ar-modes="scene-viewer quick-look webxr"
                                             camera-controls
                                             scale={stage.content.model_scale || '1 1 1'}
-                                            style={{ display: 'none' }}
+                                            // Fix: display:none prevents model loading/scaling. Use opacity/visibility instead.
+                                            style={{
+                                                position: 'absolute',
+                                                width: '1px',
+                                                height: '1px',
+                                                padding: 0,
+                                                margin: '-1px',
+                                                overflow: 'hidden',
+                                                clip: 'rect(0, 0, 0, 0)',
+                                                whiteSpace: 'nowrap',
+                                                border: 0,
+                                                opacity: 0,
+                                                pointerEvents: 'none'
+                                            }}
                                         />
                                     )
                                 })()}

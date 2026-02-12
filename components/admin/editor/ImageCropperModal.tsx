@@ -16,6 +16,7 @@ interface ImageCropperModalProps {
 export function ImageCropperModal({ isOpen, onClose, imageSrc, onCropComplete }: ImageCropperModalProps) {
     const [crop, setCrop] = useState({ x: 0, y: 0 })
     const [zoom, setZoom] = useState(1)
+    const [aspect, setAspect] = useState<number | undefined>(16 / 9)
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
 
     const onCropChange = (crop: { x: number; y: number }) => {
@@ -87,27 +88,47 @@ export function ImageCropperModal({ isOpen, onClose, imageSrc, onCropComplete }:
         }
     }
 
+    const aspects = [
+        { label: '16:9', value: 16 / 9 },
+        { label: '4:3', value: 4 / 3 },
+        { label: '1:1', value: 1 },
+        { label: 'Free', value: undefined },
+    ]
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Crop Image</DialogTitle>
                     <DialogDescription>
-                        Adjust the cropping area to fit the 16:9 aspect ratio.
+                        Adjust the cropping area.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="relative w-full h-64 bg-black">
+                <div className="relative w-full h-64 bg-black rounded-md overflow-hidden">
                     <Cropper
                         image={imageSrc}
                         crop={crop}
                         zoom={zoom}
-                        aspect={16 / 9} // Default aspect, maybe make configurable?
+                        aspect={aspect}
                         onCropChange={onCropChange}
                         onZoomChange={onZoomChange}
                         onCropComplete={onCropCompleteHandler}
                     />
                 </div>
                 <div className="space-y-4 py-4">
+                    <div className="flex justify-center gap-2">
+                        {aspects.map((a) => (
+                            <Button
+                                key={a.label}
+                                size="sm"
+                                variant={aspect === a.value ? "default" : "outline"}
+                                onClick={() => setAspect(a.value)}
+                                className="h-7 text-xs"
+                            >
+                                {a.label}
+                            </Button>
+                        ))}
+                    </div>
                     <div className="flex items-center gap-4">
                         <span className="text-sm font-medium">Zoom</span>
                         <Slider

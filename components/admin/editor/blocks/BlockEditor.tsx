@@ -175,7 +175,7 @@ export function BlockEditor({ block, onChange, currentLanguage = 'en', defaultLa
                             onFileSelect={handleFileSelect}
                         />
                         <p className="text-[10px] text-neutral-500">
-                            Selected images will open a cropper tool (16:9 aspect).
+                            Selected images will open a cropper tool (16:9, 4:3, 1:1, or Free).
                         </p>
 
                         {/* --- OVERLAY CONTROLS --- */}

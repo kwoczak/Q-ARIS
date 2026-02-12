@@ -83,8 +83,9 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
 
     const generateQrImage = async (code: string) => {
         try {
-            // In production, this URL would be https://museum-app.com/play/{code}
-            const url = `${window.location.origin}/play/${code}`
+            // Use stable base URL from env if available, otherwise fall back to current origin (e.g. localhost)
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+            const url = `${baseUrl}/play/${code}`
             const dataUrl = await QRCode.toDataURL(url, { width: 300, margin: 2 })
             setQrCodeDataUrl(dataUrl)
         } catch (err) {
@@ -366,7 +367,8 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                 className="w-full border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
                                                 onClick={async () => {
                                                     try {
-                                                        const url = `${window.location.origin}/play/${trigger.code}`
+                                                        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+                                                        const url = `${baseUrl}/play/${trigger.code}`
                                                         const highResUrl = await QRCode.toDataURL(url, { width: 1500, margin: 2 })
                                                         const link = document.createElement('a');
                                                         link.download = `qr-${trigger.code}-1500px.png`;
@@ -387,7 +389,8 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                 className="w-full border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
                                                 onClick={async () => {
                                                     try {
-                                                        const url = `${window.location.origin}/play/${trigger.code}`
+                                                        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+                                                        const url = `${baseUrl}/play/${trigger.code}`
                                                         const svgString = await QRCode.toString(url, { type: 'svg', margin: 2 })
                                                         const blob = new Blob([svgString], { type: 'image/svg+xml' });
                                                         const link = document.createElement('a');

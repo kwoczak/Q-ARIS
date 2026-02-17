@@ -204,52 +204,7 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                 <strong className="text-red-400">Warning: This will overwrite any existing translations you have manually entered.</strong>
                                             </AlertDialogDescription>
 
-                                            <div className="space-y-4 py-4">
-                                                <div className="space-y-2">
-                                                    <Label>3D Model URL (.glb)</Label>
-                                                    <div className="flex gap-2">
-                                                        <Input
-                                                            value={stage?.content?.model_3d || ''}
-                                                            onChange={(e) => handleContentChange('model_3d', e.target.value)}
-                                                            placeholder="https://.../model.glb"
-                                                        />
-                                                        {/* File upload trigger could go here */}
-                                                    </div>
-                                                </div>
 
-                                                <div className="space-y-4 pt-2">
-                                                    <div className="flex justify-between">
-                                                        <Label>Initial Scale (x y z)</Label>
-                                                        <span className="text-xs font-mono text-neutral-400">
-                                                            {stage?.content?.model_scale || '1 1 1'}
-                                                        </span>
-                                                    </div>
-                                                    <Slider
-                                                        min={0.1}
-                                                        max={3}
-                                                        step={0.1}
-                                                        value={[parseFloat((stage?.content?.model_scale || '1').split(' ')[0]) || 1]}
-                                                        onValueChange={(vals) => {
-                                                            const val = vals[0]
-                                                            handleContentChange('model_scale', `${val} ${val} ${val}`)
-                                                        }}
-                                                    />
-                                                    <div className="flex justify-between text-[10px] text-neutral-500 px-1">
-                                                        <span>0.1x</span>
-                                                        <span>1.0x</span>
-                                                        <span>3.0x</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-2">
-                                                    <Label>AR Button Text</Label>
-                                                    <Input
-                                                        value={stage?.content?.arButtonText || ''}
-                                                        onChange={(e) => handleContentChange('arButtonText', e.target.value)}
-                                                        placeholder="Default: 👀 View in 3D"
-                                                    />
-                                                </div>
-                                            </div>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
                                             <AlertDialogCancel className="bg-transparent border-neutral-700 text-white hover:bg-neutral-800 hover:text-white" disabled={isTranslating}>Cancel</AlertDialogCancel>

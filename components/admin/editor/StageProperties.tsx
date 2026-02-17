@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FileUpload } from "@/components/ui/file-upload"
 import { createClient } from "@/lib/supabase/client"
 import QRCode from 'qrcode'
+import { getStableBaseUrl } from "@/lib/utils"
 import {
     Sheet,
     SheetContent,
@@ -84,7 +85,7 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
     const generateQrImage = async (code: string) => {
         try {
             // Use stable base URL from env if available, otherwise fall back to current origin (e.g. localhost)
-            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+            const baseUrl = getStableBaseUrl()
             const url = `${baseUrl}/play/${code}`
             const dataUrl = await QRCode.toDataURL(url, { width: 300, margin: 2 })
             setQrCodeDataUrl(dataUrl)
@@ -367,7 +368,7 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                 className="w-full border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
                                                 onClick={async () => {
                                                     try {
-                                                        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+                                                        const baseUrl = getStableBaseUrl()
                                                         const url = `${baseUrl}/play/${trigger.code}`
                                                         const highResUrl = await QRCode.toDataURL(url, { width: 1500, margin: 2 })
                                                         const link = document.createElement('a');
@@ -389,7 +390,7 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                 className="w-full border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
                                                 onClick={async () => {
                                                     try {
-                                                        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+                                                        const baseUrl = getStableBaseUrl()
                                                         const url = `${baseUrl}/play/${trigger.code}`
                                                         const svgString = await QRCode.toString(url, { type: 'svg', margin: 2 })
                                                         const blob = new Blob([svgString], { type: 'image/svg+xml' });

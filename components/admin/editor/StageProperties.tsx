@@ -441,7 +441,12 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                 {/* Only render if we have data to prevent errors */}
                                 {formData && (
                                     <div className="stage-renderer-preview-wrapper h-full w-full overflow-y-auto">
-                                        <StageRenderer stage={formData} isPreview={true} language={currentLanguage} />
+                                        <StageRenderer
+                                            stage={formData}
+                                            isPreview={true}
+                                            language={currentLanguage}
+                                            isGamified={story.is_gamified ?? true}
+                                        />
                                     </div>
                                 )}
                             </div>

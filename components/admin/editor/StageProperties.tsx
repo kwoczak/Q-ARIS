@@ -203,46 +203,8 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                 <br /><br />
                                                 <strong className="text-red-400">Warning: This will overwrite any existing translations you have manually entered.</strong>
                                             </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel className="bg-transparent border-neutral-700 text-white hover:bg-neutral-800 hover:text-white" disabled={isTranslating}>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction
-                                                className="bg-purple-600 hover:bg-purple-700 text-white"
-                                                disabled={isTranslating}
-                                                onClick={async (e) => {
-                                                    e.preventDefault()
-                                                    if (!formData || !story.supported_languages) return
 
-                                                    const targetLangs = story.supported_languages.filter(l => l !== story.default_language)
-                                                    if (targetLangs.length === 0) return
-
-                                                    setIsTranslating(true)
-
-                                                    try {
-                                                        const result = await translateStageContent(formData.id, targetLangs)
-
-                                                        // DEBUG: Show server logs
-                                                        if (result.logs && result.logs.length > 0) {
-                                                            console.log("Server Logs:", result.logs)
-                                                            // Optional: Alert logs to user if they are debugging
-                                                            alert("Translation Logs:\n" + result.logs.join("\n"))
-                                                        }
-
-                                                        if (result.success && result.data) {
-                                                            setFormData(result.data as Stage)
-                                                            onSave(result.data as Stage) // Propagate update to parent
-                                                            setIsTranslateDialogOpen(false)
-                                                        } else {
-                                                            alert("Translation reported failure: " + result.message)
-                                                        }
-                                                    } catch (e) {
-                                                        console.error(e)
-                                                        alert("Translation failed (Client Error). Check console.")
-                                                    } finally {
-                                                        setIsTranslating(false)
-                                                    }
-                                                }}
-                                            >
+                                            <div className="space-y-4 py-4">
                                                 <div className="space-y-2">
                                                     <Label>3D Model URL (.glb)</Label>
                                                     <div className="flex gap-2">
@@ -286,7 +248,49 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                         onChange={(e) => handleContentChange('arButtonText', e.target.value)}
                                                         placeholder="Default: 👀 View in 3D"
                                                     />
-                                                </div>        {isTranslating ? (
+                                                </div>
+                                            </div>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel className="bg-transparent border-neutral-700 text-white hover:bg-neutral-800 hover:text-white" disabled={isTranslating}>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                className="bg-purple-600 hover:bg-purple-700 text-white"
+                                                disabled={isTranslating}
+                                                onClick={async (e) => {
+                                                    e.preventDefault()
+                                                    if (!formData || !story.supported_languages) return
+
+                                                    const targetLangs = story.supported_languages.filter(l => l !== story.default_language)
+                                                    if (targetLangs.length === 0) return
+
+                                                    setIsTranslating(true)
+
+                                                    try {
+                                                        const result = await translateStageContent(formData.id, targetLangs)
+
+                                                        // DEBUG: Show server logs
+                                                        if (result.logs && result.logs.length > 0) {
+                                                            console.log("Server Logs:", result.logs)
+                                                            // Optional: Alert logs to user if they are debugging
+                                                            alert("Translation Logs:\n" + result.logs.join("\n"))
+                                                        }
+
+                                                        if (result.success && result.data) {
+                                                            setFormData(result.data as Stage)
+                                                            onSave(result.data as Stage) // Propagate update to parent
+                                                            setIsTranslateDialogOpen(false)
+                                                        } else {
+                                                            alert("Translation reported failure: " + result.message)
+                                                        }
+                                                    } catch (e) {
+                                                        console.error(e)
+                                                        alert("Translation failed (Client Error). Check console.")
+                                                    } finally {
+                                                        setIsTranslating(false)
+                                                    }
+                                                }}
+                                            >
+                                                {isTranslating ? (
                                                     <>
                                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                                         Translating...

@@ -51,12 +51,12 @@ export default function Home() {
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
             The Future of <br className="hidden md:block" />
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Museum Storytelling
+              Interactive Storytelling
             </span>
           </h1>
 
           <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
-            Transform visitors into explorers with immersive WebAR guides.
+            Transform spaces and objects into immersive WebAR experiences.
             No app downloads required. Just scan and play.
           </p>
 
@@ -103,9 +103,9 @@ export default function Home() {
             <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 -z-10" />
 
             {[
-              { icon: QrCode, title: "1. Scan", desc: "Visitors scan a QR code placed next to the artifact." },
+              { icon: QrCode, title: "1. Scan", desc: "Users scan a QR code placed next to any object or location." },
               { icon: Sparkles, title: "2. Explore", desc: "3D models and stories appear instantly in WebAR." },
-              { icon: Layers, title: "3. Learn", desc: "Interactive quizzes and deeper context on demand." },
+              { icon: Layers, title: "3. Interact", desc: "Interactive quizzes and rich context on demand." },
             ].map((step, i) => (
               <div key={i} className="flex flex-col items-center text-center group">
                 <div className="w-24 h-24 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 transition-transform duration-500 group-hover:border-blue-500/30">
@@ -128,15 +128,15 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-16 items-center mb-16">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-xs font-medium text-orange-400 mb-6">
-                <Layers className="w-3 h-3" /> Curator Tools
+                <Layers className="w-3 h-3" /> Creator Studio
               </div>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                Power to the Curators. <br />
+                Power to the Creators. <br />
                 <span className="text-neutral-500">No IT department needed.</span>
               </h2>
               <p className="text-lg text-neutral-400 leading-relaxed mb-8">
                 Our visual node editor lets you design complex, branching narratives as easily as drawing on a whiteboard.
-                Drag, drop, and connect stages to create a journey unique to your museum.
+                Drag, drop, and connect stages to create a journey unique to your story.
               </p>
               <ul className="grid grid-cols-2 gap-4">
                 {['Visual Story Graph', 'Instant Cloud Save', 'One-Click Publish', 'Asset Library'].map((feat, i) => (
@@ -190,9 +190,9 @@ export default function Home() {
             <div className="w-12 h-12 rounded-lg bg-green-900/30 flex items-center justify-center text-green-400">
               <BarChart3 className="w-6 h-6" />
             </div>
-            <h2 className="text-3xl font-bold">Data-Driven Curation</h2>
+            <h2 className="text-3xl font-bold">Audience Insights</h2>
             <p className="text-neutral-400 leading-relaxed">
-              Understand what resonates. Track dwell times, popular paths, and engagement drop-offs to continuously improve your exhibition.
+              Understand what resonates. Track dwell times, popular paths, and engagement drop-offs to continuously improve your experience.
             </p>
             <div className="p-4 rounded-lg bg-white/5 border border-white/5">
               <div className="flex justify-between items-center mb-2">
@@ -250,9 +250,9 @@ export default function Home() {
       <section className="py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 to-blue-950/20" />
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to modernize your museum?</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to bring your stories to life?</h2>
           <p className="text-xl text-neutral-400 mb-10 max-w-2xl mx-auto">
-            Join leading institutions using Q-ARIS to create unforgettable visitor experiences.
+            Join the creators and venues using Q-ARIS to build unforgettable audience experiences.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/contact">

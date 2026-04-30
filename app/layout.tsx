@@ -10,8 +10,8 @@ const merriweather = Merriweather({ weight: ['300', '400', '700'], subsets: ["la
 const oswald = Oswald({ subsets: ["latin"], variable: '--font-oswald' });
 
 export const metadata: Metadata = {
-  title: "Museum Storytelling App",
-  description: "WebAR Interactive Guide",
+  title: "Q-ARIS | The QR Storytelling Platform",
+  description: "Create immersive WebAR guides and interactive stories for any venue or brand.",
 };
 
 export default function RootLayout({

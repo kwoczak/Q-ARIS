@@ -33,7 +33,7 @@ export default function PricingPage() {
                         Simple, transparent pricing
                     </h1>
                     <p className="text-lg text-neutral-400 max-w-2xl mx-auto">
-                        We partner with museums and cultural institutions to create bespoke experiences.
+                        We partner with venues and creators to build bespoke interactive experiences.
                     </p>
                 </div>
 
@@ -45,8 +45,8 @@ export default function PricingPage() {
 
                         <div className="flex items-baseline justify-between mb-8">
                             <div>
-                                <h3 className="text-2xl font-bold text-white">Enterprise</h3>
-                                <p className="text-sm text-neutral-400 mt-1">For museums & galleries</p>
+                                <h3 className="text-2xl font-bold text-white">Professional</h3>
+                                <p className="text-sm text-neutral-400 mt-1">For venues & creators</p>
                             </div>
                             <div className="text-right">
                                 <span className="text-3xl font-bold">Custom</span>
@@ -56,7 +56,7 @@ export default function PricingPage() {
                         <ul className="space-y-4 mb-8">
                             {[
                                 "Unlimited interactive stories",
-                                "Advanced Visitor Analytics & Flows",
+                                "Audience Analytics & Flows",
                                 "Custom 3D Model Hosting",
                                 "Multi-language AI Translation",
                                 "White-label branding options",

@@ -3,6 +3,11 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth-lib'
 
+export async function getClientUserId(): Promise<string | null> {
+    const session = await getSession();
+    return session?.userId || null;
+}
+
 export type MediaType = 'image' | 'video' | 'audio' | 'model' | 'other';
 
 export type MediaAsset = {
@@ -70,16 +75,9 @@ export async function getAllMediaAssets(): Promise<{ success: boolean; data?: Me
         let allFiles: any[] = [];
 
         for (const folder of foldersToScan) {
-             const files = await listAllFiles(supabase, folder);
+             const files = await listAllFiles(supabase, `${folder}/${session.userId}`);
              allFiles = allFiles.concat(files);
         }
-
-        // We also want to make sure files belong to the user if we have user isolation.
-        // Wait, files are not isolated by userId in folders except maybe tts!
-        // The current uploadAsset logic: const filePath = `${folder}/${fileName}`
-        // So they are mixed! We have to fetch all of them, or they are public anyway.
-        // If we want only current user's TTS assets, tts_assets table does that.
-        // For now, we fetch all from storage.
 
         const assets: MediaAsset[] = allFiles.map(f => {
             const path = f.folderPath ? `${f.folderPath}/${f.name}` : f.name;

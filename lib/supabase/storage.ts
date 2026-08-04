@@ -1,12 +1,18 @@
 import { createClient } from "@/lib/supabase/client"
+import { getClientUserId } from "@/lib/actions/media"
 
 export async function uploadAsset(file: File, folder: string = 'general'): Promise<string | null> {
     const supabase = createClient()
+    const userId = await getClientUserId()
+    
+    if (!userId) {
+        throw new Error("Unauthorized upload attempt")
+    }
 
     // Clean filename and add timestamp to avoid collisions
     const fileExt = file.name.split('.').pop()
     const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
-    const filePath = `${folder}/${fileName}`
+    const filePath = `${folder}/${userId}/${fileName}`
 
     const { data, error } = await supabase.storage
         .from('assets')

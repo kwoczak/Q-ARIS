@@ -65,17 +65,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
                 }
 
                 if (!sessionId) {
-                    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-                        sessionId = generateId()
-                        addLog('Created UUID (crypto)')
-                    } else {
-                        // Fallback implementation
-                        sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                            return v.toString(16);
-                        });
-                        addLog('Created UUID (fallback)')
-                    }
+                    sessionId = generateId()
                     try {
                         localStorage.setItem('visitor_session_id', sessionId)
                     } catch (e) { }

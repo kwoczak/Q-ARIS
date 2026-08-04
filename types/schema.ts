@@ -7,6 +7,7 @@ export type Story = {
     supported_languages?: string[] // e.g. ['en', 'pl']
     default_language?: string
     is_gamified?: boolean
+    curator_id?: string | null
 }
 
 export type Language = 'en' | 'pl' | 'de' | 'es' | 'fr' | 'it' | 'cs' | 'ua';

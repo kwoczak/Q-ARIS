@@ -1,4 +1,5 @@
 'use client'
+import { generateId } from "@/lib/utils";
 
 import { StageBlock, HotspotContent, HotspotItem } from "@/types/schema"
 import { Label } from "@/components/ui/label"
@@ -47,7 +48,7 @@ export function HotspotEditor({ block, onChange }: HotspotEditorProps) {
         const y = ((e.clientY - rect.top) / rect.height) * 100
 
         const newHotspot: HotspotItem = {
-            id: crypto.randomUUID(),
+            id: generateId(),
             x,
             y,
             label: 'New Point',

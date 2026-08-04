@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Plus, Trash2, ChevronUp, ChevronDown, GripVertical, Settings2, Copy } from "lucide-react"
 import { BlockEditor } from "./BlockEditor"
 import { useState } from "react"
+import { generateId } from "@/lib/utils"
+
 import {
     Accordion,
     AccordionContent,
@@ -47,7 +49,7 @@ export function BlockList({ blocks, onChange, currentLanguage, defaultLanguage }
         }
 
         const newBlock: StageBlock = {
-            id: crypto.randomUUID(),
+            id: generateId(),
             type,
             content: initialContent,
             styles: {
@@ -87,7 +89,7 @@ export function BlockList({ blocks, onChange, currentLanguage, defaultLanguage }
         const blockToClone = blocks[index]
         const clonedBlock: StageBlock = {
             ...structuredClone(blockToClone),
-            id: crypto.randomUUID() // Ensure new ID
+            id: generateId() // Ensure new ID
         }
 
         const newBlocks = [...blocks]

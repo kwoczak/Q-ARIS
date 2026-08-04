@@ -1,4 +1,5 @@
 'use client'
+import { generateId } from "@/lib/utils";
 
 import { StageBlock, AccordionItem } from "@/types/schema"
 import { Label } from "@/components/ui/label"
@@ -21,7 +22,7 @@ export function AccordionEditor({ block, onChange }: AccordionEditorProps) {
 
     const addItem = () => {
         const newItem: AccordionItem = {
-            id: crypto.randomUUID(),
+            id: generateId(),
             title: 'New Section',
             content: ''
         }

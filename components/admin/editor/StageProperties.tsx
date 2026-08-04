@@ -42,15 +42,16 @@ import {
 
 interface StagePropertiesProps {
     stage: Stage | null
-    story: Story // Added story prop
+    story: Story
     isOpen: boolean
     onClose: () => void
     onSave: (updatedStage: Stage) => void
     onDelete: (stageId: string) => void
     onDuplicate: () => void
+    readOnly?: boolean
 }
 
-export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelete, onDuplicate }: StagePropertiesProps) {
+export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelete, onDuplicate, readOnly = false }: StagePropertiesProps) {
     const [formData, setFormData] = useState<Stage | null>(null)
     const [trigger, setTrigger] = useState<Trigger | null>(null)
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
@@ -95,7 +96,7 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
     }
 
     const handleCreateTrigger = async () => {
-        if (!formData) return
+        if (!formData || readOnly) return
         setIsLoadingQr(true)
 
         const code = Math.random().toString(36).substring(2, 10).toUpperCase()
@@ -115,7 +116,7 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
     }
 
     const handleContentChange = (key: keyof StageContent, value: any) => {
-        if (!formData) return
+        if (!formData || readOnly) return
         setFormData({
             ...formData,
             content: {
@@ -126,12 +127,12 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
     }
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!formData) return
+        if (!formData || readOnly) return
         setFormData({ ...formData, title: e.target.value })
     }
 
     const handleSave = () => {
-        if (formData) {
+        if (formData && !readOnly) {
             onSave(formData)
             onClose()
         }
@@ -141,24 +142,25 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
 
     return (
         <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent className="w-screen sm:w-screen max-w-none sm:max-w-none flex flex-col h-full bg-neutral-950 border-none transition-all p-0 gap-0 text-white [&>button]:hidden">
+            <SheetContent className={`w-screen sm:w-screen max-w-none sm:max-w-none flex flex-col h-full bg-neutral-950 border-none transition-all p-0 gap-0 text-white [&>button]:hidden ${readOnly ? 'sm:w-[500px] right-0 left-auto' : ''}`}>
                 <SheetHeader className="p-4 border-b border-white/10 shrink-0 flex flex-row items-center justify-between space-y-0 h-16 bg-neutral-900">
                     <div className="flex items-center gap-4">
                         <div>
-                            <SheetTitle className="text-white">Edit Stage: {formData.title}</SheetTitle>
+                            <SheetTitle className="text-white">{readOnly ? 'Preview Stage:' : 'Edit Stage:'} {formData.title}</SheetTitle>
                             <SheetDescription className="hidden sm:block text-neutral-400">
-                                Real-time preview active
+                                {readOnly ? 'Read-only preview' : 'Real-time preview active'}
                             </SheetDescription>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={onClose} className="border-neutral-700 hover:bg-neutral-800 text-white hover:text-white bg-transparent">Cancel</Button>
-                        <Button onClick={handleSave} className="bg-blue-600 text-white hover:bg-blue-500">Save Changes</Button>
+                        <Button variant="outline" onClick={onClose} className="border-neutral-700 hover:bg-neutral-800 text-white hover:text-white bg-transparent">{readOnly ? 'Close' : 'Cancel'}</Button>
+                        {!readOnly && <Button onClick={handleSave} className="bg-blue-600 text-white hover:bg-blue-500">Save Changes</Button>}
                     </div>
                 </SheetHeader>
 
-                <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-2">
-                    {/* LEFT PANEL: EDITOR */}
+                <div className={`flex-1 overflow-hidden grid ${readOnly ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
+                    {/* LEFT PANEL: EDITOR (HIDDEN IN READONLY) */}
+                    {!readOnly && (
                     <div className="h-full overflow-y-auto border-r border-white/10 bg-neutral-950">
                         {/* Language Switcher */}
                         {story.supported_languages && story.supported_languages.length > 0 && (
@@ -226,8 +228,6 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                                         // DEBUG: Show server logs
                                                         if (result.logs && result.logs.length > 0) {
                                                             console.log("Server Logs:", result.logs)
-                                                            // Optional: Alert logs to user if they are debugging
-                                                            alert("Translation Logs:\n" + result.logs.join("\n"))
                                                         }
 
                                                         if (result.success && result.data) {
@@ -382,9 +382,10 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                                     onDuplicate()
                                     onClose()
                                 }}>Duplicate Stage</Button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* RIGHT PANEL: LIVE PREVIEW */}
                     <div className="h-full bg-neutral-900 flex items-center justify-center p-8 relative overflow-hidden">
@@ -399,7 +400,7 @@ export function StageProperties({ stage, story, isOpen, onClose, onSave, onDelet
                             <div className="w-full h-full bg-white overflow-hidden scrollbar-hide">
                                 {/* Only render if we have data to prevent errors */}
                                 {formData && (
-                                    <div className="stage-renderer-preview-wrapper h-full w-full overflow-y-auto">
+                                    <div className="stage-renderer-preview-wrapper h-full w-full overflow-hidden">
                                         <StageRenderer
                                             stage={formData}
                                             isPreview={true}

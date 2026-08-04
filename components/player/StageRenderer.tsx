@@ -1,4 +1,5 @@
 'use client'
+import { generateId } from "@/lib/utils";
 
 import { Stage, StageBlock, BlockStyle } from "@/types/schema" // Added Block imports
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -65,7 +66,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
 
                 if (!sessionId) {
                     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-                        sessionId = crypto.randomUUID()
+                        sessionId = generateId()
                         addLog('Created UUID (crypto)')
                     } else {
                         // Fallback implementation
@@ -126,7 +127,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
     const hasBlocks = content.blocks && content.blocks.length > 0
 
     const containerClasses = [
-        "flex flex-col h-[100dvh] w-full relative transition-colors duration-500 overflow-hidden",
+        `flex flex-col w-full relative transition-colors duration-500 overflow-hidden ${isPreview ? 'h-full' : 'h-[100dvh]'}`,
         content.background ? (isDarkBackground ? "text-white" : "text-neutral-900") : "bg-black text-white"
     ].join(" ")
 
@@ -198,7 +199,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
                                 overlay: effectiveOverlay
                             }
 
-                            return <BlockRenderer key={block.id} block={effectiveBlock} isGamified={isGamified} />
+                            return <BlockRenderer key={block.id} block={effectiveBlock} isGamified={isGamified} isPreview={isPreview} />
                         })}
                         {/* Audio Autoplay Logic for Blocks? Or keep global? 
                             Let's keep global audio for now if defined in legacy or specific block. 
@@ -295,7 +296,7 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
     )
 }
 
-function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGamified?: boolean }) {
+function BlockRenderer({ block, isGamified = true, isPreview = false }: { block: StageBlock, isGamified?: boolean, isPreview?: boolean }) {
     const style: React.CSSProperties = {
         textAlign: block.styles?.textAlign || 'left',
         padding: block.styles?.padding ? block.styles.padding : '1rem', // Default padding
@@ -321,6 +322,15 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
 
     switch (block.type) {
         case 'text':
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full p-4 bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Text Block</span>
+                        No content added yet
+                    </div>
+                )
+                return null
+            }
             if (block.styles?.animation === 'typewriter') {
                 return (
                     <TypewriterEffect
@@ -338,7 +348,15 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 </MotionWrapper>
             )
         case 'image':
-            if (!block.content) return null
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full aspect-video bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Image Block</span>
+                        No image uploaded yet
+                    </div>
+                )
+                return null
+            }
 
             // Resolve Overlay Position
             let overlayPositionClass = 'bottom-0 left-0 right-0' // Default bottom-center-ish behavior if fully wide
@@ -384,7 +402,15 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 </MotionWrapper>
             )
         case 'audio':
-            if (!block.content) return null
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full h-16 bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Audio Block</span>
+                        No audio selected yet
+                    </div>
+                )
+                return null
+            }
             return (
                 <div style={style} className="w-full">
                     <audio
@@ -396,14 +422,30 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 </div>
             )
         case 'model_3d':
-            if (!block.content) return null
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full h-[50vh] bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-xl border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">3D Model Block</span>
+                        No model uploaded yet
+                    </div>
+                )
+                return null
+            }
             return (
                 <div style={style} className="w-full h-[50vh] relative bg-neutral-100/5 dark:bg-neutral-800/50 rounded-xl overflow-hidden">
                     <ModelViewer src={block.content as string} scale={block.styles?.modelScale || '1 1 1'} />
                 </div>
             )
         case 'video':
-            if (!block.content) return null
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full aspect-video bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Video Block</span>
+                        No video uploaded yet
+                    </div>
+                )
+                return null
+            }
             const isYouTube = (block.content as string).includes('youtube.com') || (block.content as string).includes('youtu.be')
 
             if (isYouTube) {
@@ -439,6 +481,15 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 </div>
             )
         case 'comparison':
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full aspect-video bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Comparison Block</span>
+                        No images uploaded yet
+                    </div>
+                )
+                return null
+            }
             return (
                 <ComparisonBlock
                     content={block.content as ComparisonContent}
@@ -446,6 +497,15 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 />
             )
         case 'hotspot':
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full aspect-video bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Hotspot Block</span>
+                        No image uploaded yet
+                    </div>
+                )
+                return null
+            }
             return (
                 <HotspotBlock
                     content={block.content as HotspotContent}
@@ -453,6 +513,15 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 />
             )
         case 'carousel':
+            if (!block.content || (Array.isArray(block.content) && block.content.length === 0)) {
+                if (isPreview) return (
+                    <div style={style} className="w-full aspect-square bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Gallery Block</span>
+                        No items added yet
+                    </div>
+                )
+                return null
+            }
             return (
                 <CarouselBlock
                     content={block.content as CarouselItem[]}
@@ -460,6 +529,15 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 />
             )
         case 'accordion':
+            if (!block.content || (Array.isArray(block.content) && block.content.length === 0)) {
+                if (isPreview) return (
+                    <div style={style} className="w-full p-4 bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Accordion Block</span>
+                        No items added yet
+                    </div>
+                )
+                return null
+            }
             return (
                 <AccordionBlock
                     content={block.content as AccordionItem[]}
@@ -467,6 +545,15 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 />
             )
         case 'quiz':
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full p-4 bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Quiz Block</span>
+                        No questions added yet
+                    </div>
+                )
+                return null
+            }
             return (
                 <QuizBlock
                     blockId={block.id}
@@ -476,6 +563,15 @@ function BlockRenderer({ block, isGamified = true }: { block: StageBlock, isGami
                 />
             )
         case 'scratchpad':
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full aspect-video bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">Scratch Card Block</span>
+                        No images uploaded yet
+                    </div>
+                )
+                return null
+            }
             return (
                 <ScratchCardBlock
                     content={block.content as ScratchContent}

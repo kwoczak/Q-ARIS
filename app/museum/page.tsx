@@ -1,11 +1,10 @@
-
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth-lib'
 import { CreateCuratorDialog } from '@/components/museum/CreateCuratorDialog'
 import { EditCuratorDialog } from '@/components/museum/EditCuratorDialog'
 import { CuratorActions } from '@/components/museum/CuratorActions'
-import { LogoutButton } from '@/components/auth/LogoutButton'
 import { Badge } from '@/components/ui/badge'
+import { Users, KeyRound, Clock, ShieldCheck, AlertCircle } from 'lucide-react'
 
 export default async function MuseumDashboard() {
     const supabase = await createClient()
@@ -33,81 +32,65 @@ export default async function MuseumDashboard() {
     const canAddCurator = seatsAvailable > 0 && !isLicenseExpired;
 
     return (
-        <div className="space-y-6 pt-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold">Museum Dashboard</h1>
-                    <p className="text-neutral-400">Manage your curators and license.</p>
-                </div>
-                <LogoutButton />
+        <div className="space-y-10 pb-10">
+            {/* Page Header */}
+            <div className="flex flex-col gap-1">
+                <h1 className="text-3xl font-semibold tracking-tight text-white">Overview</h1>
+                <p className="text-sm text-neutral-400">Manage your museum's license and curator accounts.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Stats Cards */}
-                <div className="p-6 bg-neutral-900 rounded-lg border border-white/10 shadow-sm">
-                    <h3 className="font-medium text-neutral-400">Seats Used</h3>
-                    <div className="mt-2 flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-white">{seatsUsed}</span>
-                        <span className="text-neutral-500">/ {maxSeats}</span>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Seats Card */}
+                <div className="relative overflow-hidden p-6 bg-neutral-900 rounded-xl border border-white/5 shadow-sm group hover:border-white/10 transition-colors">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-all group-hover:bg-blue-500/10" />
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-3 bg-blue-500/10 text-blue-400 rounded-lg">
+                            <Users className="w-5 h-5" />
+                        </div>
+                        <h3 className="font-medium text-neutral-300">Curator Seats</h3>
                     </div>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-semibold text-white tracking-tight">{seatsUsed}</span>
+                        <span className="text-neutral-500 font-medium">/ {maxSeats}</span>
+                    </div>
+                    <p className="text-xs text-neutral-500 mt-2 font-medium">
+                        {seatsAvailable} {seatsAvailable === 1 ? 'seat' : 'seats'} available
+                    </p>
                 </div>
-                <div className="p-6 bg-neutral-900 rounded-lg border border-white/10 shadow-sm">
-                    <h3 className="font-medium text-neutral-400">License Status</h3>
-                    <div className="mt-2">
+
+                {/* License Card */}
+                <div className="relative overflow-hidden p-6 bg-neutral-900 rounded-xl border border-white/5 shadow-sm group hover:border-white/10 transition-colors">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-all group-hover:bg-emerald-500/10" />
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                            <KeyRound className="w-5 h-5" />
+                        </div>
+                        <h3 className="font-medium text-neutral-300">License Status</h3>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
                         {isLicenseExpired ? (
-                            <Badge variant="destructive">Expired</Badge>
+                            <>
+                                <Badge variant="destructive" className="bg-red-500/20 text-red-400 hover:bg-red-500/20 border-0 shadow-none px-2.5 py-0.5">
+                                    <AlertCircle className="w-3 h-3 mr-1.5" /> Expired
+                                </Badge>
+                            </>
                         ) : (
-                            <div className="flex flex-col">
-                                <Badge variant="outline" className="w-fit border-green-900 text-green-400 bg-green-900/20">Active</Badge>
-                                <span className="text-sm text-neutral-500 mt-1">Expires: {license?.expires_at ? new Date(license.expires_at).toLocaleDateString() : 'Never'}</span>
-                            </div>
+                            <>
+                                <Badge className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 border-0 shadow-none px-2.5 py-0.5 pointer-events-none">
+                                    <ShieldCheck className="w-3 h-3 mr-1.5" /> Active
+                                </Badge>
+                            </>
                         )}
                     </div>
-                </div>
-                <div className="flex items-center justify-end">
-                    <CreateCuratorDialog
-                        disabled={!canAddCurator}
-                        seatsUsed={seatsUsed}
-                        maxSeats={maxSeats}
-                    />
+                    <div className="flex items-center gap-1.5 text-xs text-neutral-500 mt-3 font-medium">
+                        <Clock className="w-3.5 h-3.5" />
+                        {license?.expires_at ? `Valid until ${new Date(license.expires_at).toLocaleDateString()}` : 'Lifetime validity'}
+                    </div>
                 </div>
             </div>
 
-            <div className="rounded-lg border border-white/10 overflow-hidden bg-neutral-900/50">
-                <div className="p-4 border-b border-white/10">
-                    <h2 className="text-lg font-semibold text-white">Curators</h2>
-                </div>
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-neutral-900 border-b border-white/10">
-                        <tr>
-                            <th className="px-4 py-3 font-medium text-neutral-400">Username</th>
-                            <th className="px-4 py-3 font-medium text-neutral-400">Created At</th>
-                            <th className="px-4 py-3 font-medium text-right text-neutral-400">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10">
-                        {curators?.map((curator) => (
-                            <tr key={curator.id} className="hover:bg-neutral-900 transition-colors">
-                                <td className="px-4 py-3 font-medium text-white">{curator.username}</td>
-                                <td className="px-4 py-3 text-neutral-400">
-                                    {new Date(curator.created_at).toLocaleDateString()}
-                                </td>
-                                <td className="px-4 py-3 text-right flex justify-end items-center gap-2">
-                                    <EditCuratorDialog curator={curator} />
-                                    <CuratorActions curatorId={curator.id} />
-                                </td>
-                            </tr>
-                        ))}
-                        {(!curators || curators.length === 0) && (
-                            <tr>
-                                <td colSpan={3} className="px-4 py-8 text-center text-neutral-500">
-                                    No curators yet. Add one to get started.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
         </div>
     )
 }

@@ -27,11 +27,11 @@ function SubmitButton() {
     )
 }
 
-export function CreateStoryDialog() {
+export function CreateStoryDialog({ customTrigger }: { customTrigger?: React.ReactNode }) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button>Create New Story</Button>
+                {customTrigger || <Button>Create New Story</Button>}
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -45,10 +45,7 @@ export function CreateStoryDialog() {
                         <Label htmlFor="title">Title</Label>
                         <Input id="title" name="title" placeholder="e.g. Ancient Armor Tour" required />
                     </div>
-                    <div>
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea id="description" name="description" placeholder="Brief overview..." />
-                    </div>
+
                     <SubmitButton />
                 </form>
             </DialogContent>

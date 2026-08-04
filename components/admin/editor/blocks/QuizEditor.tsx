@@ -1,4 +1,5 @@
 'use client'
+import { generateId } from "@/lib/utils";
 
 import { StageBlock, QuizContent } from "@/types/schema"
 import { Label } from "@/components/ui/label"
@@ -33,7 +34,7 @@ export function QuizEditor({ block, onChange }: QuizEditorProps) {
 
     const addAnswer = () => {
         const newAnswer = {
-            id: crypto.randomUUID(),
+            id: generateId(),
             text: '',
             isCorrect: false
         }

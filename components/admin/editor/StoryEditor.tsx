@@ -62,7 +62,7 @@ const getInitialGraphEdges = (edges: StoryEdge[]): Edge[] => {
 const nodeTypes = {}
 const edgeTypes = {}
 
-export function StoryEditor({ story, initialStages, initialTriggers, initialEdges }: { story: Story, initialStages: Stage[], initialTriggers: Trigger[], initialEdges: StoryEdge[] }) {
+export function StoryEditor({ story, initialStages, initialTriggers, initialEdges, readOnly = false }: { story: Story, initialStages: Stage[], initialTriggers: Trigger[], initialEdges: StoryEdge[], readOnly?: boolean }) {
     const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes(initialStages))
     const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialGraphEdges(initialEdges))
     const [stages, setStages] = useState<Stage[]>(initialStages)
@@ -246,49 +246,51 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
         <div className="h-[calc(100vh-140px)] w-full border border-white/10 rounded-lg overflow-hidden bg-neutral-950 flex flex-col relative">
             <div className="p-4 border-b border-white/10 flex justify-between items-center bg-neutral-900 shrink-0">
                 <div className="flex items-center gap-4">
-                    <Link href="/curator">
+                    <Link href={readOnly ? `/museum/stories/${story.curator_id}` : "/curator"}>
                         <Button size="icon" variant="ghost" className="text-neutral-400 hover:text-white hover:bg-white/10">
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
                     </Link>
                     <div>
                         <div className="flex items-center gap-2 group">
-                            <Input
-                                value={storyTitle}
-                                onChange={(e) => setStoryTitle(e.target.value)}
-                                onBlur={async () => {
-                                    if (storyTitle.trim() === story.title) return
-                                    const { error } = await supabase.from('stories').update({ title: storyTitle }).eq('id', story.id)
-                                    if (error) {
-                                        console.error(error)
-                                        alert("Error updating title")
-                                    }
-                                }}
-                                className="font-bold text-lg h-auto p-0 border-transparent hover:border-neutral-700 focus-visible:ring-0 bg-transparent px-1 -ml-1 w-full max-w-md transition-all shadow-none text-white hover:bg-neutral-800"
-                            />
-                            <Pencil className="w-4 h-4 text-neutral-500 opacity-50 group-hover:opacity-100 transition-opacity cursor-pointer" />
+                            {readOnly ? (
+                                <div className="font-bold text-lg px-1 w-full max-w-md text-white">{storyTitle}</div>
+                            ) : (
+                                <>
+                                    <Input
+                                        value={storyTitle}
+                                        onChange={(e) => setStoryTitle(e.target.value)}
+                                        onBlur={async () => {
+                                            if (storyTitle.trim() === story.title) return
+                                            const { error } = await supabase.from('stories').update({ title: storyTitle }).eq('id', story.id)
+                                            if (error) {
+                                                console.error(error)
+                                                alert("Error updating title")
+                                            }
+                                        }}
+                                        className="font-bold text-lg h-auto p-0 border-transparent hover:border-neutral-700 focus-visible:ring-0 bg-transparent px-1 -ml-1 w-full max-w-md transition-all shadow-none text-white hover:bg-neutral-800"
+                                    />
+                                    <Pencil className="w-4 h-4 text-neutral-500 opacity-50 group-hover:opacity-100 transition-opacity cursor-pointer" />
+                                </>
+                            )}
                         </div>
                         <p className="text-xs text-neutral-400">
-                            {stages.length} Stages • Drag nodes to plan. Draw lines to connect.
+                            {stages.length} Stages • {readOnly ? 'Read-only preview' : 'Drag nodes to plan. Draw lines to connect.'}
                         </p>
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Link href={`/curator/story/${story.id}/analytics`}>
+                    <Link href={readOnly ? `/museum/stories/preview/${story.id}/analytics` : `/curator/story/${story.id}/analytics`}>
                         <Button size="sm" variant="outline" className="bg-transparent text-white border-neutral-700 hover:bg-neutral-800 hover:text-white">
                             Analytics
                         </Button>
                     </Link>
+                {!readOnly && (
+                    <>
                     <LanguageManager story={story} />
                     <StorySettingsDialog
                         story={story}
                         onUpdate={(updated) => {
-                            // We need to update the story prop locally if it was state, 
-                            // but currently story is a prop. 
-                            //Ideally we should have story state or refresh. 
-                            // For now, let's just assume parent refresh or we act as if it updated.
-                            // Actually, let's just reload the page or rely on DB update.
-                            // A better way is to move story to state or use router.refresh()
                             window.location.reload()
                         }}
                     />
@@ -303,18 +305,23 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                     <Button size="sm" onClick={handleSaveGraphPositions} disabled={isSaving} className="bg-neutral-800 text-white hover:bg-neutral-700 border border-white/10">
                         Save Positions
                     </Button>
+                    </>
+                )}
                 </div>
             </div>
             <div className="flex-1 w-full bg-neutral-950">
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
-                    onNodesChange={onNodesChangeWrapper}
-                    onEdgesChange={onEdgesChangeWrapper}
-                    onConnect={onConnect}
+                    onNodesChange={readOnly ? undefined : onNodesChangeWrapper}
+                    onEdgesChange={readOnly ? undefined : onEdgesChangeWrapper}
+                    onConnect={readOnly ? undefined : onConnect}
                     onNodeClick={handleNodeClick}
                     nodeTypes={nodeTypes}
                     edgeTypes={edgeTypes}
+                    nodesDraggable={!readOnly}
+                    nodesConnectable={!readOnly}
+                    elementsSelectable={true}
                     fitView
                 >
                     <Background gap={12} size={1} color="#333" />
@@ -329,8 +336,9 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
                 onSave={handleStageUpdate}
+                readOnly={readOnly}
                 onDelete={async (id) => {
-                    if (id) {
+                    if (id && !readOnly) {
                         // Delete from DB
                         await supabase.from('stages').delete().eq('id', id)
                         // Update local state
@@ -338,7 +346,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                         setNodes(prev => prev.filter(n => n.id !== id))
                     }
                 }}
-                onDuplicate={() => selectedStage && handleDuplicateStage(selectedStage)}
+                onDuplicate={() => !readOnly && selectedStage && handleDuplicateStage(selectedStage)}
             />
         </div>
     )

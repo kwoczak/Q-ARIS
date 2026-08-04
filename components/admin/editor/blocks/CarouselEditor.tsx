@@ -1,4 +1,5 @@
 'use client'
+import { generateId } from "@/lib/utils";
 
 import { StageBlock, CarouselItem } from "@/types/schema"
 import { Label } from "@/components/ui/label"
@@ -21,7 +22,7 @@ export function CarouselEditor({ block, onChange }: CarouselEditorProps) {
 
     const addItem = () => {
         const newItem: CarouselItem = {
-            id: crypto.randomUUID(),
+            id: generateId(),
             url: '',
             caption: ''
         }

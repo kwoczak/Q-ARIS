@@ -1,8 +1,15 @@
 'use client'
 
 import React, { useRef, useEffect, useState, useCallback } from 'react'
-import { uploadAsset } from '@/lib/supabase/storage'
-import { Image as ImageIcon, Music, Check, Sparkles, Pencil, Loader2, X } from 'lucide-react'
+import { AIAttachment } from '@/types/schema'
+import { AIMediaLibraryModal } from './AIMediaLibraryModal'
+import {
+    AIComponentInspector,
+    InspectorComponentData,
+    QuizData,
+    FactCardData
+} from './AIComponentInspector'
+import { Image as ImageIcon, Music, Check, Sparkles, Pencil, Loader2, X, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface AIInteractivePreviewProps {
@@ -17,12 +24,18 @@ export function AIInteractivePreview({
     isEditable = true
 }: AIInteractivePreviewProps) {
     const containerRef = useRef<HTMLDivElement>(null)
-    const [isReplacingMedia, setIsReplacingMedia] = useState(false)
+    
+    // Media Library Replacement State
+    const [isMediaModalOpen, setIsMediaModalOpen] = useState(false)
     const [mediaTypeToReplace, setMediaTypeToReplace] = useState<'image' | 'audio' | null>(null)
-    const [targetElementIndex, setTargetElementIndex] = useState<number>(-1)
-    const [hasUnsavedEdits, setHasUnsavedEdits] = useState(false)
+    const [targetMediaIndex, setTargetMediaIndex] = useState<number>(-1)
 
-    const fileInputRef = useRef<HTMLInputElement>(null)
+    // Component Inspector State (Quiz / Fact Cards)
+    const [isInspectorOpen, setIsInspectorOpen] = useState(false)
+    const [activeComponentData, setActiveComponentData] = useState<InspectorComponentData | null>(null)
+    const [targetComponentEl, setTargetComponentEl] = useState<HTMLElement | null>(null)
+
+    const [hasUnsavedEdits, setHasUnsavedEdits] = useState(false)
 
     // Sync content to container when external html changes (unless user is currently focused/typing)
     useEffect(() => {
@@ -46,7 +59,11 @@ export function AIInteractivePreview({
         allElements.forEach(el => {
             el.removeAttribute('contenteditable')
             el.removeAttribute('data-quaris-editable')
-            el.classList.remove('quaris-editable-hover', 'quaris-editable-focused')
+            el.classList.remove('quaris-editable-hover', 'quaris-editable-focused', 'quaris-component-active')
+            // Remove any dynamically injected inspector buttons
+            if (el.classList.contains('quaris-inspector-btn')) {
+                el.remove()
+            }
         })
 
         const cleanedHtml = clone.innerHTML
@@ -54,7 +71,53 @@ export function AIInteractivePreview({
         setHasUnsavedEdits(false)
     }, [onHtmlChange])
 
-    // Attach inline editing handlers to all text and media elements
+    // Parse Quiz DOM into structured QuizData
+    const parseQuizElement = (quizEl: HTMLElement): QuizData => {
+        const titleEl = quizEl.querySelector('span.uppercase') as HTMLElement | null
+        const pointsEl = quizEl.querySelector('span.font-mono') as HTMLElement | null
+        const questionEl = (quizEl.querySelector('h3') || quizEl.querySelector('h2, h4, strong')) as HTMLElement | null
+        const buttonEls = quizEl.querySelectorAll('button')
+
+        const question = questionEl?.innerText?.trim() || questionEl?.textContent?.trim() || 'Pytanie quizu'
+        const points = pointsEl?.innerText?.trim() || pointsEl?.textContent?.trim() || '+50 PKT'
+        const title = titleEl?.innerText?.trim() || titleEl?.textContent?.trim() || '⚡ Quiz Eksploratora'
+
+        const options: string[] = []
+        let correctIndex = 0
+        let explanation = 'Oto prawidłowe wyjaśnienie zagadki!'
+
+        buttonEls.forEach((btn, idx) => {
+            let optText = (btn as HTMLElement).innerText?.trim() || btn.textContent?.trim() || `Opcja ${idx + 1}`
+            // Remove leading "A) ", "B) ", "1. "
+            optText = optText.replace(/^[A-F0-9][\).\s\-]+\s*/i, '').trim()
+            // Remove trailing letter badge if concatenated
+            if (optText.length > 2 && /^[A-F]$/i.test(optText.slice(-1))) {
+                optText = optText.slice(0, -1).trim()
+            }
+            options.push(optText)
+
+            const onclickAttr = btn.getAttribute('onclick') || ''
+            if (onclickAttr.includes('emerald') || onclickAttr.includes('🎉')) {
+                correctIndex = idx
+                // Try extracting explanation
+                const matchExpl = onclickAttr.match(/Brawo! Prawidłowa odpowiedź!<\/span>\s*([^']+)/i)
+                if (matchExpl && matchExpl[1]) {
+                    explanation = matchExpl[1].trim()
+                }
+            }
+        })
+
+        return {
+            question,
+            options: options.length > 0 ? options : ['Opcja A', 'Opcja B', 'Opcja C'],
+            correctIndex,
+            points,
+            explanation,
+            title
+        }
+    }
+
+    // Attach inline editing handlers to all text, media, and interactive components
     const attachEditableBehaviors = useCallback(() => {
         if (!containerRef.current || !isEditable) return
 
@@ -62,12 +125,14 @@ export function AIInteractivePreview({
 
         // 1. Text elements
         const textElements = container.querySelectorAll(
-            'h1, h2, h3, h4, h5, h6, p, span, button, summary, li, blockquote, figcaption'
+            'h1, h2, h3, h4, h5, h6, p, span, summary, li, blockquote, figcaption'
         )
 
         textElements.forEach((el) => {
             const htmlEl = el as HTMLElement
-            // Don't make child containers with interactive children fully contenteditable if they have sub-elements
+            // Don't make buttons inside quizzes directly text-editable so clicks trigger quiz inspector or feedback
+            if (htmlEl.closest('button')) return
+
             if (htmlEl.children.length === 0 || htmlEl.tagName.startsWith('H') || htmlEl.tagName === 'P') {
                 htmlEl.setAttribute('contenteditable', 'true')
                 htmlEl.setAttribute('data-quaris-editable', 'text')
@@ -105,67 +170,145 @@ export function AIInteractivePreview({
             }
         })
 
-        // 2. Images
+        // 2. Images (Double-click opens Media Library Modal)
         const images = container.querySelectorAll('img')
         images.forEach((img, idx) => {
             img.style.cursor = 'pointer'
-            img.title = 'Double-click to replace image'
+            img.title = 'Double-click to open Media Library and replace image'
             img.ondblclick = (e) => {
                 e.stopPropagation()
-                setTargetElementIndex(idx)
+                setTargetMediaIndex(idx)
                 setMediaTypeToReplace('image')
-                fileInputRef.current?.click()
+                setIsMediaModalOpen(true)
             }
         })
 
-        // 3. Audio
+        // 3. Audio (Double-click opens Media Library Modal)
         const audios = container.querySelectorAll('audio')
         audios.forEach((audio, idx) => {
-            audio.title = 'Double-click to replace audio file'
+            audio.title = 'Double-click to open Media Library and replace audio'
             audio.ondblclick = (e) => {
                 e.stopPropagation()
-                setTargetElementIndex(idx)
+                setTargetMediaIndex(idx)
                 setMediaTypeToReplace('audio')
-                fileInputRef.current?.click()
+                setIsMediaModalOpen(true)
             }
+        })
+
+        // 4. Interactive Quiz Components
+        const quizContainers = container.querySelectorAll('[data-component="quiz"], .quiz-fb')
+        quizContainers.forEach((quizTarget) => {
+            const quizCard = (quizTarget.hasAttribute('data-component') ? quizTarget : quizTarget.closest('.space-y-4, .rounded-3xl, .rounded-2xl')) as HTMLElement
+            if (!quizCard || quizCard.dataset.quarisInspectorAttached) return
+
+            quizCard.dataset.quarisInspectorAttached = 'true'
+            quizCard.classList.add('relative', 'group/quiz')
+
+            // Create floating settings badge button
+            const settingsBtn = document.createElement('button')
+            settingsBtn.type = 'button'
+            settingsBtn.className = 'quaris-inspector-btn absolute -top-3 right-3 hidden group-hover/quiz:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold shadow-xl border border-purple-300/40 z-30 transition-all cursor-pointer animate-in fade-in zoom-in-95'
+            settingsBtn.innerHTML = `<span>⚙️ Ustawienia Quizu</span>`
+            
+            settingsBtn.onclick = (e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                const data = parseQuizElement(quizCard)
+                setTargetComponentEl(quizCard)
+                setActiveComponentData({ type: 'quiz', data })
+                setIsInspectorOpen(true)
+            }
+
+            quizCard.appendChild(settingsBtn)
+        })
+
+        // 5. Fact Cards
+        const factCards = container.querySelectorAll('[data-component="fact_card"]')
+        factCards.forEach((card) => {
+            const cardEl = card as HTMLElement
+            if (cardEl.dataset.quarisInspectorAttached) return
+            cardEl.dataset.quarisInspectorAttached = 'true'
+            cardEl.classList.add('relative', 'group/card')
+
+            const editBtn = document.createElement('button')
+            editBtn.type = 'button'
+            editBtn.className = 'quaris-inspector-btn absolute -top-2.5 right-2 hidden group-hover/card:flex items-center gap-1 px-2 py-0.5 rounded-full bg-neutral-800 hover:bg-purple-600 text-white text-[10px] font-medium shadow-lg border border-white/20 z-30 transition-all cursor-pointer'
+            editBtn.innerHTML = `<span>⚙️ Edytuj</span>`
+
+            editBtn.onclick = (e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                const iconEl = cardEl.querySelector('.rounded-xl, .text-lg')
+                const titleEl = cardEl.querySelector('h4, h3, strong')
+                const descEl = cardEl.querySelector('p')
+
+                setTargetComponentEl(cardEl)
+                setActiveComponentData({
+                    type: 'fact_card',
+                    data: {
+                        icon: iconEl?.textContent?.trim() || '💎',
+                        title: titleEl?.textContent?.trim() || 'Tytuł ciekawostki',
+                        description: descEl?.textContent?.trim() || 'Treść ciekawostki'
+                    }
+                })
+                setIsInspectorOpen(true)
+            }
+
+            cardEl.appendChild(editBtn)
         })
     }, [isEditable, emitHtmlUpdate])
 
-    // Handle File Replacement
-    const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file || !containerRef.current || targetElementIndex === -1) return
-
-        setIsReplacingMedia(true)
-
-        try {
-            const url = await uploadAsset(file, 'ai-inline-edits')
-            if (!url) throw new Error("Upload failed")
-
-            if (mediaTypeToReplace === 'image') {
-                const images = containerRef.current.querySelectorAll('img')
-                const targetImg = images[targetElementIndex]
-                if (targetImg) {
-                    targetImg.src = url
-                    emitHtmlUpdate()
-                }
-            } else if (mediaTypeToReplace === 'audio') {
-                const audios = containerRef.current.querySelectorAll('audio')
-                const targetAudio = audios[targetElementIndex]
-                if (targetAudio) {
-                    targetAudio.src = url
-                    emitHtmlUpdate()
-                }
-            }
-        } catch (err) {
-            console.error("Media replace error:", err)
-            alert("Failed to replace file.")
-        } finally {
-            setIsReplacingMedia(false)
-            setMediaTypeToReplace(null)
-            setTargetElementIndex(-1)
-            if (fileInputRef.current) fileInputRef.current.value = ''
+    // Handle Media Asset selected from Media Library Modal
+    const handleMediaAssetSelected = (selectedAssets: AIAttachment[]) => {
+        if (!selectedAssets || selectedAssets.length === 0 || !containerRef.current || targetMediaIndex === -1) {
+            setIsMediaModalOpen(false)
+            return
         }
+
+        const chosen = selectedAssets[0]
+
+        if (mediaTypeToReplace === 'image') {
+            const images = containerRef.current.querySelectorAll('img')
+            const targetImg = images[targetMediaIndex]
+            if (targetImg && chosen.url) {
+                targetImg.src = chosen.url
+                emitHtmlUpdate()
+            }
+        } else if (mediaTypeToReplace === 'audio') {
+            const audios = containerRef.current.querySelectorAll('audio')
+            const targetAudio = audios[targetMediaIndex]
+            if (targetAudio && chosen.url) {
+                targetAudio.src = chosen.url
+                emitHtmlUpdate()
+            }
+        }
+
+        setIsMediaModalOpen(false)
+        setMediaTypeToReplace(null)
+        setTargetMediaIndex(-1)
+    }
+
+    // Handle Component Saved from Inspector
+    const handleComponentSaved = (newHtml: string) => {
+        if (!targetComponentEl || !containerRef.current) {
+            setIsInspectorOpen(false)
+            return
+        }
+
+        // Replace target component with new HTML
+        const tempContainer = document.createElement('div')
+        tempContainer.innerHTML = newHtml
+        const replacementEl = tempContainer.firstElementChild
+
+        if (replacementEl) {
+            targetComponentEl.replaceWith(replacementEl)
+            emitHtmlUpdate()
+            attachEditableBehaviors()
+        }
+
+        setIsInspectorOpen(false)
+        setTargetComponentEl(null)
+        setActiveComponentData(null)
     }
 
     return (
@@ -175,30 +318,13 @@ export function AIInteractivePreview({
                 <div className="shrink-0 bg-purple-950/70 border-b border-purple-500/30 px-3 py-1.5 flex items-center justify-between text-[11px] text-purple-200 backdrop-blur-md z-40">
                     <div className="flex items-center gap-1.5">
                         <Pencil className="w-3.5 h-3.5 text-purple-400" />
-                        <span>Interactive Preview • Click text to edit live • Double-click image to replace</span>
+                        <span>Interactive Preview • Click text to edit • Hover Quiz for ⚙️ Settings • 2x click image to replace</span>
                     </div>
                     {hasUnsavedEdits && (
                         <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 animate-pulse">
                             Modified
                         </span>
                     )}
-                </div>
-            )}
-
-            {/* Hidden File Input for Image/Audio replacement */}
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept={mediaTypeToReplace === 'image' ? 'image/*' : 'audio/*'}
-                className="hidden"
-                onChange={handleFileSelected}
-            />
-
-            {/* Loading Overlay when replacing media */}
-            {isReplacingMedia && (
-                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-2 text-white">
-                    <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
-                    <p className="text-xs font-medium">Replacing file...</p>
                 </div>
             )}
 
@@ -209,6 +335,30 @@ export function AIInteractivePreview({
                     className="w-full min-h-full pb-28 text-white [&_img]:max-w-full [&_video]:max-w-full [&_audio]:max-w-full"
                 />
             </div>
+
+            {/* Media Library Modal for inline image / audio replacement */}
+            <AIMediaLibraryModal
+                isOpen={isMediaModalOpen}
+                onClose={() => {
+                    setIsMediaModalOpen(false)
+                    setMediaTypeToReplace(null)
+                    setTargetMediaIndex(-1)
+                }}
+                onSelectAssets={handleMediaAssetSelected}
+                initialCategory={mediaTypeToReplace || 'image'}
+            />
+
+            {/* Component Inspector Modal (Quiz, Fact Cards) */}
+            <AIComponentInspector
+                isOpen={isInspectorOpen}
+                onClose={() => {
+                    setIsInspectorOpen(false)
+                    setTargetComponentEl(null)
+                    setActiveComponentData(null)
+                }}
+                componentData={activeComponentData}
+                onSave={handleComponentSaved}
+            />
         </div>
     )
 }

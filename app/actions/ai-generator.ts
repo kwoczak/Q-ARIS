@@ -135,11 +135,11 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
      * NEVER use 2-column grids (grid-cols-2) for cards that contain title + description text! On a ~360px-390px mobile screen, 2 columns squeeze text into narrow 1-word vertical columns.
      * ALL informational cards MUST be stacked vertically in 1 column (w-full, space-y-3.5 or grid grid-cols-1 gap-3.5).
      * Structure: Use horizontal flex with icon on the left and text on the right:
-       "<div class=\\"p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-lg flex items-start gap-3.5 hover:border-amber-500/40 transition-all\\"><div class=\\"w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-lg shrink-0\\">💎</div><div class=\\"flex-1 min-w-0\\"><h4 class=\\"font-bold text-sm text-white\\">Tytuł faktu</h4><p class=\\"text-xs text-neutral-300 mt-1 leading-relaxed break-words\\">Opis ciekawostki z pełną szerokością i doskonałą czytelnością...</p></div></div>"
+       "<div data-component=\\"fact_card\\" class=\\"p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-lg flex items-start gap-3.5 hover:border-amber-500/40 transition-all\\"><div class=\\"w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-lg shrink-0\\">💎</div><div class=\\"flex-1 min-w-0\\"><h4 class=\\"font-bold text-sm text-white\\">Tytuł faktu</h4><p class=\\"text-xs text-neutral-300 mt-1 leading-relaxed break-words\\">Opis ciekawostki z pełną szerokością i doskonałą czytelnością...</p></div></div>"
      * 2-column grids (grid-cols-2) are STRICTLY RESTRICTED to micro numerical badges/counters (e.g. 2x2 grid of simple numbers like "146 m" / "2.3M Blocks" with max 3 words).
    - FULLY INTERACTIVE QUIZ WIDGET (With Instant Click Feedback):
      Use inline vanilla JS onclick handlers so user gets instant visual response (color change, score, explanation):
-     "<div class=\\"p-5 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-amber-500/30 shadow-2xl backdrop-blur-xl space-y-4\\">
+     "<div data-component=\\"quiz\\" class=\\"p-5 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-amber-500/30 shadow-2xl backdrop-blur-xl space-y-4\\">
         <div class=\\"flex items-center justify-between\\"><span class=\\"text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5\\">⚡ Quiz Eksploratora</span><span class=\\"text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold\\">+50 PKT</span></div>
         <h3 class=\\"font-bold text-sm sm:text-base text-white leading-snug\\">Treść pytania?</h3>
         <div class=\\"space-y-2\\">

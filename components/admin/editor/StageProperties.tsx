@@ -17,13 +17,25 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Slider } from "@/components/ui/slider"
-import { Loader2, QrCode, Sparkles, SlidersHorizontal, Wand2 } from "lucide-react"
+import { Loader2, QrCode, Sparkles, SlidersHorizontal, Wand2, Plus, Palette, Music, Ticket, Layers, HelpCircle, Quote, BarChart3 } from "lucide-react"
 import { BackgroundEditor } from "./blocks/BackgroundEditor"
 import { BlockList } from "./blocks/BlockList"
 import { StageRenderer } from "@/components/player/StageRenderer"
 import { translateStageContent } from "@/app/actions/translate"
 import { AITokenTracker } from "./ai/AITokenTracker"
 import { AIModeEditor } from "./ai/AIModeEditor"
+import { AIBackgroundModal, StageBackground } from "./ai/AIBackgroundModal"
+import { AIMediaLibraryModal } from "./ai/AIMediaLibraryModal"
+import {
+    generateQuizHtml,
+    generateFactCardHtml,
+    generateScratchCardHtml,
+    generateAudioCardHtml,
+    generateGalleryHtml,
+    generateStatsHtml,
+    generateQuoteHtml
+} from "./ai/AIComponentInspector"
+import { AIAttachment } from "@/types/schema"
 import {
     Dialog,
     DialogContent,
@@ -89,6 +101,11 @@ export function StageProperties({
         totalTokens: 0,
         costUsd: 0
     })
+
+    // AI Toolbar & Modals outside Phone Mockup
+    const [isAddComponentOpen, setIsAddComponentOpen] = useState(false)
+    const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false)
+    const [isVoiceoverModalOpen, setIsVoiceoverModalOpen] = useState(false)
 
     // AI History State (Max 5 previous changes back = 6 total snapshots)
     const [history, setHistory] = useState<{ title: string; content: any; timestamp: string; label: string }[]>([])
@@ -299,6 +316,82 @@ export function StageProperties({
             }
         }
         handleUpdateStage(updatedStage, `Edit ${key}`)
+    }
+
+    const handleInsertComponent = (type: string) => {
+        if (!formData) return
+
+        let snippet = ''
+        switch (type) {
+            case 'scratch_card':
+                snippet = generateScratchCardHtml({
+                    hiddenImage: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80',
+                    hiddenTitle: 'Secret Artifact Revealed',
+                    hiddenDescription: 'You have uncovered the secret hidden detail of this exhibit!',
+                    coverText: '🪙 SCRATCH TO REVEAL',
+                    scratchInstruction: '(Rub with finger or mouse)',
+                    foilTheme: 'silver',
+                    points: '+50 PTS'
+                })
+                break
+            case 'quiz':
+                snippet = generateQuizHtml({
+                    question: 'What is the most remarkable feature of this exhibit?',
+                    options: ['Primary discovery', 'Historical artifact', 'Cosmic phenomenon'],
+                    correctIndex: 0,
+                    points: '+50 PTS',
+                    explanation: 'The primary discovery represents a turning point in modern research.',
+                    title: '⚡ Explorer Quiz'
+                })
+                break
+            case 'fact_card':
+                snippet = generateFactCardHtml({
+                    icon: '💎',
+                    title: 'Curatorial Highlight',
+                    description: 'This key insight provides crucial context to understanding the exhibit.'
+                })
+                break
+            case 'audio':
+                snippet = generateAudioCardHtml({
+                    audioUrl: '',
+                    title: 'Curator Audio Guide',
+                    subtitle: 'Narration Track'
+                })
+                break
+            case 'gallery':
+                snippet = generateGalleryHtml()
+                break
+            case 'stats':
+                snippet = generateStatsHtml()
+                break
+            case 'quote':
+                snippet = generateQuoteHtml()
+                break
+        }
+
+        if (snippet) {
+            const currentHtml = formData.content?.custom_html || ''
+            const updatedHtml = currentHtml ? `${currentHtml}\n${snippet}` : snippet
+            handleContentChange('custom_html', updatedHtml)
+        }
+
+        setIsAddComponentOpen(false)
+    }
+
+    const handleVoiceoverSelected = (assets: AIAttachment[]) => {
+        if (assets && assets.length > 0 && assets[0].url && formData) {
+            const audioTrack = assets[0]
+            const snippet = generateAudioCardHtml({
+                audioUrl: audioTrack.url,
+                title: audioTrack.name ? audioTrack.name.replace(/\.[^/.]+$/, '') : 'Curator Voiceover',
+                subtitle: 'Audio Narration'
+            })
+
+            const currentHtml = formData.content?.custom_html || ''
+            const updatedHtml = `${snippet}\n${currentHtml}`
+            handleContentChange('custom_html', updatedHtml)
+        }
+        setIsVoiceoverModalOpen(false)
     }
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -621,13 +714,50 @@ export function StageProperties({
                     )}
 
                     {/* RIGHT PANEL: LIVE PREVIEW */}
-                    <div className="h-full bg-neutral-900 flex items-center justify-center p-8 relative overflow-hidden">
+                    <div className="h-full bg-neutral-900 flex flex-col items-center justify-center p-6 relative overflow-hidden">
                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-800 to-black z-0 pointer-events-none" />
 
+                        {/* Top Control Bar OUTSIDE Phone Mockup (Only in AI Mode) */}
+                        {isAIMode && (
+                            <div className="relative z-20 mb-3 flex items-center gap-2 p-1.5 rounded-2xl bg-neutral-950/90 border border-purple-500/30 backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-top-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() => setIsAddComponentOpen(true)}
+                                    className="h-8 px-3 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    Add Component
+                                </Button>
+
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setIsBackgroundModalOpen(true)}
+                                    className="h-8 px-3 bg-neutral-900 hover:bg-neutral-800 border-white/10 text-neutral-200 hover:text-white text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <Palette className="w-3.5 h-3.5 text-amber-400" />
+                                    Background
+                                </Button>
+
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setIsVoiceoverModalOpen(true)}
+                                    className="h-8 px-3 bg-neutral-900 hover:bg-neutral-800 border-white/10 text-neutral-200 hover:text-white text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <Music className="w-3.5 h-3.5 text-purple-400" />
+                                    Voiceover
+                                </Button>
+                            </div>
+                        )}
+
                         {/* Phone Mockup Frame */}
-                        <div className="relative z-10 h-[80vh] w-[calc(80vh*(9/19.5))] bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border-[8px] border-neutral-800 ring-1 ring-white/10 aspect-[9/19.5]">
+                        <div className="relative z-10 h-[74vh] w-[calc(74vh*(9/19.5))] bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border-[8px] border-neutral-800 ring-1 ring-white/10 aspect-[9/19.5]">
                             {/* Notch */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-6 bg-black z-50 rounded-b-xl" />
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-6 bg-black z-50 rounded-b-xl pointer-events-none" />
 
                             {/* Screen Content */}
                             <div className="w-full h-full bg-white overflow-hidden scrollbar-hide">
@@ -647,12 +777,150 @@ export function StageProperties({
                             </div>
                         </div>
 
-                        <div className="absolute bottom-8 left-0 right-0 text-center text-neutral-500 text-xs">
+                        <div className="mt-2 text-center text-neutral-500 text-xs">
                             Live Preview (iPhone SE / 12 Mini scale)
                         </div>
                     </div>
                 </div>
             </SheetContent>
+
+            {/* ADD COMPONENT DIALOG MODAL (OUTSIDE PREVIEW) */}
+            <Dialog open={isAddComponentOpen} onOpenChange={setIsAddComponentOpen}>
+                <DialogContent className="max-w-md w-full bg-neutral-950 border border-purple-500/30 text-white shadow-2xl p-0 overflow-hidden sm:rounded-2xl z-50">
+                    <DialogHeader className="p-5 border-b border-white/10 bg-neutral-900/60">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                                <Plus className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <DialogTitle className="text-base font-bold text-white">Add Component</DialogTitle>
+                                <DialogDescription className="text-xs text-neutral-400">
+                                    Choose an interactive component to insert into your stage.
+                                </DialogDescription>
+                            </div>
+                        </div>
+                    </DialogHeader>
+
+                    <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[65vh] overflow-y-auto">
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('scratch_card')}
+                            className="p-3 rounded-xl border border-amber-500/30 bg-amber-950/20 hover:bg-amber-950/40 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                                <Ticket className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-amber-300">🎟️ Scratch Card</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Interactive rub-to-reveal canvas with secret image & fact</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('quiz')}
+                            className="p-3 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:bg-purple-950/40 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
+                                <HelpCircle className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">⚡ Quiz Widget</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Multiple choice quiz with instant score & explanation</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('fact_card')}
+                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
+                                <Layers className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">💎 Fact Card</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Curatorial highlight card with icon & description</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('audio')}
+                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0">
+                                <Music className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🎧 Audio Guide</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Audio narration player card</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('gallery')}
+                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
+                                <Sparkles className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🖼️ Exhibit Gallery</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Horizontal swipe image carousel</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('stats')}
+                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
+                                <BarChart3 className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">📊 Stats Grid</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">2x2 key metrics counter cards</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('quote')}
+                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer col-span-1 sm:col-span-2"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0">
+                                <Quote className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-amber-300">💬 Curatorial Quote</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Elegant emphasized quote block with author attribution</p>
+                            </div>
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* BACKGROUND MODAL */}
+            <AIBackgroundModal
+                isOpen={isBackgroundModalOpen}
+                onClose={() => setIsBackgroundModalOpen(false)}
+                currentBackground={formData?.content?.background}
+                onSave={(bg) => {
+                    handleContentChange('background', bg)
+                    setIsBackgroundModalOpen(false)
+                }}
+            />
+
+            {/* VOICEOVER MODAL */}
+            <AIMediaLibraryModal
+                isOpen={isVoiceoverModalOpen}
+                onClose={() => setIsVoiceoverModalOpen(false)}
+                onSelectAssets={handleVoiceoverSelected}
+                initialCategory="audio"
+            />
 
             {/* QR CODE DIALOG MODAL (Accessible in AI Mode & from Top Header) */}
             <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>

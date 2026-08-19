@@ -704,63 +704,7 @@ export function AIInteractivePreview({
 
     return (
         <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col">
-            {/* Top Toolbar in Preview */}
-            {isEditable && (
-                <div className="shrink-0 bg-neutral-950/90 border-b border-white/10 px-3 py-2 flex items-center justify-between text-xs backdrop-blur-md z-40">
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                        {/* + Add Component Button */}
-                        <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => setIsAddComponentOpen(true)}
-                            className="h-7 px-2.5 bg-purple-600 hover:bg-purple-500 text-white font-medium text-xs rounded-lg shadow-md flex items-center gap-1 cursor-pointer"
-                        >
-                            <Plus className="w-3.5 h-3.5" />
-                            Add Component
-                        </Button>
-
-                        {/* Background Customizer Button */}
-                        {onBackgroundChange && (
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setIsBackgroundModalOpen(true)}
-                                className="h-7 px-2.5 bg-neutral-900 hover:bg-neutral-800 border-white/10 text-neutral-200 hover:text-white text-xs rounded-lg flex items-center gap-1 cursor-pointer"
-                            >
-                                <Palette className="w-3.5 h-3.5 text-amber-400" />
-                                Background
-                            </Button>
-                        )}
-
-                        {/* Voiceover Button */}
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setIsVoiceoverModalOpen(true)}
-                            className="h-7 px-2.5 bg-neutral-900 hover:bg-neutral-800 border-white/10 text-neutral-200 hover:text-white text-xs rounded-lg flex items-center gap-1 cursor-pointer"
-                        >
-                            <Music className="w-3.5 h-3.5 text-purple-400" />
-                            Voiceover
-                        </Button>
-                    </div>
-
-                    {/* Status Badge */}
-                    {hasUnsavedEdits ? (
-                        <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30 animate-pulse font-medium">
-                            Modified
-                        </span>
-                    ) : (
-                        <span className="text-[10px] text-neutral-500 hidden sm:inline">
-                            Live Interactive
-                        </span>
-                    )}
-                </div>
-            )}
-
-            {/* Editable Content Container */}
+            {/* Editable Content Container (Clean Phone Screen) */}
             <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden touch-pan-y">
                 <div
                     ref={containerRef}

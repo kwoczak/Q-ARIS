@@ -137,6 +137,11 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
 6. TARGET LANGUAGE:
    - Output all user-visible text, headers, quiz questions, buttons, and explanations in the requested language: "${request.language.toUpperCase()}".
 
+7. SCREENSHOT & VISUAL FEEDBACK ANALYSIS:
+   - When the user attaches a screenshot or visual reference in chat (e.g. showing broken card wrapping on narrow mobile screens, cut-off text, overflowing elements, or visual markup with arrows):
+   - Visually inspect the screenshot using computer vision to diagnose the exact styling/layout issue.
+   - Immediately fix the layout: ensure responsive padding, flexbox wrap/col, \`min-w-0\`, \`break-words\`, \`overflow-hidden\`, and proper gap/margin so the UI looks stunning on small mobile screens (~360px-390px)!
+
 ${materialsDescription}
 ${currentContext}
 
@@ -150,12 +155,14 @@ Respond ONLY with a JSON object in this exact format:
   },
   "custom_html": "<div class=\\"w-full min-h-full px-5 py-6 space-y-6 text-white\\">...entire mobile stage layout...</div>",
   "assistant_reply": "Brief description of what was created or changed."
-}`
+}
+`
 
     try {
-        // Build user content array for multi-modal (vision) if reference image exists
+        // Build user content array for multi-modal (vision)
         const userContentParts: any[] = []
 
+        // 1. Reference Image
         if (request.referenceImageUrl) {
             userContentParts.push({
                 type: 'text',
@@ -170,6 +177,31 @@ Respond ONLY with a JSON object in this exact format:
             })
         }
 
+        // 2. Chat Attached Media (e.g. Screenshots of broken layout, design feedback, new photos)
+        if (request.attachedMedia && request.attachedMedia.length > 0) {
+            for (const m of request.attachedMedia) {
+                if (m.type === 'image' && (m.url.startsWith('http') || m.url.startsWith('data:image/'))) {
+                    userContentParts.push({
+                        type: 'text',
+                        text: `[USER ATTACHED SCREENSHOT / IMAGE: "${m.name}"] => Inspect this visual screenshot/image carefully and apply the requested adjustments or fixes to the design.`
+                    })
+                    userContentParts.push({
+                        type: 'image_url',
+                        image_url: {
+                            url: m.url,
+                            detail: 'high'
+                        }
+                    })
+                } else {
+                    userContentParts.push({
+                        type: 'text',
+                        text: `[USER ATTACHED ${m.type.toUpperCase()}: "${m.name}"] => EXACT URL: ${m.url}`
+                    })
+                }
+            }
+        }
+
+        // 3. User Text Prompt
         userContentParts.push({
             type: 'text',
             text: `User Prompt: ${request.prompt}\nTarget Language: ${request.language}`

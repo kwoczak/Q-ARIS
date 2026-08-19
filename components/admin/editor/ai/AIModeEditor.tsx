@@ -33,7 +33,9 @@ import {
     Lightbulb,
     HelpCircle,
     LayoutGrid,
-    Plus
+    Plus,
+    Paperclip,
+    Loader2
 } from 'lucide-react'
 
 interface AIModeEditorProps {
@@ -78,18 +80,22 @@ export function AIModeEditor({
     // Media Library Modal State
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false)
     const [mediaModalCategory, setMediaModalCategory] = useState<'all' | 'image' | 'video' | 'audio' | 'model_3d'>('all')
+    const [isMediaModalForChat, setIsMediaModalForChat] = useState(false)
 
     // Chat / Iteration State
     const [chatHistory, setChatHistory] = useState<AIChatMessage[]>([])
     const [chatInput, setChatInput] = useState('')
+    const [chatAttachments, setChatAttachments] = useState<AIAttachment[]>([])
+    const [isUploadingChatMedia, setIsUploadingChatMedia] = useState(false)
     const [hasGeneratedFirstVersion, setHasGeneratedFirstVersion] = useState<boolean>(
         Boolean(stage.content?.custom_html)
     )
 
     const fileInputRef = useRef<HTMLInputElement>(null)
     const refImageInputRef = useRef<HTMLInputElement>(null)
+    const chatFileInputRef = useRef<HTMLInputElement>(null)
 
-    // Handle Media Files Upload
+    // Handle Media Files Upload (Brief Form)
     const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files
         if (!files || files.length === 0) return
@@ -138,6 +144,111 @@ export function AIModeEditor({
         } finally {
             setIsUploadingMedia(false)
             if (fileInputRef.current) fileInputRef.current.value = ''
+        }
+    }
+
+    // Handle Direct Upload from Disk in Chat
+    const handleChatFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files
+        if (!files || files.length === 0) return
+
+        setIsUploadingChatMedia(true)
+        setErrorMessage(null)
+
+        try {
+            const newAttachments: AIAttachment[] = []
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i]
+                let type: AIAttachment['type'] = 'other'
+
+                if (file.type.startsWith('image/')) type = 'image'
+                else if (file.type.startsWith('video/')) type = 'video'
+                else if (file.type.startsWith('audio/')) type = 'audio'
+                else if (file.name.endsWith('.glb') || file.name.endsWith('.gltf')) type = 'model_3d'
+
+                let url: string | null = null
+                try {
+                    url = await uploadAsset(file, 'ai-materials')
+                } catch (upErr) {
+                    console.warn("Storage upload failed, using Data URL fallback:", upErr)
+                    url = await readFileAsDataURL(file)
+                }
+
+                if (url) {
+                    newAttachments.push({
+                        id: Math.random().toString(36).substring(2, 9),
+                        name: file.name,
+                        type,
+                        url
+                    })
+                }
+            }
+
+            setChatAttachments(prev => [...prev, ...newAttachments])
+            setMaterials(prev => [...prev, ...newAttachments])
+        } catch (err: any) {
+            console.error("Chat upload error:", err)
+            setErrorMessage("Error uploading chat attachment: " + (err.message || 'Unknown error'))
+        } finally {
+            setIsUploadingChatMedia(false)
+            if (chatFileInputRef.current) chatFileInputRef.current.value = ''
+        }
+    }
+
+    // Handle Clipboard Paste (e.g. Screenshot or Copied Image) in Chat
+    const handleChatPaste = async (e: React.ClipboardEvent) => {
+        const clipboardItems = e.clipboardData?.items
+        if (!clipboardItems) return
+
+        const imageFiles: File[] = []
+        for (let i = 0; i < clipboardItems.length; i++) {
+            const item = clipboardItems[i]
+            if (item.type && item.type.startsWith('image/')) {
+                const file = item.getAsFile()
+                if (file) {
+                    imageFiles.push(file)
+                }
+            }
+        }
+
+        if (imageFiles.length === 0) return
+
+        // Image found in clipboard - process paste attachment
+        setIsUploadingChatMedia(true)
+
+        try {
+            const newAttachments: AIAttachment[] = []
+
+            for (const file of imageFiles) {
+                const timestamp = new Date().toISOString().slice(11, 19).replace(/:/g, '')
+                const screenshotName = `Screenshot_${timestamp}.png`
+                const renamedFile = new File([file], screenshotName, { type: file.type || 'image/png' })
+
+                let url: string | null = null
+                try {
+                    url = await uploadAsset(renamedFile, 'ai-materials')
+                } catch (upErr) {
+                    console.warn("Storage upload failed, using Data URL fallback:", upErr)
+                    url = await readFileAsDataURL(renamedFile)
+                }
+
+                if (url) {
+                    newAttachments.push({
+                        id: Math.random().toString(36).substring(2, 9),
+                        name: screenshotName,
+                        type: 'image',
+                        url
+                    })
+                }
+            }
+
+            setChatAttachments(prev => [...prev, ...newAttachments])
+            setMaterials(prev => [...prev, ...newAttachments])
+        } catch (err: any) {
+            console.error("Paste image error:", err)
+        } finally {
+            setIsUploadingChatMedia(false)
         }
     }
 
@@ -248,16 +359,20 @@ export function AIModeEditor({
     // Execute Iterative Conversational Modification
     const handleChatSubmit = async (customPromptText?: string) => {
         const textToSend = customPromptText || chatInput
-        if (!textToSend.trim() || isGenerating) return
+        if ((!textToSend.trim() && chatAttachments.length === 0) || isGenerating) return
 
         setIsGenerating(true)
         setErrorMessage(null)
         setChatInput('')
 
+        const currentAttached = [...chatAttachments]
+        setChatAttachments([])
+
         const userMsg: AIChatMessage = {
             id: Math.random().toString(36).substring(2, 9),
             role: 'user',
-            content: textToSend,
+            content: textToSend || (currentAttached.length > 0 ? "Attached media / screenshot for layout adjustments." : ""),
+            attachments: currentAttached.length > 0 ? currentAttached : undefined,
             timestamp: new Date().toLocaleTimeString()
         }
 
@@ -265,14 +380,26 @@ export function AIModeEditor({
         setChatHistory(updatedHistory)
 
         try {
+            const allMaterials = [...materials]
+            for (const att of currentAttached) {
+                if (!allMaterials.some(m => m.url === att.url)) {
+                    allMaterials.push(att)
+                }
+            }
+
             const res = await generateStageWithAI({
-                prompt: textToSend,
-                materials,
+                prompt: textToSend || "Inspect the attached screenshot / media and apply the requested layout fixes or additions.",
+                materials: allMaterials,
+                attachedMedia: currentAttached,
                 referenceImageUrl: referenceImageUrl || undefined,
                 language,
                 currentTitle: stage.title,
                 currentContent: stage.content,
-                chatHistory: updatedHistory.map(m => ({ role: m.role, content: m.content }))
+                chatHistory: updatedHistory.map(m => ({
+                    role: m.role,
+                    content: m.content,
+                    attachments: m.attachments
+                }))
             })
 
             if (!res.success) {
@@ -320,15 +447,27 @@ export function AIModeEditor({
     const modelMaterials = materials.filter(m => m.type === 'model_3d')
 
     const handleAttachMediaAssets = (newAssets: AIAttachment[]) => {
+        if (isMediaModalForChat) {
+            setChatAttachments(prev => {
+                const existingUrls = new Set(prev.map(m => m.url))
+                const filteredNew = newAssets.filter(na => !existingUrls.has(na.url))
+                return [...prev, ...filteredNew]
+            })
+        }
         setMaterials(prev => {
             const existingUrls = new Set(prev.map(m => m.url))
             const filteredNew = newAssets.filter(na => !existingUrls.has(na.url))
             return [...prev, ...filteredNew]
         })
+        setIsMediaModalForChat(false)
     }
 
     const removeMaterial = (id: string) => {
         setMaterials(prev => prev.filter(m => m.id !== id))
+    }
+
+    const removeChatAttachment = (id: string) => {
+        setChatAttachments(prev => prev.filter(m => m.id !== id))
     }
 
     const getMaterialIcon = (type: AIAttachment['type']) => {
@@ -813,6 +952,26 @@ export function AIModeEditor({
                                                 : 'bg-neutral-900 border border-white/10 text-neutral-200 rounded-bl-none'
                                         }`}
                                     >
+                                        {/* Attached Media / Screenshots in User Message */}
+                                        {msg.attachments && msg.attachments.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mb-2.5">
+                                                {msg.attachments.map((att) => (
+                                                    <div key={att.id} className="relative rounded-lg overflow-hidden border border-white/20 bg-black/40">
+                                                        {att.type === 'image' ? (
+                                                            <a href={att.url} target="_blank" rel="noreferrer" title={att.name}>
+                                                                <img src={att.url} alt={att.name} className="w-24 h-24 object-cover hover:scale-105 transition-transform" />
+                                                            </a>
+                                                        ) : (
+                                                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] text-neutral-200">
+                                                                {getMaterialIcon(att.type)}
+                                                                <span className="truncate max-w-[120px]">{att.name}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
                                         <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                                         {msg.tokenUsage && (
                                             <div className="mt-2 pt-2 border-t border-white/10 text-[10px] text-neutral-400 flex items-center justify-between gap-2">
@@ -851,26 +1010,109 @@ export function AIModeEditor({
                             </div>
                         </div>
 
-                        {/* Chat input box */}
-                        <div className="pt-2 border-t border-white/10">
+                        {/* Hidden file input for chat uploads */}
+                        <input
+                            ref={chatFileInputRef}
+                            type="file"
+                            multiple
+                            accept="image/*,video/*,audio/*,.glb,.gltf"
+                            className="hidden"
+                            onChange={handleChatFileUpload}
+                        />
+
+                        {/* Chat input box with attachments */}
+                        <div className="pt-2 border-t border-white/10 space-y-2">
+                            {/* Chat Attachment Preview Bar */}
+                            {chatAttachments.length > 0 && (
+                                <div className="p-2.5 rounded-xl bg-purple-950/40 border border-purple-500/30 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="flex items-center justify-between text-[11px] text-purple-300 font-medium">
+                                        <span className="flex items-center gap-1.5">
+                                            <Paperclip className="w-3.5 h-3.5 text-purple-400" />
+                                            Attached for next prompt ({chatAttachments.length})
+                                        </span>
+                                        <span className="text-[10px] text-purple-400/80">Vision analysis enabled</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {chatAttachments.map((att) => (
+                                            <div key={att.id} className="flex items-center gap-1.5 bg-neutral-900 border border-purple-500/30 pl-1.5 pr-2 py-1 rounded-lg text-xs">
+                                                {att.type === 'image' ? (
+                                                    <img src={att.url} alt={att.name} className="w-5 h-5 rounded object-cover border border-white/10" />
+                                                ) : (
+                                                    getMaterialIcon(att.type)
+                                                )}
+                                                <span className="truncate max-w-[120px] text-neutral-200 text-[11px]" title={att.name}>{att.name}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeChatAttachment(att.id)}
+                                                    className="text-neutral-400 hover:text-red-400 ml-0.5 cursor-pointer"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {isUploadingChatMedia && (
+                                <div className="flex items-center gap-2 text-xs text-purple-300 bg-purple-950/30 border border-purple-500/20 px-3 py-1.5 rounded-lg animate-pulse">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                                    <span>Uploading / attaching media...</span>
+                                </div>
+                            )}
+
                             <form
                                 onSubmit={(e) => {
                                     e.preventDefault()
                                     handleChatSubmit()
                                 }}
-                                className="flex items-center gap-2"
+                                className="flex items-center gap-1.5"
                             >
+                                {/* Upload from Computer Button */}
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    disabled={isGenerating || isUploadingChatMedia}
+                                    onClick={() => chatFileInputRef.current?.click()}
+                                    className="h-10 w-10 text-neutral-400 hover:text-purple-300 hover:bg-neutral-900 shrink-0 rounded-xl cursor-pointer"
+                                    title="Upload images or screenshots from disk"
+                                >
+                                    <Paperclip className="w-4 h-4" />
+                                </Button>
+
+                                {/* Open Media Library Button */}
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    disabled={isGenerating || isUploadingChatMedia}
+                                    onClick={() => {
+                                        setIsMediaModalForChat(true)
+                                        setMediaModalCategory('all')
+                                        setIsMediaModalOpen(true)
+                                    }}
+                                    className="h-10 w-10 text-neutral-400 hover:text-purple-300 hover:bg-neutral-900 shrink-0 rounded-xl cursor-pointer"
+                                    title="Pick assets from Media Library"
+                                >
+                                    <LayoutGrid className="w-4 h-4" />
+                                </Button>
+
+                                {/* Chat Input with onPaste for Direct Clipboard Screenshots */}
                                 <Input
                                     value={chatInput}
                                     onChange={(e) => setChatInput(e.target.value)}
-                                    placeholder="Tell the assistant what to refine (e.g. 'Increase contrast', 'Add interactive quiz', 'Change background color')..."
+                                    onPaste={handleChatPaste}
+                                    placeholder="Tell what to refine (or paste screenshot with Cmd+V)..."
                                     disabled={isGenerating}
-                                    className="bg-neutral-900 border-white/10 text-white placeholder:text-neutral-500 focus-visible:ring-purple-500 text-xs h-10"
+                                    className="bg-neutral-900 border-white/10 text-white placeholder:text-neutral-500 focus-visible:ring-purple-500 text-xs h-10 flex-1"
                                 />
+
+                                {/* Submit Button */}
                                 <Button
                                     type="submit"
                                     size="icon"
-                                    disabled={isGenerating || !chatInput.trim()}
+                                    disabled={isGenerating || (!chatInput.trim() && chatAttachments.length === 0)}
                                     className="h-10 w-10 bg-purple-600 hover:bg-purple-500 text-white shrink-0 rounded-xl cursor-pointer"
                                 >
                                     <Send className="w-4 h-4" />

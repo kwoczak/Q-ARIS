@@ -179,6 +179,7 @@ export interface AIChatMessage {
     id: string
     role: 'user' | 'assistant'
     content: string
+    attachments?: AIAttachment[]
     timestamp: string
     tokenUsage?: AITokenUsage
 }
@@ -196,11 +197,12 @@ export interface AIGenerationRequest {
     stageId?: string
     prompt: string
     materials?: AIAttachment[]
+    attachedMedia?: AIAttachment[]
     referenceImageUrl?: string
     language: string
     currentContent?: StageContent
     currentTitle?: string
-    chatHistory?: { role: 'user' | 'assistant'; content: string }[]
+    chatHistory?: { role: 'user' | 'assistant'; content: string; attachments?: AIAttachment[] }[]
 }
 
 export interface AIGenerationResponse {

@@ -455,7 +455,7 @@ export function AIInteractivePreview({
             imgEl.ondblclick = (e) => {
                 e.stopPropagation()
                 if (galleryParent) {
-                    const actualGallery = galleryParent.hasAttribute('data-component') ? galleryParent : galleryParent.closest('[data-component="gallery"], .space-y-2, .space-y-2.5') || galleryParent
+                    const actualGallery = galleryParent.hasAttribute('data-component') ? galleryParent : galleryParent.closest('[data-component="gallery"], [class*="space-y-2"]') || galleryParent
                     const data = parseGalleryElement(actualGallery as HTMLElement)
                     setTargetComponentEl(actualGallery as HTMLElement)
                     setActiveComponentData({ type: 'gallery', data })
@@ -590,7 +590,7 @@ export function AIInteractivePreview({
         // 8. Media Galleries (Edit Gallery & Add Photos)
         const galleryCards = container.querySelectorAll('[data-component="gallery"], .overflow-x-auto, .snap-x')
         galleryCards.forEach((gallery) => {
-            const galleryEl = (gallery.hasAttribute('data-component') ? gallery : gallery.closest('[data-component="gallery"], .space-y-2, .space-y-2.5') || gallery) as HTMLElement
+            const galleryEl = (gallery.hasAttribute('data-component') ? gallery : gallery.closest('[data-component="gallery"], [class*="space-y-2"]') || gallery) as HTMLElement
             if (!galleryEl) return
 
             attachComponentActionBar(galleryEl, 'Edit Gallery', () => {

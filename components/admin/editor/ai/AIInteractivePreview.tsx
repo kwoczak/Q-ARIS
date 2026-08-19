@@ -355,7 +355,7 @@ export function AIInteractivePreview({
 
     const parseGalleryElement = (galleryEl: HTMLElement): GalleryData => {
         const titleEl = galleryEl.querySelector('.text-amber-400, span.uppercase, h4, h3') as HTMLElement | null
-        const subtitleEl = galleryEl.querySelector('.text-neutral-400, .text-neutral-300, span.text-[11px]') as HTMLElement | null
+        const subtitleEl = galleryEl.querySelector('.text-neutral-400, .text-neutral-300, span:last-child, p') as HTMLElement | null
         const imageCards = galleryEl.querySelectorAll('.snap-start, .rounded-2xl, .shrink-0')
 
         const items: GalleryItem[] = []

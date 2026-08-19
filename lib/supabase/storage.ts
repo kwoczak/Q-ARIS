@@ -9,9 +9,17 @@ export async function uploadAsset(file: File, folder: string = 'general'): Promi
         throw new Error("Unauthorized upload attempt")
     }
 
-    // Clean filename and add timestamp to avoid collisions
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
+    // Preserve original filename, sanitize special characters, and append short unique hash to prevent collisions
+    const originalNameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name
+    const cleanBaseName = originalNameWithoutExt
+        .replace(/[^a-zA-Z0-9_\-\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .substring(0, 60) || 'asset'
+
+    const fileExt = (file.name.split('.').pop() || 'bin').toLowerCase()
+    const shortHash = Math.random().toString(36).substring(2, 7)
+    const fileName = `${cleanBaseName}_${shortHash}.${fileExt}`
     const filePath = `${folder}/${userId}/${fileName}`
 
     const { data, error } = await supabase.storage

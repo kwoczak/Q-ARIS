@@ -38,6 +38,28 @@ interface AIMediaLibraryModalProps {
     selectedUrls?: string[]
 }
 
+export function formatMediaDisplayName(rawName: string): string {
+    if (!rawName) return 'Media Asset'
+    
+    const lastDotIndex = rawName.lastIndexOf('.')
+    const ext = lastDotIndex !== -1 ? rawName.substring(lastDotIndex) : ''
+    const baseName = lastDotIndex !== -1 ? rawName.substring(0, lastDotIndex) : rawName
+
+    // Pattern 1: name_shortHash (e.g. "Golden_Mask_7k2m")
+    const hashPatternMatch = baseName.match(/^(.+)_[a-z0-9]{4,8}$/i)
+    if (hashPatternMatch && hashPatternMatch[1]) {
+        return hashPatternMatch[1].replace(/[_]/g, ' ') + ext
+    }
+
+    // Pattern 2: old random hash with timestamp (e.g. "5qd58q9pn1m_1787152185282")
+    const oldHashTimestampMatch = baseName.match(/^[a-z0-9]{8,15}_([0-9]+)$/i)
+    if (oldHashTimestampMatch) {
+        return `Asset_${baseName.substring(0, 6)}${ext}`
+    }
+
+    return baseName.replace(/[_]/g, ' ') + ext
+}
+
 export function AIMediaLibraryModal({
     isOpen,
     onClose,
@@ -99,9 +121,11 @@ export function AIMediaLibraryModal({
             else if (asset.type === 'audio') aiType = 'audio'
             else if (asset.type === 'model') aiType = 'model_3d'
 
+            const displayName = formatMediaDisplayName(asset.name)
+
             newMap.set(key, {
                 id: Math.random().toString(36).substring(2, 9),
-                name: asset.name,
+                name: displayName,
                 type: aiType,
                 url: asset.url
             })
@@ -128,7 +152,7 @@ export function AIMediaLibraryModal({
 
                 const uploadedUrl = await uploadAsset(file, folder)
                 if (uploadedUrl) {
-                    // Auto-select uploaded file
+                    // Auto-select uploaded file with its actual original name
                     setSelectedItems(prev => {
                         const newMap = new Map(prev)
                         newMap.set(uploadedUrl, {
@@ -159,7 +183,11 @@ export function AIMediaLibraryModal({
 
     // Filter assets by tab and search
     const filteredAssets = assets.filter(a => {
-        const matchesSearch = !searchQuery || a.name.toLowerCase().includes(searchQuery.toLowerCase())
+        const displayName = formatMediaDisplayName(a.name)
+        const matchesSearch = !searchQuery || 
+            a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            displayName.toLowerCase().includes(searchQuery.toLowerCase())
+
         if (!matchesSearch) return false
 
         if (activeTab === 'all') return true
@@ -364,8 +392,8 @@ export function AIMediaLibraryModal({
 
                                         {/* Media Metadata Info */}
                                         <div className="p-2 bg-neutral-950 border-t border-white/5 flex flex-col gap-0.5">
-                                            <p className="text-[11px] font-medium text-neutral-200 truncate" title={asset.name}>
-                                                {asset.name}
+                                            <p className="text-[11px] font-medium text-neutral-200 truncate" title={`${formatMediaDisplayName(asset.name)} (${asset.name})`}>
+                                                {formatMediaDisplayName(asset.name)}
                                             </p>
                                             <span className="text-[10px] text-neutral-500 uppercase font-mono">
                                                 {asset.type}

@@ -3,15 +3,17 @@
 import { Mic, Box, Eye } from "lucide-react"
 import { MediaAsset } from "@/lib/actions/media"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { formatMediaDisplayName } from "@/components/admin/editor/ai/AIMediaLibraryModal"
 
 export function MediaCard({ asset }: { asset: MediaAsset }) {
     const ModelViewer = 'model-viewer' as any;
+    const displayName = formatMediaDisplayName(asset.name)
     
     return (
         <div className="bg-neutral-900 border border-white/10 rounded-xl overflow-hidden group flex flex-col">
             <div className="aspect-square bg-black flex items-center justify-center relative overflow-hidden flex-shrink-0">
                 {asset.type === 'image' && (
-                    <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                    <img src={asset.url} alt={displayName} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                 )}
                 {asset.type === 'video' && (
                     <video 
@@ -47,7 +49,7 @@ export function MediaCard({ asset }: { asset: MediaAsset }) {
                 )}
             </div>
             <div className="p-3 flex-1 flex flex-col justify-between">
-                <p className="text-sm text-neutral-300 truncate mb-1" title={asset.name}>{asset.name}</p>
+                <p className="text-sm text-neutral-300 truncate mb-1" title={`${displayName} (${asset.name})`}>{displayName}</p>
                 <div className="flex justify-between items-center mt-auto pt-1">
                     <p className="text-xs text-neutral-500 uppercase">{asset.type}</p>
                     <Dialog>
@@ -58,7 +60,7 @@ export function MediaCard({ asset }: { asset: MediaAsset }) {
                         </DialogTrigger>
                         <DialogContent className="max-w-4xl bg-neutral-950 border-white/10 text-white p-6 shadow-2xl">
                             <div className="flex flex-col items-center justify-center min-h-[50vh]">
-                                <p className="font-semibold text-lg mb-4 text-center text-neutral-200">{asset.name}</p>
+                                <p className="font-semibold text-lg mb-4 text-center text-neutral-200">{displayName}</p>
                                 
                                 {asset.type === 'image' && (
                                     <img src={asset.url} alt={asset.name} className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg" />

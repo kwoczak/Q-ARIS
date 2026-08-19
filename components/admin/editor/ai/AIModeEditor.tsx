@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
 import { Stage, StageContent, AIAttachment, AIChatMessage, AITokenUsage } from '@/types/schema'
-import { generateStageWithAI, enhancePromptWithAI } from '@/app/actions/ai-generator'
+import { generateStageWithAI, enhancePromptWithAI, COMPOSITION_ARCHETYPES } from '@/app/actions/ai-generator'
 import { uploadAsset } from '@/lib/supabase/storage'
 import { AIProgressBar } from './AIProgressBar'
 import { AIMediaLibraryModal } from './AIMediaLibraryModal'
@@ -76,6 +76,7 @@ export function AIModeEditor({
     const [isUploadingRef, setIsUploadingRef] = useState(false)
     const [isEnhancingPrompt, setIsEnhancingPrompt] = useState(false)
     const [isEnhancingChatPrompt, setIsEnhancingChatPrompt] = useState(false)
+    const [selectedArchetype, setSelectedArchetype] = useState<string>('auto')
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [isPromptTipsOpen, setIsPromptTipsOpen] = useState(false)
 
@@ -303,16 +304,19 @@ export function AIModeEditor({
     }
 
     // Enhance Prompt with AI (Expand brief into rich detailed prompt)
-    const handleEnhancePrompt = async () => {
+    const handleEnhancePrompt = async (forcedArchetype?: string) => {
         if (!prompt.trim() || isEnhancingPrompt) return
 
         setIsEnhancingPrompt(true)
         setErrorMessage(null)
 
+        const archToUse = forcedArchetype || selectedArchetype
+
         try {
             const res = await enhancePromptWithAI({
                 prompt,
-                language
+                language,
+                archetype: archToUse
             })
 
             if (res.success && res.enhancedPrompt) {
@@ -615,19 +619,44 @@ export function AIModeEditor({
                             )}
                         </div>
 
-                        {/* 1. Prompt Input with (i) Recommendations Button and Enhance Button */}
+                        {/* 1. Prompt Input with Archetype Selector, Enhance Button, and Prompt Tips */}
                         <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-xs font-medium text-neutral-300">
-                                    1. Stage Description (Prompt) <span className="text-purple-400">*</span>
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                                <Label className="text-xs font-medium text-neutral-300 flex items-center gap-1.5">
+                                    <span>1. Stage Description (Prompt)</span> <span className="text-purple-400">*</span>
                                 </Label>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    {/* 15 Composition Archetypes Selector */}
+                                    <Select
+                                        value={selectedArchetype}
+                                        onValueChange={(val) => {
+                                            setSelectedArchetype(val)
+                                            if (prompt.trim()) {
+                                                handleEnhancePrompt(val)
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger className="h-7 w-[200px] bg-neutral-900/90 border-purple-500/30 text-[11px] text-purple-200 focus:ring-1 focus:ring-purple-500 rounded-lg">
+                                            <SelectValue placeholder="Style Archetype" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-neutral-950 border-purple-500/30 text-white max-h-[340px] z-50">
+                                            <SelectItem value="auto" className="text-xs font-semibold text-amber-300">
+                                                🎲 Auto-Detect (Dynamic AI Choice)
+                                            </SelectItem>
+                                            {COMPOSITION_ARCHETYPES.map((arch) => (
+                                                <SelectItem key={arch.id} value={arch.id} className="text-xs cursor-pointer">
+                                                    <span className="mr-1.5">{arch.icon}</span> {arch.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+
                                     <button
                                         type="button"
                                         disabled={isEnhancingPrompt || !prompt.trim()}
-                                        onClick={handleEnhancePrompt}
-                                        className="inline-flex items-center gap-1.5 text-[11px] text-amber-300 hover:text-amber-200 font-semibold px-2.5 py-0.5 rounded-md bg-gradient-to-r from-amber-950/60 to-amber-900/40 hover:from-amber-950/90 hover:to-amber-900/70 border border-amber-500/40 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                                        title="AI will expand and enrich your brief with atmospheric storytelling and widgets"
+                                        onClick={() => handleEnhancePrompt()}
+                                        className="inline-flex items-center gap-1.5 text-[11px] text-amber-300 hover:text-amber-200 font-semibold px-2.5 py-1 rounded-md bg-gradient-to-r from-amber-950/60 to-amber-900/40 hover:from-amber-950/90 hover:to-amber-900/70 border border-amber-500/40 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                                        title="AI will expand and enrich your prompt using the selected composition archetype"
                                     >
                                         {isEnhancingPrompt ? (
                                             <>
@@ -637,7 +666,7 @@ export function AIModeEditor({
                                         ) : (
                                             <>
                                                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                                                <span>Enhance my prompt</span>
+                                                <span>Enhance Prompt</span>
                                             </>
                                         )}
                                     </button>
@@ -645,38 +674,60 @@ export function AIModeEditor({
                                     <button
                                         type="button"
                                         onClick={() => setIsPromptTipsOpen(!isPromptTipsOpen)}
-                                        className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 font-medium px-2 py-0.5 rounded-md hover:bg-purple-950/60 border border-purple-500/25 transition-all cursor-pointer"
-                                        title="Tips for writing a great prompt"
+                                        className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 font-medium px-2 py-1 rounded-md hover:bg-purple-950/60 border border-purple-500/25 transition-all cursor-pointer"
+                                        title="Explore all 15 composition archetypes and tips"
                                     >
                                         <Info className="w-3.5 h-3.5" />
-                                        <span>Prompt Tips</span>
+                                        <span>Archetypes & Tips</span>
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Prompt Tips Recommendations Card */}
+                            {/* Prompt Tips & 15 Archetypes Modal Card */}
                             {isPromptTipsOpen && (
-                                <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/30 text-xs text-purple-200 space-y-2.5 shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <div className="flex items-center justify-between font-semibold text-purple-300">
+                                <div className="p-4 rounded-xl bg-purple-950/50 border border-purple-500/30 text-xs text-purple-200 space-y-3.5 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div className="flex items-center justify-between font-semibold text-purple-300 border-b border-white/10 pb-2">
                                         <span className="flex items-center gap-1.5">
                                             <Lightbulb className="w-4 h-4 text-amber-400" />
-                                            Recommendations for a Great Prompt:
+                                            15 Composition Archetypes (Click to Apply):
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => setIsPromptTipsOpen(false)}
-                                            className="text-purple-400 hover:text-white p-0.5"
+                                            className="text-purple-400 hover:text-white p-0.5 cursor-pointer"
                                         >
                                             <X className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
-                                    <ul className="space-y-1.5 text-[11.5px] text-neutral-300 list-disc list-inside leading-relaxed">
-                                        <li><strong className="text-white">Theme & Topic:</strong> Clearly specify the subject (e.g. <em>Ancient Egypt, SpaceX Falcon 9, Rainforest Fauna, Brand Showcase</em>).</li>
-                                        <li><strong className="text-white">Visual Mood:</strong> Specify atmospheric colors (e.g. <em>Obsidian & gold gradient, dark cosmic nebula, emerald glow</em>).</li>
-                                        <li><strong className="text-white">Structure & Sections:</strong> List desired sections (e.g. <em>Hero title, engaging intro story, highlight insight cards, stats grid</em>).</li>
-                                        <li><strong className="text-white">Interactive Elements:</strong> Request widgets (e.g. <em>2-question interactive quiz with instant feedback, rub-to-reveal scratch card, audio guide player</em>).</li>
-                                        <li><strong className="text-white">Attached Media:</strong> Explain how uploaded photos/audio should be displayed (e.g. <em>Hero showcase + swipeable gallery carousel</em>).</li>
-                                    </ul>
+
+                                    {/* 15 Archetypes Grid */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-h-[220px] overflow-y-auto pr-1">
+                                        {COMPOSITION_ARCHETYPES.map((arch) => (
+                                            <button
+                                                key={arch.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedArchetype(arch.id)
+                                                    setIsPromptTipsOpen(false)
+                                                    if (prompt.trim()) {
+                                                        handleEnhancePrompt(arch.id)
+                                                    }
+                                                }}
+                                                className={`p-2 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                                                    selectedArchetype === arch.id
+                                                        ? 'bg-purple-900/60 border-purple-400 text-white'
+                                                        : 'bg-neutral-900/70 border-white/10 text-neutral-300 hover:border-purple-500/40 hover:text-white'
+                                                }`}
+                                            >
+                                                <span className="font-bold text-xs text-white flex items-center gap-1">
+                                                    <span>{arch.icon}</span> {arch.name}
+                                                </span>
+                                                <span className="text-[10px] text-neutral-400 mt-1 line-clamp-2">
+                                                    {arch.desc}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 

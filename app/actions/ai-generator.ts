@@ -99,6 +99,25 @@ MANDATORY RULES FOR MULTI-MEDIA INTEGRATION:
 YOUR GOAL:
 Generate breathtaking, 10/10 UX mobile screens (width ~390px) for ANY topic (Technology, Science, Space, Nature, Animals, City Guides, Brands, Art, History, Pop Culture) that evoke wonder, elegance, and immersion.
 
+CRITICAL DESIGN RULE - 15 BESPOKE COMPOSITION ARCHETYPES (AVOID MONOTONY):
+NEVER generate the same linear cookie-cutter layout for every stage!
+Dynamically select or synthesize one of the following 15 proven Editorial & Interactive Archetypes that best suits the topic:
+1. 🏛️ Curatorial Deep-Dive: Ambient Spotlight -> Hero Artwork Showcase -> Curatorial Quote Block -> Audio Guide Player -> 3:4 Portrait Gallery -> Scratch Card Secret Reveal.
+2. ⚡ Gamified Quest & Challenge: XP Difficulty Eyebrow -> Dramatic Story Hook -> Scratch-to-reveal Clue -> 2-Question Interactive Quiz with immediate score -> 2x2 Stats Grid.
+3. 📊 Technical Blueprint & Specs: Blueprint Schematic Hero -> 2x2 Key Numerical Metrics (e.g. 146m, 3.2M lbs, 98%) -> Technical Parameter Cards -> Telemetry Audio Player.
+4. 📖 Timeline Chronicle & Journey: Narrative Prologue -> Numbered Milestone Cards (Phase 01, Phase 02, Phase 03) -> Evolution Photo Gallery -> Key Takeaway.
+5. 🖼️ Visual Magazine & Spotlight: Editorial Minimalist Headline -> Large Portrait 3:4 Showcase -> Curatorial Note -> Feature Pill Badges.
+6. 🕵️ Mystery & Classified Dossier: Classified Red/Amber Badge -> Dossier Intro -> Scratch Card Evidence Decipher -> Witness Quote -> Deduction Quiz.
+7. 🎙️ Audio-First Story & Podcast: Hero Audio Guide Player at the TOP -> Atmospheric Synopsis -> Synced Visual Cards -> Curatorial Quote.
+8. ⚔️ Versus Comparison: Bold "VS" Split Headline -> Side-by-Side Comparison Cards -> Key Comparison Stats -> Interactive Voting Quiz.
+9. 🌌 Cosmic Explorer Atlas: Deep Space Nebula Header -> Celestial Metrics (AU / Mass) -> Orbit Image Card -> Swipeable Galaxy Gallery -> Astronomical Fact Scratch Card.
+10. 📜 Myth, Lore & Ancient Legend: Ancient Era Badge -> Folklore Prologue -> Mythological Artifact -> Ancient Prophecy Quote -> Myth Lore Quiz.
+11. 🌿 Nature Expedition & Fauna: Species Taxonomy Eyebrow -> Wildlife Portrait Hero -> Habitat & Diet Cards -> Camouflage Scratch Card -> Nature Sound Audio.
+12. 🧬 Science Lab & Discovery: Hypothesis Header -> Step-by-Step Experiment Cards -> Reaction Metrics -> "What happens next?" Quiz.
+13. 🗺️ City Guide & Heritage Trail: City & Stop Eyebrow -> Itinerary Highlights (Stop 01-03) -> Architectural Gallery -> Local Secret Quote.
+14. 🎨 Art Retrospective & Exhibition: Artist Era Header -> Masterpiece Showcase (Contain+Blur) -> Art Critique Quote -> Symbolism Cards -> Underdrawing Scratch Card.
+15. 💡 Innovation Spotlight & Pitch: Breakthrough Eyebrow -> Problem vs Solution Cards -> 2x2 Impact Metrics -> Visionary Founder Quote -> Pitch Audio Player.
+
 CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
 1. ZERO OMISSION OF REAL USER / MEDIA ASSETS:
    - Every asset in the CONTENT MEDIA ATTACHMENTS list must be present in the HTML output.
@@ -109,15 +128,12 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
    - Every piece of information must be presented as a visually rich component: Cards with glassmorphism, glowing borders, badge pills, statistic counters, or interactive tap widgets.
 
 3. ATMOSPHERIC BACKGROUNDS & THEME PALETTES:
-   - Match the background to the theme:
-     * Technology / Innovation / Space: Deep cosmic nebula or slate carbon:
-       "radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.35), transparent 70%), linear-gradient(180deg, #09090b 0%, #020617 100%)"
-     * Nature / Wildlife / Animals / Outdoors: Emerald forest glow:
-       "radial-gradient(ellipse at 50% 0%, rgba(16, 185, 129, 0.25), transparent 60%), linear-gradient(180deg, #022c22 0%, #020617 100%)"
-     * Luxury / Brand / Gold / Heritage: Multi-stop rich gold & obsidian:
-       "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 158, 11, 0.3), transparent 70%), linear-gradient(180deg, #1c1917 0%, #0c0a09 100%)"
-     * Ocean / Water / Modern Blue: Deep sapphire & bioluminescent cyan:
-       "radial-gradient(ellipse at 50% 0%, rgba(6, 182, 212, 0.3), transparent 60%), linear-gradient(180deg, #082f49 0%, #020617 100%)"
+   - Match the background to the theme using one of our 10 luxury palettes & 9 distribution patterns:
+     * Technology / Space: "radial-gradient(ellipse 90% 60% at 50% -10%, rgba(30, 58, 138, 0.45) 0%, transparent 70%), linear-gradient(180deg, #020617 0%, #000000 100%)"
+     * Nature / Wildlife: "radial-gradient(ellipse 95% 55% at 50% 115%, rgba(6, 95, 70, 0.45) 0%, transparent 70%), linear-gradient(180deg, #021e17 0%, #000000 100%)"
+     * Luxury / Gold / Heritage: "linear-gradient(135deg, rgba(120, 53, 15, 0.45) 0%, #0a0a0a 55%, #000000 100%)"
+     * Ocean / Cyan: "radial-gradient(circle at 20% 20%, rgba(14, 116, 144, 0.45) 0%, transparent 45%), linear-gradient(180deg, #020617 0%, #000000 100%)"
+     * Cosmic Violet: "radial-gradient(ellipse 90% 60% at 50% -10%, rgba(88, 28, 135, 0.45) 0%, transparent 70%), linear-gradient(180deg, #0f0728 0%, #000000 100%)"
 
 4. TOTAL CREATIVE & TECHNICAL FREEDOM:
    - You have 100% full freedom to write custom HTML, inline CSS, embedded <style> animations (@keyframes, pulsing glows, floating elements), and JavaScript event handlers (onclick, onchange).
@@ -523,14 +539,148 @@ Respond ONLY with a JSON object in this exact format:
     }
 }
 
+export interface CompositionArchetype {
+    id: string
+    name: string
+    icon: string
+    category: 'museum' | 'interactive' | 'editorial' | 'science'
+    desc: string
+    layoutInstruction: string
+}
+
+export const COMPOSITION_ARCHETYPES: CompositionArchetype[] = [
+    {
+        id: 'curatorial',
+        name: 'Curatorial Deep-Dive',
+        icon: '🏛️',
+        category: 'museum',
+        desc: 'Cinematic hero, curatorial quote block, audio guide player, portrait gallery & secret reveal.',
+        layoutInstruction: 'Top Spotlight Ambient -> Hero Showcase -> Curatorial Quote -> Audio Guide Player -> Portrait Artifact Gallery -> Scratch Card Reveal'
+    },
+    {
+        id: 'quest',
+        name: 'Gamified Quest & Challenge',
+        icon: '⚡',
+        category: 'interactive',
+        desc: 'XP badge & difficulty, rub-to-reveal clue card, 2-question interactive quiz, and stats counters.',
+        layoutInstruction: 'XP Difficulty Eyebrow -> Hook Story -> Scratch-to-reveal Clue -> 2-Question Interactive Quiz -> 2x2 Stats Grid'
+    },
+    {
+        id: 'blueprint',
+        name: 'Technical Blueprint & Specs',
+        icon: '📊',
+        category: 'science',
+        desc: 'Blueprint schematic hero, 2x2 key metrics grid (speed, payload, year), monospace specs, and telemetry audio.',
+        layoutInstruction: 'Blueprint Hero Card -> 2x2 Key Numerical Metrics Grid -> Technical Param Cards -> Telemetry Audio Narration'
+    },
+    {
+        id: 'timeline',
+        name: 'Timeline Chronicle & Journey',
+        icon: '📖',
+        category: 'editorial',
+        desc: 'Phase-by-phase chronological story (Phase 01, Phase 02, Phase 03) with gradient badges & evolution gallery.',
+        layoutInstruction: 'Narrative Prologue -> Numbered Milestone Cards (Phase 01-03) -> Evolution Photo Gallery -> Key Takeaway'
+    },
+    {
+        id: 'magazine',
+        name: 'Visual Magazine & Spotlight',
+        icon: '🖼️',
+        category: 'editorial',
+        desc: 'Vogue/NatGeo editorial typography, 3:4 portrait photo focus with captions, and pill highlight tags.',
+        layoutInstruction: 'Editorial Minimalist Headline -> Large Portrait 3:4 Showcase -> Curatorial Note -> Feature Pill Badges'
+    },
+    {
+        id: 'mystery',
+        name: 'Mystery & Classified Dossier',
+        icon: '🕵️',
+        category: 'interactive',
+        desc: 'Classified red/amber warning badge, secret dossier intro, scratch card to decipher evidence & deduction quiz.',
+        layoutInstruction: 'Classified Badge -> Dossier Intro -> Scratch Card Evidence Decipher -> Witness Quote -> Deduction Quiz'
+    },
+    {
+        id: 'audio_doc',
+        name: 'Audio-First Story & Podcast',
+        icon: '🎙️',
+        category: 'museum',
+        desc: 'Large prominent Audio Guide player hero at the top, atmospheric backdrop, and chapter sync cards.',
+        layoutInstruction: 'Hero Audio Guide Player -> Atmospheric Synopsis -> Synced Visual Cards -> Curatorial Quote'
+    },
+    {
+        id: 'versus',
+        name: 'Versus & Head-to-Head Comparison',
+        icon: '⚔️',
+        category: 'interactive',
+        desc: 'Bold "VS" comparison layout between two subjects, comparison metrics, and audience voting quiz.',
+        layoutInstruction: 'Bold VS Split Headline -> Side-by-Side Comparison Cards -> Key Comparison Stats -> Interactive Voting Quiz'
+    },
+    {
+        id: 'cosmic',
+        name: 'Cosmic Explorer & Spatial Atlas',
+        icon: '🌌',
+        category: 'science',
+        desc: 'Deep space observatory vibe, astronomical coordinates & distances (AU, Light Years), and galaxy gallery.',
+        layoutInstruction: 'Deep Space Nebula Header -> Celestial Metrics (AU / Mass) -> Orbit Image Card -> Swipeable Galaxy Gallery -> Astronomical Fact Scratch Card'
+    },
+    {
+        id: 'myth',
+        name: 'Myth, Lore & Ancient Legend',
+        icon: '📜',
+        category: 'editorial',
+        desc: 'Ancient gold/amber atmosphere, folklore prologue, mythical artifact card, prophecy quote, and folklore quiz.',
+        layoutInstruction: 'Ancient Era Badge -> Folklore Prologue -> Mythological Artifact -> Ancient Prophecy Quote -> Myth Lore Quiz'
+    },
+    {
+        id: 'nature',
+        name: 'Nature Expedition & Fauna',
+        icon: '🌿',
+        category: 'science',
+        desc: 'Emerald botanical glow, species taxonomy badges (Habitat, Diet, Status), wildlife carousel & camouflage reveal.',
+        layoutInstruction: 'Species Taxonomy Eyebrow -> Wildlife Portrait Hero -> Habitat & Diet Cards -> Camouflage Scratch Card -> Nature Sound Audio'
+    },
+    {
+        id: 'science_lab',
+        name: 'Science Lab & Discovery',
+        icon: '🧬',
+        category: 'science',
+        desc: 'Hypothesis statement, step-by-step experiment cards, key reaction metrics, and predictive quiz.',
+        layoutInstruction: 'Hypothesis Header -> Step-by-Step Experiment Cards -> Reaction Metrics -> "What happens next?" Quiz'
+    },
+    {
+        id: 'city_guide',
+        name: 'City Guide & Heritage Trail',
+        icon: '🗺️',
+        category: 'editorial',
+        desc: 'Urban explorer itinerary with curated stops (Stop 1, Stop 2, Stop 3), architectural gallery & local insider quote.',
+        layoutInstruction: 'City & Stop Eyebrow -> Itinerary Highlights (Stop 01-03) -> Architectural Gallery -> Local Secret Quote'
+    },
+    {
+        id: 'art_gallery',
+        name: 'Art Retrospective & Exhibition',
+        icon: '🎨',
+        category: 'museum',
+        desc: 'Museum exhibition catalog, masterpiece hero with framing & texture, art critique quote & underdrawing reveal.',
+        layoutInstruction: 'Artist Era Header -> Masterpiece Showcase (Contain+Blur) -> Art Critique Quote -> Symbolism Cards -> Underdrawing Scratch Card'
+    },
+    {
+        id: 'innovation',
+        name: 'Innovation Spotlight & Pitch',
+        icon: '💡',
+        category: 'editorial',
+        desc: 'Problem vs Solution breakdown, impact stats grid (10x Faster, -80% Carbon), visionary quote & demo audio.',
+        layoutInstruction: 'Breakthrough Eyebrow -> Problem vs Solution Cards -> 2x2 Impact Metrics -> Visionary Founder Quote -> Pitch Audio Player'
+    }
+]
+
 export interface PromptEnhancementRequest {
     prompt: string
     language?: string
+    archetype?: string
 }
 
 export interface PromptEnhancementResponse {
     success: boolean
     enhancedPrompt?: string
+    selectedArchetype?: string
     error?: string
 }
 
@@ -560,26 +710,48 @@ export async function enhancePromptWithAI(request: PromptEnhancementRequest): Pr
 
     const openai = new OpenAI({ apiKey })
 
-    const systemPrompt = `You are a World-Class Lead Creative Technologist & Prompt Engineering Maestro for Quaris (a luxury interactive second-screen museum & storytelling web app).
-Your mission: Take a short/brief user prompt (e.g. "Voyager mission with a quiz" or "Dinozaury z modelem 3D i audio") and transform it into an atmospheric, highly structured, masterpiece-level prompt.
+    const archetypesCatalogue = COMPOSITION_ARCHETYPES.map(a => `- ${a.icon} [${a.id}] "${a.name}": ${a.desc} (Layout: ${a.layoutInstruction})`).join('\n')
 
-STRUCTURE OF THE ENHANCED PROMPT:
-1. THEMATIC HOOK & MOOD: Rich visual atmosphere (e.g. cosmic deep nebula with starlight glow / obsidian and gold Egyptian luxury / neon emerald glow).
-2. KEY STORY SECTIONS: Specify a bold hero title, captivating introductory narrative, 2-3 glassmorphic highlight fact cards with icons.
-3. INTERACTIVE MULTIMEDIA: Explicitly request interactive widgets (e.g. 2-question interactive quiz with instant feedback, swipeable artifact gallery, audio guide player, 3D model viewer, or fun fact reveal).
-4. TONE & READABILITY: Clear, engaging, Apple-level polish.
-5. LANGUAGE: Write the enhanced prompt in the exact same language as the user's input (if Polish -> output in Polish, if English -> output in English).
-6. OUTPUT FORMAT: Return ONLY the raw enhanced prompt text ready to be pasted directly into the textarea. DO NOT include quotes, introductory phrases like "Here is your enhanced prompt:", or markdown backticks.`
+    const systemPrompt = `You are a World-Class Lead Creative Technologist & Prompt Engineering Maestro for Quaris (a luxury interactive second-screen museum & storytelling web app).
+Your mission: Transform a brief user prompt into an atmospheric, masterpiece-level prompt by selecting or applying one of our 15 DISTINCT COMPOSITION ARCHETYPES.
+
+NEVER OUTPUT A GENERIC PREDICTABLE STRUCTURE. Each archetype has its own unique narrative rhythm, component order, and storytelling mood.
+
+AVAILABLE 15 COMPOSITION ARCHETYPES:
+${archetypesCatalogue}
+
+INSTRUCTIONS:
+1. ARCHETYPE SELECTION:
+   - If user explicitly requested an archetype ID (${request.archetype && request.archetype !== 'auto' ? `"${request.archetype}"` : 'or auto-selected'}), use that archetype.
+   - Otherwise, dynamically choose the archetype that best matches the topic's emotional resonance and domain.
+2. BESPOKE COMPOSITION STRUCTURE:
+   - Specify the exact sequence of components dictated by that archetype (e.g. if Mystery -> Scratch Card Clue + Classified Dossier + Deduction Quiz; if Technical Specs -> 2x2 Numbers Grid + Blueprint Specs + Audio; if Curatorial -> Quote + Audio + Portrait Gallery + Reveal).
+3. THEMATIC ATMOSPHERE:
+   - Request rich visual atmosphere (e.g. Cosmic Violet, Mars Crimson, Ocean Cyan, Gold Velvet, Emerald Night, Deep Space, Cyber Neon).
+4. TONE & POLISH:
+   - Apple-level aesthetic, engaging, succinct.
+5. LANGUAGE:
+   - Write the enhanced prompt in the exact same language as the user's input (Polish -> Polish, English -> English).
+6. OUTPUT FORMAT:
+   - Return ONLY the raw enhanced prompt text ready to be pasted directly into the textarea. DO NOT include introductory text like "Here is your enhanced prompt" or backticks.`
 
     try {
+        const targetArchetype = request.archetype && request.archetype !== 'auto'
+            ? COMPOSITION_ARCHETYPES.find(a => a.id === request.archetype)
+            : null
+
+        const userMsg = targetArchetype
+            ? `Original brief: "${request.prompt}"\nForced Archetype: "${targetArchetype.name}" (${targetArchetype.id})\nLanguage: ${request.language || 'auto'}`
+            : `Original brief: "${request.prompt}"\nLanguage: ${request.language || 'auto'}\nPlease choose the most fitting archetype from the 15 available.`
+
         const response = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
             messages: [
                 { role: 'system', content: systemPrompt },
-                { role: 'user', content: `Original brief: "${request.prompt}"\nLanguage: ${request.language || 'auto'}` }
+                { role: 'user', content: userMsg }
             ],
-            temperature: 0.7,
-            max_tokens: 500
+            temperature: 0.8,
+            max_tokens: 600
         })
 
         const enhancedText = response.choices[0]?.message?.content?.trim()
@@ -589,7 +761,8 @@ STRUCTURE OF THE ENHANCED PROMPT:
 
         return {
             success: true,
-            enhancedPrompt: enhancedText
+            enhancedPrompt: enhancedText,
+            selectedArchetype: targetArchetype?.name
         }
     } catch (err: any) {
         console.error("Enhance prompt error:", err)

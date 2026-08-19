@@ -5,22 +5,18 @@ import { Trash2, Edit3, Calendar } from 'lucide-react'
 import { deleteStory } from '@/app/actions/story'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { DeleteConfirmModal } from './editor/DeleteConfirmModal'
 
 export function StoryCard({ story }: { story: Story }) {
     const router = useRouter()
     const [isDeleting, setIsDeleting] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
-    const handleDelete = async (e: React.MouseEvent) => {
-        e.preventDefault() // Prevent Link navigation
-        e.stopPropagation()
-
-        if (!confirm("Are you sure you want to delete this story? This cannot be undone.")) {
-            return
-        }
-
+    const handleDelete = async () => {
         setIsDeleting(true)
         try {
             await deleteStory(story.id)
+            setIsDeleteModalOpen(false)
             router.refresh() // Refresh server component data
         } catch (error) {
             console.error(error)
@@ -55,17 +51,32 @@ export function StoryCard({ story }: { story: Story }) {
             </div>
 
             <button
-                onClick={handleDelete}
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setIsDeleteModalOpen(true)
+                }}
                 disabled={isDeleting}
-                className="absolute top-4 right-4 p-2 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50 z-10"
+                className="absolute top-4 right-4 p-2 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50 z-10 cursor-pointer"
                 title="Delete Story"
             >
-                {isDeleting ? (
-                    <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                    <Trash2 className="w-4 h-4" />
-                )}
+                <Trash2 className="w-4 h-4" />
             </button>
+
+            {/* Custom Delete Confirmation Modal */}
+            <DeleteConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => !isDeleting && setIsDeleteModalOpen(false)}
+                onConfirm={handleDelete}
+                title="Delete Story"
+                description="Are you sure you want to delete this story? This action cannot be undone and will permanently remove all its stages, checkpoints, and visitor analytics."
+                itemTitle={story.title}
+                itemSubtitle={`Created: ${new Date(story.created_at).toLocaleDateString()}`}
+                confirmText="Delete Story"
+                cancelText="Cancel"
+                isDeleting={isDeleting}
+            />
         </div>
     )
 }

@@ -26,6 +26,7 @@ import { AITokenTracker } from "./ai/AITokenTracker"
 import { AIModeEditor } from "./ai/AIModeEditor"
 import { AIBackgroundModal, StageBackground } from "./ai/AIBackgroundModal"
 import { AIMediaLibraryModal } from "./ai/AIMediaLibraryModal"
+import { DeleteConfirmModal } from "./DeleteConfirmModal"
 import {
     generateQuizHtml,
     generateFactCardHtml,
@@ -109,6 +110,7 @@ export function StageProperties({
     const [isAddComponentOpen, setIsAddComponentOpen] = useState(false)
     const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false)
     const [isVoiceoverModalOpen, setIsVoiceoverModalOpen] = useState(false)
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
     // AI History State (Max 5 previous changes back = 6 total snapshots)
     const [history, setHistory] = useState<{ title: string; content: any; timestamp: string; label: string }[]>([])
@@ -789,12 +791,14 @@ export function StageProperties({
 
                                     <div className="h-10" />
                                     <div className="pt-4 border-t flex justify-between">
-                                        <Button variant="ghost" className="text-red-500 hover:text-red-700" onClick={() => {
-                                            if (formData && confirm("Are you sure you want to delete this stage?")) {
-                                                onDelete(formData.id)
-                                                onClose()
-                                            }
-                                        }}>Delete Stage</Button>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            className="text-red-400 hover:text-red-300 hover:bg-red-950/30"
+                                            onClick={() => setIsDeleteModalOpen(true)}
+                                        >
+                                            Delete Stage
+                                        </Button>
                                         <Button variant="secondary" onClick={() => {
                                             onDuplicate()
                                             onClose()
@@ -1180,6 +1184,25 @@ export function StageProperties({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Custom Delete Confirmation Modal */}
+            <DeleteConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={() => {
+                    if (formData) {
+                        onDelete(formData.id)
+                        setIsDeleteModalOpen(false)
+                        onClose()
+                    }
+                }}
+                title="Delete Stage"
+                description="Are you sure you want to delete this stage? This action cannot be undone and will permanently remove all its content, components, and triggers."
+                itemTitle={formData?.title || 'Untitled Stage'}
+                itemBadge={trigger?.code}
+                confirmText="Delete Stage"
+                cancelText="Cancel"
+            />
         </Sheet>
     )
 }

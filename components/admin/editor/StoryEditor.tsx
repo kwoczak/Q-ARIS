@@ -27,6 +27,7 @@ import {
 import Link from 'next/link'
 import { LanguageManager } from '../LanguageManager'
 import { StorySettingsDialog } from './StorySettingsDialog'
+import { DeleteConfirmModal } from './DeleteConfirmModal'
 
 function extractStageThumbnail(stage: Stage): string | null {
     if (stage.content?.images && stage.content.images.length > 0) {
@@ -84,6 +85,8 @@ export function StoryEditor({
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [storyTitle, setStoryTitle] = useState(story.title)
+    const [stageToDelete, setStageToDelete] = useState<{ stage: Stage; index: number } | null>(null)
+    const [isDeletingStage, setIsDeletingStage] = useState(false)
 
     const supabase = createClient()
 
@@ -214,13 +217,29 @@ export function StoryEditor({
         }
     }
 
-    const handleDeleteStage = async (stageId: string) => {
-        if (!confirm('Are you sure you want to delete this stage?')) return
-        await supabase.from('stages').delete().eq('id', stageId)
-        setStages((prev) => prev.filter((s) => s.id !== stageId))
-        if (selectedStage?.id === stageId) {
-            setSelectedStage(null)
-            setIsSidebarOpen(false)
+    const handleDeleteStage = (stageId: string) => {
+        const idx = stages.findIndex((s) => s.id === stageId)
+        if (idx !== -1) {
+            setStageToDelete({ stage: stages[idx], index: idx })
+        }
+    }
+
+    const handleConfirmDeleteStage = async () => {
+        if (!stageToDelete) return
+        setIsDeletingStage(true)
+        try {
+            const stageId = stageToDelete.stage.id
+            await supabase.from('stages').delete().eq('id', stageId)
+            setStages((prev) => prev.filter((s) => s.id !== stageId))
+            if (selectedStage?.id === stageId) {
+                setSelectedStage(null)
+                setIsSidebarOpen(false)
+            }
+            setStageToDelete(null)
+        } catch (err) {
+            console.error('Failed to delete stage:', err)
+        } finally {
+            setIsDeletingStage(false)
         }
     }
 
@@ -556,6 +575,22 @@ export function StoryEditor({
                     }
                 }}
                 onDuplicate={() => !readOnly && selectedStage && handleDuplicateStage(selectedStage)}
+            />
+
+            {/* Custom Delete Stage Confirmation Modal */}
+            <DeleteConfirmModal
+                isOpen={Boolean(stageToDelete)}
+                onClose={() => !isDeletingStage && setStageToDelete(null)}
+                onConfirm={handleConfirmDeleteStage}
+                title="Delete Stage"
+                description="Are you sure you want to delete this stage? This action cannot be undone and will permanently remove all its content, interactive components, and associated QR code triggers."
+                itemTitle={stageToDelete?.stage.title || (stageToDelete ? `Stage ${stageToDelete.index + 1}` : undefined)}
+                itemSubtitle={stageToDelete ? `Stage ${String(stageToDelete.index + 1).padStart(2, '0')}` : undefined}
+                itemBadge={stageToDelete ? triggerMap.get(stageToDelete.stage.id)?.code : undefined}
+                itemThumbnail={stageToDelete ? extractStageThumbnail(stageToDelete.stage) : null}
+                confirmText="Delete Stage"
+                cancelText="Cancel"
+                isDeleting={isDeletingStage}
             />
         </div>
     )

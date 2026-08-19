@@ -76,18 +76,18 @@ export function AIInteractivePreview({
         const titleEl = quizEl.querySelector('span.uppercase') as HTMLElement | null
         const pointsEl = quizEl.querySelector('span.font-mono') as HTMLElement | null
         const questionEl = (quizEl.querySelector('h3') || quizEl.querySelector('h2, h4, strong')) as HTMLElement | null
-        const buttonEls = quizEl.querySelectorAll('button')
+        const buttonEls = quizEl.querySelectorAll('button:not(.quaris-inspector-btn)')
 
-        const question = questionEl?.innerText?.trim() || questionEl?.textContent?.trim() || 'Pytanie quizu'
-        const points = pointsEl?.innerText?.trim() || pointsEl?.textContent?.trim() || '+50 PKT'
-        const title = titleEl?.innerText?.trim() || titleEl?.textContent?.trim() || '⚡ Quiz Eksploratora'
+        const question = questionEl?.innerText?.trim() || questionEl?.textContent?.trim() || 'Quiz Question'
+        const points = pointsEl?.innerText?.trim() || pointsEl?.textContent?.trim() || '+50 PTS'
+        const title = titleEl?.innerText?.trim() || titleEl?.textContent?.trim() || '⚡ Explorer Quiz'
 
         const options: string[] = []
         let correctIndex = 0
-        let explanation = 'Oto prawidłowe wyjaśnienie zagadki!'
+        let explanation = 'Here is the explanation for this answer!'
 
         buttonEls.forEach((btn, idx) => {
-            let optText = (btn as HTMLElement).innerText?.trim() || btn.textContent?.trim() || `Opcja ${idx + 1}`
+            let optText = (btn as HTMLElement).innerText?.trim() || btn.textContent?.trim() || `Option ${idx + 1}`
             // Remove leading "A) ", "B) ", "1. "
             optText = optText.replace(/^[A-F0-9][\).\s\-]+\s*/i, '').trim()
             // Remove trailing letter badge if concatenated
@@ -97,10 +97,10 @@ export function AIInteractivePreview({
             options.push(optText)
 
             const onclickAttr = btn.getAttribute('onclick') || ''
-            if (onclickAttr.includes('emerald') || onclickAttr.includes('🎉')) {
+            if (onclickAttr.includes('emerald') || onclickAttr.includes('🎉') || onclickAttr.includes('Correct')) {
                 correctIndex = idx
                 // Try extracting explanation
-                const matchExpl = onclickAttr.match(/Brawo! Prawidłowa odpowiedź!<\/span>\s*([^']+)/i)
+                const matchExpl = onclickAttr.match(/(?:Brawo! Prawidłowa odpowiedź!|Correct! Well done!)<\/span>\s*([^']+)/i)
                 if (matchExpl && matchExpl[1]) {
                     explanation = matchExpl[1].trim()
                 }
@@ -109,7 +109,7 @@ export function AIInteractivePreview({
 
         return {
             question,
-            options: options.length > 0 ? options : ['Opcja A', 'Opcja B', 'Opcja C'],
+            options: options.length > 0 ? options : ['Option A', 'Option B', 'Option C'],
             correctIndex,
             points,
             explanation,
@@ -208,7 +208,7 @@ export function AIInteractivePreview({
             const settingsBtn = document.createElement('button')
             settingsBtn.type = 'button'
             settingsBtn.className = 'quaris-inspector-btn absolute -top-3 right-3 hidden group-hover/quiz:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold shadow-xl border border-purple-300/40 z-30 transition-all cursor-pointer animate-in fade-in zoom-in-95'
-            settingsBtn.innerHTML = `<span>⚙️ Ustawienia Quizu</span>`
+            settingsBtn.innerHTML = `<span>⚙️ Quiz Settings</span>`
             
             settingsBtn.onclick = (e) => {
                 e.stopPropagation()
@@ -233,7 +233,7 @@ export function AIInteractivePreview({
             const editBtn = document.createElement('button')
             editBtn.type = 'button'
             editBtn.className = 'quaris-inspector-btn absolute -top-2.5 right-2 hidden group-hover/card:flex items-center gap-1 px-2 py-0.5 rounded-full bg-neutral-800 hover:bg-purple-600 text-white text-[10px] font-medium shadow-lg border border-white/20 z-30 transition-all cursor-pointer'
-            editBtn.innerHTML = `<span>⚙️ Edytuj</span>`
+            editBtn.innerHTML = `<span>⚙️ Edit</span>`
 
             editBtn.onclick = (e) => {
                 e.stopPropagation()
@@ -247,8 +247,8 @@ export function AIInteractivePreview({
                     type: 'fact_card',
                     data: {
                         icon: iconEl?.textContent?.trim() || '💎',
-                        title: titleEl?.textContent?.trim() || 'Tytuł ciekawostki',
-                        description: descEl?.textContent?.trim() || 'Treść ciekawostki'
+                        title: titleEl?.textContent?.trim() || 'Fact Title',
+                        description: descEl?.textContent?.trim() || 'Fact Description'
                     }
                 })
                 setIsInspectorOpen(true)
@@ -318,7 +318,7 @@ export function AIInteractivePreview({
                 <div className="shrink-0 bg-purple-950/70 border-b border-purple-500/30 px-3 py-1.5 flex items-center justify-between text-[11px] text-purple-200 backdrop-blur-md z-40">
                     <div className="flex items-center gap-1.5">
                         <Pencil className="w-3.5 h-3.5 text-purple-400" />
-                        <span>Interactive Preview • Click text to edit • Hover Quiz for ⚙️ Settings • 2x click image to replace</span>
+                        <span>Interactive Preview • Click text to edit live • Hover Quiz for ⚙️ Settings • Double-click image to replace</span>
                     </div>
                     {hasUnsavedEdits && (
                         <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 animate-pulse">

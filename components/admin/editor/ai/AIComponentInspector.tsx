@@ -53,9 +53,9 @@ interface AIComponentInspectorProps {
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
 
 export function generateQuizHtml(quiz: QuizData): string {
-    const pointsBadge = quiz.points ? quiz.points : '+50 PKT'
-    const titleText = quiz.title || '⚡ Quiz Eksploratora'
-    const explanation = quiz.explanation || 'Oto prawidłowe wyjaśnienie zagadki!'
+    const pointsBadge = quiz.points ? quiz.points : '+50 PTS'
+    const titleText = quiz.title || '⚡ Explorer Quiz'
+    const explanation = quiz.explanation || 'Here is the explanation for this answer!'
 
     const optionsHtml = quiz.options
         .map((opt, idx) => {
@@ -63,8 +63,8 @@ export function generateQuizHtml(quiz: QuizData): string {
             const isCorrect = idx === quiz.correctIndex
 
             const clickHandler = isCorrect
-                ? `const root=this.closest('.space-y-4'); const fb=root.querySelector('.quiz-fb'); fb.classList.remove('hidden'); fb.innerHTML='<span class=\\'text-emerald-400 font-bold\\'>🎉 Brawo! Prawidłowa odpowiedź!</span> ${explanation.replace(/'/g, "\\'")}'; this.classList.add('!bg-emerald-600/30','!border-emerald-500','!text-white'); root.querySelectorAll('button').forEach(b=>b.disabled=true);`
-                : `const root=this.closest('.space-y-4'); const fb=root.querySelector('.quiz-fb'); fb.classList.remove('hidden'); fb.innerHTML='<span class=\\'text-red-400 font-bold\\'>❌ Niestety nie.</span> Prawidłowa odpowiedź to ${LETTERS[quiz.correctIndex]}: ${quiz.options[quiz.correctIndex]?.replace(/'/g, "\\'")}. ${explanation.replace(/'/g, "\\'")}'; this.classList.add('!bg-red-600/30','!border-red-500'); root.querySelectorAll('button').forEach(b=>b.disabled=true);`
+                ? `const root=this.closest('.space-y-4'); const fb=root.querySelector('.quiz-fb'); fb.classList.remove('hidden'); fb.innerHTML='<span class=\\'text-emerald-400 font-bold\\'>🎉 Correct! Well done!</span> ${explanation.replace(/'/g, "\\'")}'; this.classList.add('!bg-emerald-600/30','!border-emerald-500','!text-white'); root.querySelectorAll('button:not(.quaris-inspector-btn)').forEach(b=>b.disabled=true);`
+                : `const root=this.closest('.space-y-4'); const fb=root.querySelector('.quiz-fb'); fb.classList.remove('hidden'); fb.innerHTML='<span class=\\'text-red-400 font-bold\\'>❌ Not quite.</span> The correct answer is ${LETTERS[quiz.correctIndex]}: ${quiz.options[quiz.correctIndex]?.replace(/'/g, "\\'")}. ${explanation.replace(/'/g, "\\'")}'; this.classList.add('!bg-red-600/30','!border-red-500'); root.querySelectorAll('button:not(.quaris-inspector-btn)').forEach(b=>b.disabled=true);`
 
             return `      <button type="button" onclick="${clickHandler}" class="w-full text-left p-3.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-amber-500/50 text-xs font-medium text-neutral-200 transition-all flex items-center justify-between group cursor-pointer">
         <span>${letter}) ${opt}</span>
@@ -107,9 +107,9 @@ export function AIComponentInspector({
     const [question, setQuestion] = useState('')
     const [options, setOptions] = useState<string[]>([])
     const [correctIndex, setCorrectIndex] = useState(0)
-    const [points, setPoints] = useState('+50 PKT')
+    const [points, setPoints] = useState('+50 PTS')
     const [explanation, setExplanation] = useState('')
-    const [quizTitle, setQuizTitle] = useState('⚡ Quiz Eksploratora')
+    const [quizTitle, setQuizTitle] = useState('⚡ Explorer Quiz')
 
     // Fact Card State
     const [factIcon, setFactIcon] = useState('💎')
@@ -122,11 +122,11 @@ export function AIComponentInspector({
         if (componentData.type === 'quiz') {
             const q = componentData.data
             setQuestion(q.question || '')
-            setOptions(q.options && q.options.length > 0 ? [...q.options] : ['Opcja A', 'Opcja B', 'Opcja C'])
+            setOptions(q.options && q.options.length > 0 ? [...q.options] : ['Option A', 'Option B', 'Option C'])
             setCorrectIndex(typeof q.correctIndex === 'number' ? q.correctIndex : 0)
-            setPoints(q.points || '+50 PKT')
+            setPoints(q.points || '+50 PTS')
             setExplanation(q.explanation || '')
-            setQuizTitle(q.title || '⚡ Quiz Eksploratora')
+            setQuizTitle(q.title || '⚡ Explorer Quiz')
         } else if (componentData.type === 'fact_card') {
             const f = componentData.data
             setFactIcon(f.icon || '💎')
@@ -144,7 +144,7 @@ export function AIComponentInspector({
 
     const handleAddOption = () => {
         if (options.length >= 6) return
-        setOptions([...options, `Nowa opcja ${LETTERS[options.length] || options.length + 1}`])
+        setOptions([...options, `New Option ${LETTERS[options.length] || options.length + 1}`])
     }
 
     const handleRemoveOption = (index: number) => {
@@ -196,12 +196,12 @@ export function AIComponentInspector({
                         </div>
                         <div>
                             <DialogTitle className="text-base font-bold text-white">
-                                {componentData.type === 'quiz' ? 'Ustawienia Quizu' : 'Ustawienia Karty Ciekawostki'}
+                                {componentData.type === 'quiz' ? 'Quiz Settings' : 'Fact Card Settings'}
                             </DialogTitle>
                             <DialogDescription className="text-xs text-neutral-400">
                                 {componentData.type === 'quiz'
-                                    ? 'Dostosuj pytanie, liczbę odpowiedzi i poprawny wybór.'
-                                    : 'Zmień ikonę, nagłówek oraz treść karty ciekawostki.'}
+                                    ? 'Customize question, answer options, and correct answer.'
+                                    : 'Customize icon, title, and description.'}
                             </DialogDescription>
                         </div>
                     </div>
@@ -216,24 +216,24 @@ export function AIComponentInspector({
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1">
                                         <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                                        Nagłówek
+                                        Badge / Title
                                     </label>
                                     <Input
                                         value={quizTitle}
                                         onChange={(e) => setQuizTitle(e.target.value)}
-                                        placeholder="⚡ Quiz Eksploratora"
+                                        placeholder="⚡ Explorer Quiz"
                                         className="h-9 bg-neutral-900 border-white/10 text-xs text-white"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1">
                                         <Award className="w-3.5 h-3.5 text-amber-400" />
-                                        Punkty
+                                        Points
                                     </label>
                                     <Input
                                         value={points}
                                         onChange={(e) => setPoints(e.target.value)}
-                                        placeholder="+50 PKT"
+                                        placeholder="+50 PTS"
                                         className="h-9 bg-neutral-900 border-white/10 text-xs text-white"
                                     />
                                 </div>
@@ -243,12 +243,12 @@ export function AIComponentInspector({
                             <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1">
                                     <FileText className="w-3.5 h-3.5 text-purple-400" />
-                                    Treść Pytania
+                                    Question Text
                                 </label>
                                 <Textarea
                                     value={question}
                                     onChange={(e) => setQuestion(e.target.value)}
-                                    placeholder="Wpisz treść pytania..."
+                                    placeholder="Enter question text..."
                                     className="min-h-[75px] bg-neutral-900 border-white/10 text-xs text-white resize-none"
                                 />
                             </div>
@@ -257,9 +257,9 @@ export function AIComponentInspector({
                             <div className="space-y-2 pt-1">
                                 <div className="flex items-center justify-between">
                                     <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
-                                        <span>Odpowiedzi ({options.length})</span>
+                                        <span>Answers ({options.length})</span>
                                         <span className="text-[10px] text-neutral-500 font-normal">
-                                            (Zaznacz poprawną)
+                                            (Select correct)
                                         </span>
                                     </label>
                                     {options.length < 6 && (
@@ -271,7 +271,7 @@ export function AIComponentInspector({
                                             className="h-7 px-2.5 text-xs bg-purple-950/40 border-purple-500/30 text-purple-300 hover:bg-purple-900/60"
                                         >
                                             <Plus className="w-3 h-3 mr-1" />
-                                            Dodaj opcję
+                                            Add Option
                                         </Button>
                                     )}
                                 </div>
@@ -299,7 +299,7 @@ export function AIComponentInspector({
                                                             ? 'bg-emerald-500 text-white border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.4)]'
                                                             : 'bg-white/5 border-white/20 text-neutral-400 hover:border-amber-400 hover:text-white'
                                                     }`}
-                                                    title={isCorrect ? 'Poprawna odpowiedź' : 'Kliknij, aby ustawić jako poprawną'}
+                                                    title={isCorrect ? 'Correct answer' : 'Click to set as correct answer'}
                                                 >
                                                     {letter}
                                                 </button>
@@ -308,7 +308,7 @@ export function AIComponentInspector({
                                                 <Input
                                                     value={opt}
                                                     onChange={(e) => handleOptionChange(idx, e.target.value)}
-                                                    placeholder={`Treść odpowiedzi ${letter}...`}
+                                                    placeholder={`Option ${letter} text...`}
                                                     className="h-8 flex-1 bg-transparent border-0 text-xs text-white focus-visible:ring-0 px-1"
                                                 />
 
@@ -318,7 +318,7 @@ export function AIComponentInspector({
                                                         type="button"
                                                         onClick={() => handleRemoveOption(idx)}
                                                         className="p-1.5 rounded-lg text-neutral-500 hover:text-red-400 hover:bg-red-950/40 transition-colors"
-                                                        title="Usuń tę opcję"
+                                                        title="Delete this option"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
@@ -333,12 +333,12 @@ export function AIComponentInspector({
                             <div className="space-y-1.5 pt-1">
                                 <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1">
                                     <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                                    Wyjaśnienie po odpowiedzi
+                                    Explanation after answering
                                 </label>
                                 <Textarea
                                     value={explanation}
                                     onChange={(e) => setExplanation(e.target.value)}
-                                    placeholder="Wyjaśnienie, dlaczego ta odpowiedź jest prawidłowa..."
+                                    placeholder="Explanation shown after user answers..."
                                     className="min-h-[60px] bg-neutral-900 border-white/10 text-xs text-white resize-none"
                                 />
                             </div>
@@ -348,7 +348,7 @@ export function AIComponentInspector({
                             {/* Fact Card Editor */}
                             <div className="grid grid-cols-[60px_1fr] gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-neutral-300">Ikona</label>
+                                    <label className="text-xs font-semibold text-neutral-300">Icon</label>
                                     <Input
                                         value={factIcon}
                                         onChange={(e) => setFactIcon(e.target.value)}
@@ -357,22 +357,22 @@ export function AIComponentInspector({
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-neutral-300">Tytuł faktu</label>
+                                    <label className="text-xs font-semibold text-neutral-300">Title</label>
                                     <Input
                                         value={factTitle}
                                         onChange={(e) => setFactTitle(e.target.value)}
-                                        placeholder="Tytuł ciekawostki..."
+                                        placeholder="Fact title..."
                                         className="h-9 bg-neutral-900 border-white/10 text-xs text-white"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-neutral-300">Opis ciekawostki</label>
+                                <label className="text-xs font-semibold text-neutral-300">Description</label>
                                 <Textarea
                                     value={factDescription}
                                     onChange={(e) => setFactDescription(e.target.value)}
-                                    placeholder="Opis faktu..."
+                                    placeholder="Description text..."
                                     className="min-h-[100px] bg-neutral-900 border-white/10 text-xs text-white resize-none"
                                 />
                             </div>
@@ -389,7 +389,7 @@ export function AIComponentInspector({
                         onClick={onClose}
                         className="text-xs text-neutral-400 hover:text-white"
                     >
-                        Anuluj
+                        Cancel
                     </Button>
                     <Button
                         type="button"
@@ -398,7 +398,7 @@ export function AIComponentInspector({
                         className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium shadow-lg shadow-purple-900/40"
                     >
                         <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
-                        Zapisz zmiany w komponencie
+                        Save Component Changes
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -79,7 +79,6 @@ export function AIModeEditor({
     const [isEnhancingChatPrompt, setIsEnhancingChatPrompt] = useState(false)
     const [selectedArchetype, setSelectedArchetype] = useState<string>('auto')
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
-    const [isPromptTipsOpen, setIsPromptTipsOpen] = useState(false)
 
     // Media Library Modal State
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false)
@@ -620,7 +619,7 @@ export function AIModeEditor({
                             )}
                         </div>
 
-                        {/* 1. Prompt Input with Archetype Selector, Enhance Button, and Prompt Tips */}
+                        {/* 1. Prompt Input with Archetype Selector and Enhance Button */}
                         <div className="space-y-2">
                             <div className="flex items-center justify-between flex-wrap gap-2">
                                 <Label className="text-xs font-medium text-neutral-300 flex items-center gap-1.5">
@@ -637,7 +636,7 @@ export function AIModeEditor({
                                             }
                                         }}
                                     >
-                                        <SelectTrigger className="h-7 w-[200px] bg-neutral-900/90 border-purple-500/30 text-[11px] text-purple-200 focus:ring-1 focus:ring-purple-500 rounded-lg">
+                                        <SelectTrigger className="h-7 w-[210px] bg-neutral-900/90 border-purple-500/30 text-[11px] text-purple-200 focus:ring-1 focus:ring-purple-500 rounded-lg">
                                             <SelectValue placeholder="Style Archetype" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-neutral-950 border-purple-500/30 text-white max-h-[340px] z-50">
@@ -671,66 +670,8 @@ export function AIModeEditor({
                                             </>
                                         )}
                                     </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsPromptTipsOpen(!isPromptTipsOpen)}
-                                        className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 font-medium px-2 py-1 rounded-md hover:bg-purple-950/60 border border-purple-500/25 transition-all cursor-pointer"
-                                        title="Explore all 15 composition archetypes and tips"
-                                    >
-                                        <Info className="w-3.5 h-3.5" />
-                                        <span>Archetypes & Tips</span>
-                                    </button>
                                 </div>
                             </div>
-
-                            {/* Prompt Tips & 15 Archetypes Modal Card */}
-                            {isPromptTipsOpen && (
-                                <div className="p-4 rounded-xl bg-purple-950/50 border border-purple-500/30 text-xs text-purple-200 space-y-3.5 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <div className="flex items-center justify-between font-semibold text-purple-300 border-b border-white/10 pb-2">
-                                        <span className="flex items-center gap-1.5">
-                                            <Lightbulb className="w-4 h-4 text-amber-400" />
-                                            15 Composition Archetypes (Click to Apply):
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsPromptTipsOpen(false)}
-                                            className="text-purple-400 hover:text-white p-0.5 cursor-pointer"
-                                        >
-                                            <X className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
-
-                                    {/* 15 Archetypes Grid */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-h-[220px] overflow-y-auto pr-1">
-                                        {COMPOSITION_ARCHETYPES.map((arch) => (
-                                            <button
-                                                key={arch.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedArchetype(arch.id)
-                                                    setIsPromptTipsOpen(false)
-                                                    if (prompt.trim()) {
-                                                        handleEnhancePrompt(arch.id)
-                                                    }
-                                                }}
-                                                className={`p-2 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                                                    selectedArchetype === arch.id
-                                                        ? 'bg-purple-900/60 border-purple-400 text-white'
-                                                        : 'bg-neutral-900/70 border-white/10 text-neutral-300 hover:border-purple-500/40 hover:text-white'
-                                                }`}
-                                            >
-                                                <span className="font-bold text-xs text-white flex items-center gap-1">
-                                                    <span>{arch.icon}</span> {arch.name}
-                                                </span>
-                                                <span className="text-[10px] text-neutral-400 mt-1 line-clamp-2">
-                                                    {arch.desc}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
 
                             <Textarea
                                 value={prompt}

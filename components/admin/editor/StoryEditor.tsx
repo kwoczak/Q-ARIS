@@ -62,7 +62,21 @@ const getInitialGraphEdges = (edges: StoryEdge[]): Edge[] => {
 const nodeTypes = {}
 const edgeTypes = {}
 
-export function StoryEditor({ story, initialStages, initialTriggers, initialEdges, readOnly = false }: { story: Story, initialStages: Stage[], initialTriggers: Trigger[], initialEdges: StoryEdge[], readOnly?: boolean }) {
+export function StoryEditor({
+    story,
+    initialStages,
+    initialTriggers,
+    initialEdges,
+    readOnly = false,
+    isAIModeAllowed = false
+}: {
+    story: Story
+    initialStages: Stage[]
+    initialTriggers: Trigger[]
+    initialEdges: StoryEdge[]
+    readOnly?: boolean
+    isAIModeAllowed?: boolean
+}) {
     const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes(initialStages))
     const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialGraphEdges(initialEdges))
     const [stages, setStages] = useState<Stage[]>(initialStages)
@@ -337,6 +351,7 @@ export function StoryEditor({ story, initialStages, initialTriggers, initialEdge
                 onClose={() => setIsSidebarOpen(false)}
                 onSave={handleStageUpdate}
                 readOnly={readOnly}
+                isAIModeAllowed={isAIModeAllowed}
                 onDelete={async (id) => {
                     if (id && !readOnly) {
                         // Delete from DB

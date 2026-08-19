@@ -40,9 +40,9 @@ export async function getSession() {
     return await decrypt(session);
 }
 
-export async function createSession(userId: string, role: string, museumId?: string) {
+export async function createSession(userId: string, role: string, museumId?: string, username?: string) {
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 day
-    const session = await encrypt({ userId, role, museumId, expires });
+    const session = await encrypt({ userId, role, museumId, username, expires });
     const cookieStore = await cookies();
 
     cookieStore.set('session', session, {

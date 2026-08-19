@@ -14,7 +14,7 @@ export type Language = 'en' | 'pl' | 'de' | 'es' | 'fr' | 'it' | 'cs' | 'ua';
 
 export type StageType = 'content' | 'ar_model' | 'quiz' | 'ending'
 
-export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d' | 'comparison' | 'hotspot' | 'quiz' | 'scratchpad' | 'carousel' | 'accordion'
+export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'model_3d' | 'comparison' | 'hotspot' | 'quiz' | 'scratchpad' | 'carousel' | 'accordion' | 'html'
 
 export interface BlockStyle {
     // ... existing BlockStyle ...
@@ -131,6 +131,7 @@ export type StageContent = {
     // New fields
     background?: StageBackground
     blocks?: StageBlock[]
+    custom_html?: string   // AI-generated HTML or custom layout
     arButtonText?: string // Custom text for "View in AR" button
     model_scale?: string // Initial scale of the 3D model (e.g. "0.5 0.5 0.5")
     i18n?: Record<string, any> // Global translations (e.g. { 'pl': { arButtonText: 'Zobacz w AR' } })
@@ -164,4 +165,51 @@ export type StoryEdge = {
     source_stage_id: string
     target_stage_id: string
     created_at: string
+}
+
+// AI Mode Interfaces
+export interface AIAttachment {
+    id: string
+    name: string
+    type: 'image' | 'video' | 'audio' | 'model_3d' | 'other'
+    url: string
+}
+
+export interface AIChatMessage {
+    id: string
+    role: 'user' | 'assistant'
+    content: string
+    timestamp: string
+    tokenUsage?: AITokenUsage
+}
+
+export interface AITokenUsage {
+    promptTokens: number
+    completionTokens: number
+    reasoningTokens?: number
+    totalTokens: number
+    estimatedCostUsd: number
+    modelUsed: string
+}
+
+export interface AIGenerationRequest {
+    stageId?: string
+    prompt: string
+    materials?: AIAttachment[]
+    referenceImageUrl?: string
+    language: string
+    currentContent?: StageContent
+    currentTitle?: string
+    chatHistory?: { role: 'user' | 'assistant'; content: string }[]
+}
+
+export interface AIGenerationResponse {
+    success: boolean
+    error?: string
+    title?: string
+    background?: StageBackground
+    custom_html?: string
+    blocks?: StageBlock[]
+    message?: string
+    tokenUsage?: AITokenUsage
 }

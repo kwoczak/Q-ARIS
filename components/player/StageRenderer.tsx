@@ -22,13 +22,31 @@ import { ScoreDisplay } from "./ScoreDisplay" // Import ScoreDisplay
 import { TypewriterEffect } from "./TypewriterEffect"
 import { ComparisonContent, HotspotContent, QuizContent, ScratchContent, CarouselItem, AccordionItem } from "@/types/schema"
 
+import { AIInteractivePreview } from "@/components/admin/editor/ai/AIInteractivePreview"
+
 // Dynamically import ModelViewer to avoid SSR hydration mismatch
 const ModelViewer = dynamic(() => import('./ModelViewerWrapper'), {
     ssr: false,
     loading: () => <div className="w-full h-full bg-neutral-100/10 animate-pulse rounded-xl" />
 })
 
-export function StageRenderer({ stage, isPreview = false, language = 'en', onChangeLanguage, isGamified = true, isPaused = false }: { stage: Stage, isPreview?: boolean, language?: string, onChangeLanguage?: () => void, isGamified?: boolean, isPaused?: boolean }) {
+export function StageRenderer({
+    stage,
+    isPreview = false,
+    language = 'en',
+    onChangeLanguage,
+    isGamified = true,
+    isPaused = false,
+    onCustomHtmlChange
+}: {
+    stage: Stage
+    isPreview?: boolean
+    language?: string
+    onChangeLanguage?: () => void
+    isGamified?: boolean
+    isPaused?: boolean
+    onCustomHtmlChange?: (newHtml: string) => void
+}) {
     const containerRef = useRef<HTMLDivElement>(null)
 
     // Pause all media when isPaused is true
@@ -165,7 +183,23 @@ export function StageRenderer({ stage, isPreview = false, language = 'en', onCha
             {/* Score Display (Always visible if gamified) */}
             {isGamified && <ScoreDisplay />}
 
-            {hasBlocks ? (
+            {content.custom_html ? (
+                // --- AI-GENERATED CUSTOM HTML LAYOUT ---
+                isPreview && onCustomHtmlChange ? (
+                    <AIInteractivePreview
+                        html={content.custom_html}
+                        onHtmlChange={onCustomHtmlChange}
+                        isEditable={true}
+                    />
+                ) : (
+                    <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden touch-pan-y">
+                        <div
+                            className="w-full min-h-full pb-28 text-white [&_img]:max-w-full [&_video]:max-w-full [&_audio]:max-w-full"
+                            dangerouslySetInnerHTML={{ __html: content.custom_html }}
+                        />
+                    </div>
+                )
+            ) : hasBlocks ? (
                 // --- NEW BLOCK RENDERER ---
                 <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden touch-pan-y">
                     <div className="flex flex-col min-h-full pb-32">
@@ -311,6 +345,23 @@ function BlockRenderer({ block, isGamified = true, isPreview = false }: { block:
     const fontSize = fontSizeMap[block.styles?.fontSize || 'base'] || block.styles?.fontSize || '1rem'
 
     switch (block.type) {
+        case 'html':
+            if (!block.content) {
+                if (isPreview) return (
+                    <div style={style} className="w-full p-4 bg-neutral-800/30 flex flex-col items-center justify-center text-neutral-500 rounded-lg border border-dashed border-white/20 text-xs">
+                        <span className="font-bold mb-1">HTML Block</span>
+                        No HTML code provided
+                    </div>
+                )
+                return null
+            }
+            return (
+                <div
+                    style={style}
+                    className="w-full text-white [&_img]:max-w-full [&_video]:max-w-full [&_audio]:max-w-full"
+                    dangerouslySetInnerHTML={{ __html: block.content as string }}
+                />
+            )
         case 'text':
             if (!block.content) {
                 if (isPreview) return (

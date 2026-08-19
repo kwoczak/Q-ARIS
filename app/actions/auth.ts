@@ -51,7 +51,7 @@ export async function login(prevState: any, formData: FormData) {
     }
 
     // 3. Create Session
-    await createSession(user.id, user.role, user.museum_id);
+    await createSession(user.id, user.role, user.museum_id, user.username);
 
     // 4. Redirect based on role
     if (user.role === 'admin') {

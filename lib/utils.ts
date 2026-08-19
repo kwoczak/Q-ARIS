@@ -7,18 +7,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getStableBaseUrl() {
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_BASE_URL || 'https://q-aris.vercel.app'
+  // Always prioritize the configured public domain (e.g. https://q-aris.vercel.app)
+  // so QR codes scanned by physical phones can always connect.
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL
   }
 
-  if (window.location.hostname === 'localhost') {
-    // Return localhost origin, e.g. http://localhost:3000
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
     return window.location.origin
   }
 
-// For all other environments (preview, production), use the configured stable URL
-  // or fallback to production if not set.
-  return process.env.NEXT_PUBLIC_BASE_URL || 'https://q-aris.vercel.app'
+  return 'https://q-aris.vercel.app'
 }
 
 export function generateId() {

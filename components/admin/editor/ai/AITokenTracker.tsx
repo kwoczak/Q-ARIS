@@ -1,8 +1,13 @@
-'use client'
-
 import React from 'react'
 import { AITokenUsage } from '@/types/schema'
-import { Coins, Cpu, ArrowDownLeft, ArrowUpRight, Sparkles, Activity } from 'lucide-react'
+import { Coins, Cpu, ArrowDownLeft, ArrowUpRight, Undo2, Redo2, History } from 'lucide-react'
+
+export interface StageHistorySnapshot {
+    title: string
+    content: any
+    timestamp: string
+    label: string
+}
 
 interface AITokenTrackerProps {
     sessionUsage: {
@@ -14,20 +19,82 @@ interface AITokenTrackerProps {
     lastUsage?: AITokenUsage
     isGenerating?: boolean
     modelName?: string
+    canUndo?: boolean
+    canRedo?: boolean
+    onUndo?: () => void
+    onRedo?: () => void
+    undoCount?: number
+    redoCount?: number
+    historySnapshots?: StageHistorySnapshot[]
+    currentHistoryIndex?: number
 }
 
 export function AITokenTracker({
     sessionUsage,
     lastUsage,
     isGenerating = false,
-    modelName = 'OpenAI 5.6 Terra (Reasoning Medium)'
+    modelName = 'OpenAI 5.6 Terra (Reasoning Medium)',
+    canUndo = false,
+    canRedo = false,
+    onUndo,
+    onRedo,
+    undoCount = 0,
+    redoCount = 0,
+    historySnapshots,
+    currentHistoryIndex
 }: AITokenTrackerProps) {
     const formattedCost = `$${sessionUsage.costUsd < 0.01 && sessionUsage.costUsd > 0 
         ? sessionUsage.costUsd.toFixed(4) 
         : sessionUsage.costUsd.toFixed(3)}`
 
     return (
-        <div className="w-full bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 border-b border-purple-500/20 px-4 py-2 flex flex-wrap items-center justify-end gap-3 text-xs text-neutral-300 shadow-sm animate-in fade-in duration-300">
+        <div className="w-full bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 border-b border-purple-500/20 px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-300 shadow-sm animate-in fade-in duration-300">
+            {/* Left side: Undo & Redo controls */}
+            <div className="flex items-center gap-2">
+                <div className="flex items-center bg-neutral-900/90 rounded-lg border border-white/10 p-0.5 shadow-sm">
+                    <button
+                        type="button"
+                        onClick={onUndo}
+                        disabled={!canUndo || isGenerating}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer"
+                        title={canUndo ? `Undo last change (Cmd+Z) • ${undoCount} change${undoCount === 1 ? '' : 's'} back` : 'No changes to undo'}
+                    >
+                        <Undo2 className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Undo</span>
+                        {undoCount > 0 && (
+                            <span className="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.2 rounded font-mono font-bold">
+                                {undoCount}
+                            </span>
+                        )}
+                    </button>
+
+                    <div className="w-px h-3.5 bg-white/10 my-auto" />
+
+                    <button
+                        type="button"
+                        onClick={onRedo}
+                        disabled={!canRedo || isGenerating}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer"
+                        title={canRedo ? `Redo change (Cmd+Shift+Z) • ${redoCount} redo${redoCount === 1 ? '' : 's'} available` : 'No changes to redo'}
+                    >
+                        <span>Redo</span>
+                        <Redo2 className="w-3.5 h-3.5 text-purple-400" />
+                        {redoCount > 0 && (
+                            <span className="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.2 rounded font-mono font-bold">
+                                {redoCount}
+                            </span>
+                        )}
+                    </button>
+                </div>
+
+                {historySnapshots && historySnapshots.length > 1 && (
+                    <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-neutral-500 font-mono">
+                        <History className="w-3 h-3 text-neutral-600" />
+                        <span>Step {(currentHistoryIndex ?? 0) + 1}/{historySnapshots.length} (max 5 back)</span>
+                    </div>
+                )}
+            </div>
+
             {/* Right side: Live Token Stats & Cost */}
             <div className="flex items-center gap-4 flex-wrap ml-auto">
                 {/* Tokens IN */}

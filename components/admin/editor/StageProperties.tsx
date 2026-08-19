@@ -90,11 +90,23 @@ export function StageProperties({
         costUsd: 0
     })
 
+    // AI History State (Max 5 previous changes back = 6 total snapshots)
+    const [history, setHistory] = useState<{ title: string; content: any; timestamp: string; label: string }[]>([])
+    const [historyIndex, setHistoryIndex] = useState<number>(0)
+
     const supabase = createClient()
 
     useEffect(() => {
         if (stage) {
             setFormData({ ...stage })
+            const initialSnapshot = {
+                title: stage.title,
+                content: JSON.parse(JSON.stringify(stage.content || {})),
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                label: 'Initial version'
+            }
+            setHistory([initialSnapshot])
+            setHistoryIndex(0)
             fetchTrigger(stage.id)
             // Auto open AI mode if stage was previously created with custom_html and AI mode is allowed
             if (stage.content?.custom_html && isAIModeAllowed) {
@@ -106,6 +118,8 @@ export function StageProperties({
             setTrigger(null)
             setQrCodeDataUrl(null)
             setIsAIMode(false)
+            setHistory([])
+            setHistoryIndex(0)
         }
     }, [stage, isAIModeAllowed])
 
@@ -114,6 +128,101 @@ export function StageProperties({
             if (ip) setLocalNetworkIp(ip)
         })
     }, [])
+
+    const handleUpdateStage = (updatedStage: Stage, label: string = 'AI Update') => {
+        setFormData(updatedStage)
+
+        const newSnapshot = {
+            title: updatedStage.title,
+            content: JSON.parse(JSON.stringify(updatedStage.content || {})),
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            label
+        }
+
+        setHistory(prev => {
+            const currentSlice = prev.slice(0, historyIndex + 1)
+            const last = currentSlice[currentSlice.length - 1]
+            if (
+                last &&
+                last.title === newSnapshot.title &&
+                JSON.stringify(last.content) === JSON.stringify(newSnapshot.content)
+            ) {
+                return prev
+            }
+
+            const next = [...currentSlice, newSnapshot]
+            // Keep maximum 6 items: current state + 5 changes back
+            if (next.length > 6) {
+                return next.slice(next.length - 6)
+            }
+            return next
+        })
+
+        setHistoryIndex(prev => {
+            const nextIndex = Math.min(historyIndex + 1, 5)
+            return nextIndex
+        })
+    }
+
+    const handleUndo = () => {
+        if (historyIndex <= 0 || !formData) return
+
+        const targetIndex = historyIndex - 1
+        const targetSnapshot = history[targetIndex]
+        if (!targetSnapshot) return
+
+        setHistoryIndex(targetIndex)
+        setFormData({
+            ...formData,
+            title: targetSnapshot.title,
+            content: JSON.parse(JSON.stringify(targetSnapshot.content))
+        })
+    }
+
+    const handleRedo = () => {
+        if (historyIndex >= history.length - 1 || !formData) return
+
+        const targetIndex = historyIndex + 1
+        const targetSnapshot = history[targetIndex]
+        if (!targetSnapshot) return
+
+        setHistoryIndex(targetIndex)
+        setFormData({
+            ...formData,
+            title: targetSnapshot.title,
+            content: JSON.parse(JSON.stringify(targetSnapshot.content))
+        })
+    }
+
+    // Global keyboard shortcuts for Undo / Redo in AI Mode
+    useEffect(() => {
+        if (!isAIMode) return
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement
+            const isTyping = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+
+            // Undo: Cmd+Z or Ctrl+Z
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+                if (!isTyping) {
+                    e.preventDefault()
+                    handleUndo()
+                }
+            }
+
+            // Redo: Cmd+Shift+Z or Ctrl+Shift+Z or Ctrl+Y
+            if (((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'z') ||
+                ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y')) {
+                if (!isTyping) {
+                    e.preventDefault()
+                    handleRedo()
+                }
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [isAIMode, historyIndex, history, formData])
 
     const handleTokenUsageUpdate = (usage: AITokenUsage) => {
         setLastTokenUsage(usage)
@@ -182,13 +291,14 @@ export function StageProperties({
 
     const handleContentChange = (key: keyof StageContent, value: any) => {
         if (!formData || readOnly) return
-        setFormData({
+        const updatedStage: Stage = {
             ...formData,
             content: {
                 ...formData.content,
                 [key]: value
             }
-        })
+        }
+        handleUpdateStage(updatedStage, `Edit ${key}`)
     }
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -260,6 +370,14 @@ export function StageProperties({
                         sessionUsage={sessionUsage}
                         lastUsage={lastTokenUsage}
                         isGenerating={isGenerating}
+                        canUndo={historyIndex > 0}
+                        canRedo={historyIndex < history.length - 1}
+                        onUndo={handleUndo}
+                        onRedo={handleRedo}
+                        undoCount={historyIndex}
+                        redoCount={Math.max(0, history.length - 1 - historyIndex)}
+                        historySnapshots={history}
+                        currentHistoryIndex={historyIndex}
                     />
                 )}
 
@@ -271,7 +389,7 @@ export function StageProperties({
                             <div className="h-full overflow-y-auto border-r border-white/10 bg-neutral-950">
                                 <AIModeEditor
                                     stage={formData}
-                                    onUpdateStage={(updatedStage) => setFormData(updatedStage)}
+                                    onUpdateStage={handleUpdateStage}
                                     onSwitchToManual={() => setIsAIMode(false)}
                                     onTokenUsageUpdate={handleTokenUsageUpdate}
                                     isGenerating={isGenerating}

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { Stage, StageContent, AIAttachment, AIChatMessage, AITokenUsage } from '@/types/schema'
-import { generateStageWithAI, enhancePromptWithAI, COMPOSITION_ARCHETYPES } from '@/app/actions/ai-generator'
+import { generateStageWithAI, enhancePromptWithAI } from '@/app/actions/ai-generator'
+import { COMPOSITION_ARCHETYPES } from '@/lib/ai-archetypes'
 import { uploadAsset } from '@/lib/supabase/storage'
 import { AIProgressBar } from './AIProgressBar'
 import { AIMediaLibraryModal } from './AIMediaLibraryModal'

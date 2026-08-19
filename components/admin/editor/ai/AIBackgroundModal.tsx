@@ -32,38 +32,50 @@ const GRADIENT_PRESETS = [
     {
         name: 'Deep Obsidian',
         desc: 'Dark neutral & graphite tone',
-        value: 'from-neutral-950 via-neutral-900 to-black',
+        value: 'linear-gradient(180deg, #0a0a0a 0%, #171717 50%, #000000 100%)',
         previewCss: 'linear-gradient(to bottom, #0a0a0a, #171717, #000000)'
+    },
+    {
+        name: 'Deep Space Blue',
+        desc: 'Midnight navy & starry sapphire',
+        value: 'linear-gradient(180deg, #020617 0%, #0f172a 50%, #020617 100%)',
+        previewCss: 'linear-gradient(to bottom, #020617, #0f172a, #020617)'
     },
     {
         name: 'Mars Crimson',
         desc: 'Volcanic red & rust heat',
-        value: 'from-stone-950 via-red-950/40 to-black',
+        value: 'linear-gradient(180deg, #0c0a09 0%, #450a0a 50%, #000000 100%)',
         previewCss: 'linear-gradient(to bottom, #0c0a09, #450a0a, #000000)'
     },
     {
         name: 'Cosmic Violet',
         desc: 'Ultraviolet & deep indigo galaxy',
-        value: 'from-slate-950 via-purple-950/40 to-black',
+        value: 'linear-gradient(180deg, #020617 0%, #3b0764 50%, #000000 100%)',
         previewCss: 'linear-gradient(to bottom, #020617, #3b0764, #000000)'
     },
     {
         name: 'Ocean Cyan',
         desc: 'Bioluminescent deep abyss',
-        value: 'from-slate-950 via-cyan-950/40 to-black',
+        value: 'linear-gradient(180deg, #020617 0%, #083344 50%, #000000 100%)',
         previewCss: 'linear-gradient(to bottom, #020617, #083344, #000000)'
     },
     {
         name: 'Gold Velvet',
         desc: 'Luxury royal amber & bronze',
-        value: 'from-neutral-950 via-amber-950/30 to-black',
+        value: 'linear-gradient(180deg, #0a0a0a 0%, #451a03 50%, #000000 100%)',
         previewCss: 'linear-gradient(to bottom, #0a0a0a, #451a03, #000000)'
     },
     {
         name: 'Emerald Night',
         desc: 'Deep rainforest botanical glow',
-        value: 'from-neutral-950 via-emerald-950/30 to-black',
+        value: 'linear-gradient(180deg, #0a0a0a 0%, #022c22 50%, #000000 100%)',
         previewCss: 'linear-gradient(to bottom, #0a0a0a, #022c22, #000000)'
+    },
+    {
+        name: 'Pure OLED Black',
+        desc: 'Pitch dark for maximum contrast',
+        value: 'linear-gradient(180deg, #000000 0%, #050505 100%)',
+        previewCss: 'linear-gradient(to bottom, #000000, #050505)'
     }
 ]
 

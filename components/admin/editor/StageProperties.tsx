@@ -829,7 +829,7 @@ export function StageProperties({
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-6 bg-black z-50 rounded-b-xl pointer-events-none" />
 
                             {/* Screen Content */}
-                            <div className="w-full h-full bg-white overflow-hidden scrollbar-hide">
+                            <div className="w-full h-full bg-black overflow-hidden scrollbar-hide">
                                 {/* Only render if we have data to prevent errors */}
                                 {formData && (
                                     <div className="stage-renderer-preview-wrapper h-full w-full overflow-hidden">

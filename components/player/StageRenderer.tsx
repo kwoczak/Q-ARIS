@@ -117,19 +117,35 @@ export function StageRenderer({
     const bgStyle: React.CSSProperties = {}
     let isDarkBackground = true
 
-    if (content.background) {
+    if (content.background && content.background.value) {
         if (content.background.type === 'color') {
             bgStyle.backgroundColor = content.background.value
             if (content.background.value === '#ffffff' || content.background.value.toLowerCase() === '#fff') {
                 isDarkBackground = false
             }
         } else if (content.background.type === 'gradient') {
-            bgStyle.background = content.background.value
+            const val = content.background.value.trim()
+            if (val.startsWith('linear-gradient') || val.startsWith('radial-gradient')) {
+                bgStyle.background = val
+            } else if (val.includes('from-') || val.includes('via-')) {
+                // Backward compatibility mapping for old Tailwind class string presets
+                if (val.includes('red')) bgStyle.background = 'linear-gradient(180deg, #0c0a09 0%, #450a0a 50%, #000000 100%)'
+                else if (val.includes('purple')) bgStyle.background = 'linear-gradient(180deg, #020617 0%, #3b0764 50%, #000000 100%)'
+                else if (val.includes('cyan')) bgStyle.background = 'linear-gradient(180deg, #020617 0%, #083344 50%, #000000 100%)'
+                else if (val.includes('amber')) bgStyle.background = 'linear-gradient(180deg, #0a0a0a 0%, #451a03 50%, #000000 100%)'
+                else if (val.includes('emerald')) bgStyle.background = 'linear-gradient(180deg, #0a0a0a 0%, #022c22 50%, #000000 100%)'
+                else bgStyle.background = 'linear-gradient(180deg, #0a0a0a 0%, #171717 50%, #000000 100%)'
+            } else {
+                bgStyle.background = val
+            }
         } else if (content.background.type === 'image') {
             bgStyle.backgroundImage = `url(${content.background.value})`
             bgStyle.backgroundSize = 'cover'
             bgStyle.backgroundPosition = 'center'
+            bgStyle.backgroundRepeat = 'no-repeat'
         }
+    } else {
+        bgStyle.background = 'linear-gradient(180deg, #0a0a0a 0%, #171717 50%, #000000 100%)'
     }
 
 

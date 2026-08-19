@@ -658,30 +658,55 @@ export function AIComponentInspector({
                     {/* 3. SCRATCH CARD EDITOR */}
                     {componentData.type === 'scratch_card' && (
                         <div className="space-y-4">
-                            {/* Hidden Image */}
+                            {/* Hidden Image Card */}
                             <div className="space-y-1.5">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-xs font-semibold text-neutral-300">Hidden Image (Under Foil)</label>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            setMediaModalCategory('image')
-                                            setIsMediaModalOpen(true)
-                                        }}
-                                        className="h-7 text-xs bg-neutral-900 border-white/10"
-                                    >
-                                        <ImageIcon className="w-3.5 h-3.5 mr-1" />
-                                        Pick from Library
-                                    </Button>
+                                <label className="text-xs font-semibold text-neutral-300">Hidden Image (Under Foil)</label>
+                                <div className="p-3 rounded-2xl bg-neutral-900/80 border border-white/10 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-black/60 border border-white/15 shrink-0 flex items-center justify-center">
+                                            {scratchHiddenImg ? (
+                                                <img src={scratchHiddenImg} alt="Hidden preview" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <ImageIcon className="w-5 h-5 text-neutral-600" />
+                                            )}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-medium text-white truncate">
+                                                {scratchHiddenImg ? 'Image Selected' : 'No image selected'}
+                                            </p>
+                                            <p className="text-[11px] text-neutral-400 truncate">
+                                                {scratchHiddenImg ? 'Revealed when scratched' : 'Pick a secret photo from library'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={() => {
+                                                setMediaModalCategory('image')
+                                                setIsMediaModalOpen(true)
+                                            }}
+                                            className="h-8 text-xs bg-purple-600 hover:bg-purple-500 text-white font-medium shadow-md flex items-center gap-1.5 cursor-pointer"
+                                        >
+                                            <ImageIcon className="w-3.5 h-3.5" />
+                                            {scratchHiddenImg ? 'Change' : 'Pick from Library'}
+                                        </Button>
+                                        {scratchHiddenImg && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setScratchHiddenImg('')}
+                                                className="h-8 w-8 p-0 text-neutral-400 hover:text-red-400 cursor-pointer"
+                                                title="Remove image"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
-                                <Input
-                                    value={scratchHiddenImg}
-                                    onChange={(e) => setScratchHiddenImg(e.target.value)}
-                                    placeholder="https://... (Hidden image URL)"
-                                    className="h-9 bg-neutral-900 border-white/10 text-xs text-white"
-                                />
                             </div>
 
                             {/* Hidden Title & Points */}
@@ -746,28 +771,49 @@ export function AIComponentInspector({
                     {componentData.type === 'audio' && (
                         <div className="space-y-4">
                             <div className="space-y-1.5">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-xs font-semibold text-neutral-300">Audio Track URL</label>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            setMediaModalCategory('audio')
-                                            setIsMediaModalOpen(true)
-                                        }}
-                                        className="h-7 text-xs bg-neutral-900 border-white/10"
-                                    >
-                                        <Music className="w-3.5 h-3.5 mr-1" />
-                                        Pick Audio
-                                    </Button>
+                                <label className="text-xs font-semibold text-neutral-300">Audio Track</label>
+                                <div className="p-3 rounded-2xl bg-neutral-900/80 border border-white/10 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 shrink-0 flex items-center justify-center text-purple-400">
+                                            <Music className="w-5 h-5" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-medium text-white truncate">
+                                                {audioUrl ? 'Audio File Attached' : 'No audio attached'}
+                                            </p>
+                                            <p className="text-[11px] text-neutral-400 truncate">
+                                                {audioUrl ? 'Ready for playback' : 'Select an audio track / voiceover'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={() => {
+                                                setMediaModalCategory('audio')
+                                                setIsMediaModalOpen(true)
+                                            }}
+                                            className="h-8 text-xs bg-purple-600 hover:bg-purple-500 text-white font-medium shadow-md flex items-center gap-1.5 cursor-pointer"
+                                        >
+                                            <Music className="w-3.5 h-3.5" />
+                                            {audioUrl ? 'Change' : 'Pick from Library'}
+                                        </Button>
+                                        {audioUrl && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setAudioUrl('')}
+                                                className="h-8 w-8 p-0 text-neutral-400 hover:text-red-400 cursor-pointer"
+                                                title="Remove audio"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
-                                <Input
-                                    value={audioUrl}
-                                    onChange={(e) => setAudioUrl(e.target.value)}
-                                    placeholder="https://... (Audio MP3/WAV URL)"
-                                    className="h-9 bg-neutral-900 border-white/10 text-xs text-white"
-                                />
                             </div>
 
                             <div className="space-y-1.5">

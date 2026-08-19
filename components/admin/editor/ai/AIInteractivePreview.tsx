@@ -494,13 +494,13 @@ export function AIInteractivePreview({
             el.classList.add('relative', 'group/component')
 
             const bar = document.createElement('div')
-            bar.className = 'quaris-inspector-bar absolute -top-2.5 right-2 hidden group-hover/component:flex items-center gap-1.5 z-40 animate-in fade-in zoom-in-95 pointer-events-auto select-none'
+            bar.className = 'quaris-inspector-bar absolute top-2 right-2 hidden group-hover/component:flex items-center gap-1.5 z-50 animate-in fade-in zoom-in-95 pointer-events-auto select-none'
 
             // Edit button (if interactive inspector exists)
             if (onEdit && title) {
                 const editBtn = document.createElement('button')
                 editBtn.type = 'button'
-                editBtn.className = 'quaris-inspector-btn flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold shadow-xl border border-purple-300/40 transition-all cursor-pointer'
+                editBtn.className = 'quaris-inspector-btn flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold shadow-2xl border border-purple-300/50 transition-all cursor-pointer backdrop-blur-md'
                 editBtn.innerHTML = `<span>⚙️ ${title}</span>`
                 editBtn.onclick = (e) => {
                     e.stopPropagation()
@@ -513,7 +513,7 @@ export function AIInteractivePreview({
             // Delete button (Always available on hover for every component/block)
             const deleteBtn = document.createElement('button')
             deleteBtn.type = 'button'
-            deleteBtn.className = 'quaris-inspector-btn flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-600/90 hover:bg-red-500 text-white text-[11px] font-semibold shadow-xl border border-red-300/40 transition-all cursor-pointer backdrop-blur-md'
+            deleteBtn.className = 'quaris-inspector-btn flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-600/90 hover:bg-red-500 text-white text-[11px] font-semibold shadow-2xl border border-red-300/50 transition-all cursor-pointer backdrop-blur-md'
             deleteBtn.innerHTML = `<span>🗑️ Delete</span>`
             deleteBtn.title = 'Delete this component'
             deleteBtn.onclick = (e) => {

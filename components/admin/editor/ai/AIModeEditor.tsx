@@ -1,11 +1,9 @@
 import React, { useState, useRef } from 'react'
 import { Stage, StageContent, AIAttachment, AIChatMessage, AITokenUsage } from '@/types/schema'
 import { generateStageWithAI, enhancePromptWithAI } from '@/app/actions/ai-generator'
-import { COMPOSITION_ARCHETYPES } from '@/lib/ai-archetypes'
 import { uploadAsset } from '@/lib/supabase/storage'
 import { AIProgressBar } from './AIProgressBar'
 import { AIMediaLibraryModal } from './AIMediaLibraryModal'
-import { AIArchetypeModal } from './AIArchetypeModal'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -78,8 +76,6 @@ export function AIModeEditor({
     const [isUploadingRef, setIsUploadingRef] = useState(false)
     const [isEnhancingPrompt, setIsEnhancingPrompt] = useState(false)
     const [isEnhancingChatPrompt, setIsEnhancingChatPrompt] = useState(false)
-    const [selectedArchetype, setSelectedArchetype] = useState<string>('auto')
-    const [isArchetypeModalOpen, setIsArchetypeModalOpen] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
     // Media Library Modal State
@@ -306,19 +302,16 @@ export function AIModeEditor({
     }
 
     // Enhance Prompt with AI (Expand brief into rich detailed prompt)
-    const handleEnhancePrompt = async (forcedArchetype?: string) => {
+    const handleEnhancePrompt = async () => {
         if (!prompt.trim() || isEnhancingPrompt) return
 
         setIsEnhancingPrompt(true)
         setErrorMessage(null)
 
-        const archToUse = forcedArchetype || selectedArchetype
-
         try {
             const res = await enhancePromptWithAI({
                 prompt,
-                language,
-                archetype: archToUse
+                language
             })
 
             if (res.success && res.enhancedPrompt) {
@@ -621,55 +614,31 @@ export function AIModeEditor({
                             )}
                         </div>
 
-                        {/* 1. Prompt Input with Archetype Studio Button and Enhance Button */}
+                        {/* 1. Prompt Input with Enhance Button */}
                         <div className="space-y-2">
                             <div className="flex items-center justify-between flex-wrap gap-2">
                                 <Label className="text-xs font-medium text-neutral-300 flex items-center gap-1.5">
                                     <span>1. Stage Description (Prompt)</span> <span className="text-purple-400">*</span>
                                 </Label>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    {/* 15 Composition Archetypes Studio Preview Trigger */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsArchetypeModalOpen(true)}
-                                        className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-neutral-900/90 border border-purple-500/30 hover:border-purple-500/60 hover:bg-purple-950/40 text-purple-200 text-xs font-semibold shadow-sm transition-all cursor-pointer group"
-                                        title="Open Preset Studio to preview component blueprints, flow, and atmospheric mood"
-                                    >
-                                        <span className="text-sm">
-                                            {selectedArchetype === 'auto'
-                                                ? '🎲'
-                                                : COMPOSITION_ARCHETYPES.find(a => a.id === selectedArchetype)?.icon || '🎨'}
-                                        </span>
-                                        <span className="font-semibold text-white">
-                                            {selectedArchetype === 'auto'
-                                                ? 'Auto-Detect Preset'
-                                                : COMPOSITION_ARCHETYPES.find(a => a.id === selectedArchetype)?.name || selectedArchetype}
-                                        </span>
-                                        <span className="text-[10px] text-purple-400 group-hover:text-purple-300 font-mono ml-0.5 bg-purple-950/70 px-1.5 py-0.5 rounded border border-purple-500/20">
-                                            Preview ▾
-                                        </span>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        disabled={isEnhancingPrompt || !prompt.trim()}
-                                        onClick={() => handleEnhancePrompt()}
-                                        className="inline-flex items-center gap-1.5 text-[11px] text-amber-300 hover:text-amber-200 font-semibold px-2.5 py-1 rounded-md bg-gradient-to-r from-amber-950/60 to-amber-900/40 hover:from-amber-950/90 hover:to-amber-900/70 border border-amber-500/40 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                                        title="AI will expand and enrich your prompt using the selected composition archetype"
-                                    >
-                                        {isEnhancingPrompt ? (
-                                            <>
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                                                <span>Enhancing...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                                                <span>Enhance Prompt</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    disabled={isEnhancingPrompt || !prompt.trim()}
+                                    onClick={handleEnhancePrompt}
+                                    className="inline-flex items-center gap-1.5 text-[11px] text-amber-300 hover:text-amber-200 font-semibold px-2.5 py-1 rounded-md bg-gradient-to-r from-amber-950/60 to-amber-900/40 hover:from-amber-950/90 hover:to-amber-900/70 border border-amber-500/40 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                                    title="AI will automatically synthesize the optimal layout archetype and enrich your prompt"
+                                >
+                                    {isEnhancingPrompt ? (
+                                        <>
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                                            <span>Enhancing...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                                            <span>Enhance my prompt</span>
+                                        </>
+                                    )}
+                                </button>
                             </div>
 
                             <Textarea
@@ -1283,19 +1252,6 @@ export function AIModeEditor({
                 onSelectAssets={handleAttachMediaAssets}
                 initialCategory={mediaModalCategory}
                 selectedUrls={materials.map(m => m.url)}
-            />
-
-            {/* Archetype Presets Studio Modal */}
-            <AIArchetypeModal
-                isOpen={isArchetypeModalOpen}
-                onClose={() => setIsArchetypeModalOpen(false)}
-                selectedArchetypeId={selectedArchetype}
-                onSelectArchetype={(newArchId) => setSelectedArchetype(newArchId)}
-                onApplyAndEnhance={(newArchId) => {
-                    setSelectedArchetype(newArchId)
-                    handleEnhancePrompt(newArchId)
-                }}
-                hasPromptText={Boolean(prompt.trim())}
             />
         </div>
     )

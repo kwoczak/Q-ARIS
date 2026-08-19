@@ -5,6 +5,7 @@ import { Stage, StageContent, AIAttachment, AIChatMessage, AITokenUsage } from '
 import { generateStageWithAI } from '@/app/actions/ai-generator'
 import { uploadAsset } from '@/lib/supabase/storage'
 import { AIProgressBar } from './AIProgressBar'
+import { AIMediaLibraryModal } from './AIMediaLibraryModal'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -30,7 +31,9 @@ import {
     QrCode,
     Info,
     Lightbulb,
-    HelpCircle
+    HelpCircle,
+    LayoutGrid,
+    Plus
 } from 'lucide-react'
 
 interface AIModeEditorProps {
@@ -78,6 +81,10 @@ export function AIModeEditor({
     const [isUploadingRef, setIsUploadingRef] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [isPromptTipsOpen, setIsPromptTipsOpen] = useState(false)
+
+    // Media Library Modal State
+    const [isMediaModalOpen, setIsMediaModalOpen] = useState(false)
+    const [mediaModalCategory, setMediaModalCategory] = useState<'all' | 'image' | 'video' | 'audio' | 'model_3d'>('all')
 
     // Chat / Iteration State
     const [chatHistory, setChatHistory] = useState<AIChatMessage[]>([])
@@ -314,6 +321,19 @@ export function AIModeEditor({
         }
     }
 
+    const imageMaterials = materials.filter(m => m.type === 'image')
+    const videoMaterials = materials.filter(m => m.type === 'video')
+    const audioMaterials = materials.filter(m => m.type === 'audio')
+    const modelMaterials = materials.filter(m => m.type === 'model_3d')
+
+    const handleAttachMediaAssets = (newAssets: AIAttachment[]) => {
+        setMaterials(prev => {
+            const existingUrls = new Set(prev.map(m => m.url))
+            const filteredNew = newAssets.filter(na => !existingUrls.has(na.url))
+            return [...prev, ...filteredNew]
+        })
+    }
+
     const removeMaterial = (id: string) => {
         setMaterials(prev => prev.filter(m => m.id !== id))
     }
@@ -445,15 +465,31 @@ export function AIModeEditor({
                             </div>
                         </div>
 
-                        {/* 2. Media Uploads */}
-                        <div className="space-y-2">
+                        {/* 2. Categorized Media Assets (Photos, Videos, Audio, 3D Models) */}
+                        <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <Label className="text-xs font-medium text-neutral-300">
-                                    2. Your Media Assets (Images, Videos, Audio, 3D Models)
-                                </Label>
-                                <span className="text-[11px] text-neutral-500">Optional</span>
+                                <div>
+                                    <Label className="text-xs font-medium text-neutral-300">
+                                        2. Media Assets (Photos, Videos, Audio, 3D Models)
+                                    </Label>
+                                    <p className="text-[11px] text-neutral-400">
+                                        Attach assets per category or pick from your Quaris Media Library.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setMediaModalCategory('all')
+                                        setIsMediaModalOpen(true)
+                                    }}
+                                    className="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 font-semibold px-2.5 py-1 rounded-lg bg-purple-950/40 border border-purple-500/30 hover:bg-purple-900/40 transition-all cursor-pointer shadow-sm"
+                                >
+                                    <LayoutGrid className="w-3.5 h-3.5" />
+                                    <span>Browse Library</span>
+                                </button>
                             </div>
 
+                            {/* Hidden file input for direct computer uploads */}
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -463,42 +499,196 @@ export function AIModeEditor({
                                 onChange={handleMediaUpload}
                             />
 
-                            <div
-                                onClick={() => fileInputRef.current?.click()}
-                                className="border border-dashed border-white/15 hover:border-purple-500/50 rounded-xl p-4 bg-neutral-900/50 hover:bg-neutral-900/80 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-1.5 group"
-                            >
-                                <UploadCloud className="w-6 h-6 text-neutral-400 group-hover:text-purple-400 transition-colors" />
-                                <p className="text-xs font-medium text-neutral-300 group-hover:text-white">
-                                    {isUploadingMedia ? "Uploading files..." : "Click to browse or drag & drop files here"}
-                                </p>
-                                <p className="text-[10px] text-neutral-500">
-                                    Supports JPG, PNG, MP4, MP3, WAV, GLB (3D)
-                                </p>
-                            </div>
-
-                            {/* Uploaded Materials Badges */}
-                            {materials.length > 0 && (
-                                <div className="flex flex-wrap gap-2 pt-2">
-                                    {materials.map((mat) => (
-                                        <div
-                                            key={mat.id}
-                                            className="flex items-center gap-2 bg-neutral-900 border border-white/10 px-2.5 py-1.5 rounded-lg text-xs"
-                                        >
-                                            {getMaterialIcon(mat.type)}
-                                            <span className="truncate max-w-[140px] text-neutral-200" title={mat.name}>
-                                                {mat.name}
+                            {/* 4 Separate Category Cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {/* 1. Photos & Images */}
+                                <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-white/10 space-y-2.5 flex flex-col justify-between hover:border-blue-500/30 transition-all">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                                                    <ImageIcon className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-semibold text-white block leading-tight">Photos & Graphics</span>
+                                                    <span className="text-[10px] text-neutral-400">JPG, PNG, WebP</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-950/60 border border-blue-500/30 text-blue-300 font-mono font-bold">
+                                                {imageMaterials.length}
                                             </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeMaterial(mat.id)}
-                                                className="text-neutral-500 hover:text-red-400"
-                                            >
-                                                <X className="w-3.5 h-3.5" />
-                                            </button>
                                         </div>
-                                    ))}
+
+                                        {/* Image Badges List */}
+                                        {imageMaterials.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pt-1">
+                                                {imageMaterials.map(mat => (
+                                                    <div key={mat.id} className="flex items-center gap-1.5 bg-neutral-950 border border-white/10 px-2 py-1 rounded-md text-[11px] text-neutral-200">
+                                                        <ImageIcon className="w-3 h-3 text-blue-400 shrink-0" />
+                                                        <span className="truncate max-w-[110px]" title={mat.name}>{mat.name}</span>
+                                                        <button type="button" onClick={() => removeMaterial(mat.id)} className="text-neutral-500 hover:text-red-400"><X className="w-3 h-3" /></button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setMediaModalCategory('image')
+                                            setIsMediaModalOpen(true)
+                                        }}
+                                        className="w-full text-xs h-8 bg-neutral-950/70 border-white/10 hover:border-blue-500/40 text-neutral-300 hover:text-white cursor-pointer"
+                                    >
+                                        <Plus className="w-3.5 h-3.5 mr-1 text-blue-400" />
+                                        Select / Add Photos
+                                    </Button>
                                 </div>
-                            )}
+
+                                {/* 2. Video Clips */}
+                                <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-white/10 space-y-2.5 flex flex-col justify-between hover:border-red-500/30 transition-all">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
+                                                    <Video className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-semibold text-white block leading-tight">Video Clips</span>
+                                                    <span className="text-[10px] text-neutral-400">MP4, WebM, MOV</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-950/60 border border-red-500/30 text-red-300 font-mono font-bold">
+                                                {videoMaterials.length}
+                                            </span>
+                                        </div>
+
+                                        {/* Video Badges List */}
+                                        {videoMaterials.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pt-1">
+                                                {videoMaterials.map(mat => (
+                                                    <div key={mat.id} className="flex items-center gap-1.5 bg-neutral-950 border border-white/10 px-2 py-1 rounded-md text-[11px] text-neutral-200">
+                                                        <Video className="w-3 h-3 text-red-400 shrink-0" />
+                                                        <span className="truncate max-w-[110px]" title={mat.name}>{mat.name}</span>
+                                                        <button type="button" onClick={() => removeMaterial(mat.id)} className="text-neutral-500 hover:text-red-400"><X className="w-3 h-3" /></button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setMediaModalCategory('video')
+                                            setIsMediaModalOpen(true)
+                                        }}
+                                        className="w-full text-xs h-8 bg-neutral-950/70 border-white/10 hover:border-red-500/40 text-neutral-300 hover:text-white cursor-pointer"
+                                    >
+                                        <Plus className="w-3.5 h-3.5 mr-1 text-red-400" />
+                                        Select / Add Videos
+                                    </Button>
+                                </div>
+
+                                {/* 3. Audio & Voiceover */}
+                                <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-white/10 space-y-2.5 flex flex-col justify-between hover:border-emerald-500/30 transition-all">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                                                    <Music className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-semibold text-white block leading-tight">Audio & Voiceover</span>
+                                                    <span className="text-[10px] text-neutral-400">MP3, WAV, Voice</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 font-mono font-bold">
+                                                {audioMaterials.length}
+                                            </span>
+                                        </div>
+
+                                        {/* Audio Badges List */}
+                                        {audioMaterials.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pt-1">
+                                                {audioMaterials.map(mat => (
+                                                    <div key={mat.id} className="flex items-center gap-1.5 bg-neutral-950 border border-white/10 px-2 py-1 rounded-md text-[11px] text-neutral-200">
+                                                        <Music className="w-3 h-3 text-emerald-400 shrink-0" />
+                                                        <span className="truncate max-w-[110px]" title={mat.name}>{mat.name}</span>
+                                                        <button type="button" onClick={() => removeMaterial(mat.id)} className="text-neutral-500 hover:text-red-400"><X className="w-3 h-3" /></button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setMediaModalCategory('audio')
+                                            setIsMediaModalOpen(true)
+                                        }}
+                                        className="w-full text-xs h-8 bg-neutral-950/70 border-white/10 hover:border-emerald-500/40 text-neutral-300 hover:text-white cursor-pointer"
+                                    >
+                                        <Plus className="w-3.5 h-3.5 mr-1 text-emerald-400" />
+                                        Select / Add Audio
+                                    </Button>
+                                </div>
+
+                                {/* 4. 3D Models */}
+                                <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-white/10 space-y-2.5 flex flex-col justify-between hover:border-purple-500/30 transition-all">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                                                    <Box className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-semibold text-white block leading-tight">3D Models (GLB)</span>
+                                                    <span className="text-[10px] text-neutral-400">GLB, GLTF</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 font-mono font-bold">
+                                                {modelMaterials.length}
+                                            </span>
+                                        </div>
+
+                                        {/* 3D Model Badges List */}
+                                        {modelMaterials.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pt-1">
+                                                {modelMaterials.map(mat => (
+                                                    <div key={mat.id} className="flex items-center gap-1.5 bg-neutral-950 border border-white/10 px-2 py-1 rounded-md text-[11px] text-neutral-200">
+                                                        <Box className="w-3 h-3 text-purple-400 shrink-0" />
+                                                        <span className="truncate max-w-[110px]" title={mat.name}>{mat.name}</span>
+                                                        <button type="button" onClick={() => removeMaterial(mat.id)} className="text-neutral-500 hover:text-red-400"><X className="w-3 h-3" /></button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setMediaModalCategory('model_3d')
+                                            setIsMediaModalOpen(true)
+                                        }}
+                                        className="w-full text-xs h-8 bg-neutral-950/70 border-white/10 hover:border-purple-500/40 text-neutral-300 hover:text-white cursor-pointer"
+                                    >
+                                        <Plus className="w-3.5 h-3.5 mr-1 text-purple-400" />
+                                        Select / Add 3D Models
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* 3. Reference Image Upload */}
@@ -710,6 +900,15 @@ export function AIModeEditor({
                     </div>
                 )}
             </div>
+
+            {/* Media Library Modal */}
+            <AIMediaLibraryModal
+                isOpen={isMediaModalOpen}
+                onClose={() => setIsMediaModalOpen(false)}
+                onSelectAssets={handleAttachMediaAssets}
+                initialCategory={mediaModalCategory}
+                selectedUrls={materials.map(m => m.url)}
+            />
         </div>
     )
 }

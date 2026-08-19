@@ -69,14 +69,22 @@ export async function getAllMediaAssets(): Promise<{ success: boolean; data?: Me
 
         const supabase = await createAdminClient();
         
-        // Root folders we care about to speed up search (optional, we could just list '')
-        // But doing it explicitly avoids searching unrelated buckets if any
-        const foldersToScan = ['audio', 'backgrounds', 'blocks', 'images', 'models', 'tts', 'general'];
+        const foldersToScan = ['images', 'audio', 'videos', 'models', 'backgrounds', 'blocks', 'tts', 'general', 'ai-materials', 'ai-inline-edits', 'ai-reference'];
         let allFiles: any[] = [];
 
         for (const folder of foldersToScan) {
-             const files = await listAllFiles(supabase, `${folder}/${session.userId}`);
-             allFiles = allFiles.concat(files);
+             // 1. User specific subfolder
+             const userFiles = await listAllFiles(supabase, `${folder}/${session.userId}`);
+             allFiles = allFiles.concat(userFiles);
+
+             // 2. Folder root (e.g. for direct uploads)
+             const rootFiles = await listAllFiles(supabase, folder);
+             // Filter out files already added or folders
+             for (const rf of rootFiles) {
+                 if (!rf.folderPath?.includes(session.userId) && !allFiles.some(af => af.name === rf.name && af.folderPath === rf.folderPath)) {
+                     allFiles.push(rf);
+                 }
+             }
         }
 
         const assets: MediaAsset[] = allFiles.map(f => {

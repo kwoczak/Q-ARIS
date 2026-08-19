@@ -56,6 +56,17 @@ export interface ScratchCardData {
     points: string
 }
 
+export interface GalleryItem {
+    url: string
+    caption?: string
+}
+
+export interface GalleryData {
+    title?: string
+    subtitle?: string
+    items: GalleryItem[]
+}
+
 export interface AudioCardData {
     audioUrl: string
     title: string
@@ -67,6 +78,7 @@ export type InspectorComponentData =
     | { type: 'fact_card'; data: FactCardData }
     | { type: 'scratch_card'; data: ScratchCardData }
     | { type: 'audio'; data: AudioCardData }
+    | { type: 'gallery'; data: GalleryData }
 
 interface AIComponentInspectorProps {
     isOpen: boolean
@@ -163,21 +175,34 @@ export function generateAudioCardHtml(audio: AudioCardData): string {
 </div>`
 }
 
-export function generateGalleryHtml(): string {
+export function generateGalleryHtml(gallery?: GalleryData): string {
+    const title = gallery?.title || '🖼️ Media Gallery'
+    const subtitle = gallery?.subtitle || 'Swipe to explore'
+    const items = gallery?.items && gallery.items.length > 0 ? gallery.items : [
+        {
+            url: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80',
+            caption: 'Showcase 1'
+        },
+        {
+            url: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=600&q=80',
+            caption: 'Showcase 2'
+        }
+    ]
+
+    const itemsHtml = items
+        .map((item, idx) => `    <div class="relative rounded-2xl overflow-hidden border border-white/15 shrink-0 snap-start w-56 h-40 group">
+      <img src="${item.url}" alt="${item.caption || `Showcase ${idx + 1}`}" class="w-full h-full object-cover" />
+      ${item.caption ? `<div class="absolute bottom-0 inset-x-0 p-2.5 bg-gradient-to-t from-black/90 to-transparent text-[11px] text-white font-medium">${item.caption}</div>` : ''}
+    </div>`)
+        .join('\n')
+
     return `<div data-component="gallery" class="space-y-2.5 my-3">
   <div class="flex items-center justify-between">
-    <span class="text-xs font-bold uppercase tracking-wider text-amber-400">🖼️ Media Gallery</span>
-    <span class="text-[11px] text-neutral-400">Swipe to explore</span>
+    <span class="text-xs font-bold uppercase tracking-wider text-amber-400">${title}</span>
+    <span class="text-[11px] text-neutral-400">${subtitle}</span>
   </div>
   <div class="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide -mx-1 px-1">
-    <div class="relative rounded-2xl overflow-hidden border border-white/15 shrink-0 snap-start w-56 h-40 group">
-      <img src="https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover" />
-      <div class="absolute bottom-0 inset-x-0 p-2.5 bg-gradient-to-t from-black/90 to-transparent text-[11px] text-white font-medium">Showcase 1</div>
-    </div>
-    <div class="relative rounded-2xl overflow-hidden border border-white/15 shrink-0 snap-start w-56 h-40 group">
-      <img src="https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover" />
-      <div class="absolute bottom-0 inset-x-0 p-2.5 bg-gradient-to-t from-black/90 to-transparent text-[11px] text-white font-medium">Showcase 2</div>
-    </div>
+${itemsHtml}
   </div>
 </div>`
 }
@@ -240,7 +265,13 @@ export function AIComponentInspector({
     const [audioTitle, setAudioTitle] = useState('Audio Guide')
     const [audioSubtitle, setAudioSubtitle] = useState('Audio Narration')
 
-    // Media modal for picking hidden scratch image or audio
+    // Gallery State
+    const [galleryTitle, setGalleryTitle] = useState('🖼️ Media Gallery')
+    const [gallerySubtitle, setGallerySubtitle] = useState('Swipe to explore')
+    const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([])
+    const [targetGalleryItemIndex, setTargetGalleryItemIndex] = useState<number>(-1)
+
+    // Media modal for picking hidden scratch image or audio or gallery photos
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false)
     const [mediaModalCategory, setMediaModalCategory] = useState<'image' | 'audio'>('image')
 
@@ -274,6 +305,13 @@ export function AIComponentInspector({
             setAudioUrl(a.audioUrl || '')
             setAudioTitle(a.title || 'Audio Guide')
             setAudioSubtitle(a.subtitle || 'Audio Narration')
+        } else if (componentData.type === 'gallery') {
+            const g = componentData.data
+            setGalleryTitle(g.title || '🖼️ Media Gallery')
+            setGallerySubtitle(g.subtitle || 'Swipe to explore')
+            setGalleryItems(g.items && g.items.length > 0 ? [...g.items] : [
+                { url: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80', caption: 'Photo 1' }
+            ])
         }
     }, [componentData])
 
@@ -338,20 +376,81 @@ export function AIComponentInspector({
                 subtitle: audioSubtitle
             })
             onSave(newHtml)
+        } else if (componentData.type === 'gallery') {
+            const newHtml = generateGalleryHtml({
+                title: galleryTitle,
+                subtitle: gallerySubtitle,
+                items: galleryItems
+            })
+            onSave(newHtml)
         }
 
         onClose()
     }
 
     const handleMediaSelected = (assets: AIAttachment[]) => {
-        if (assets && assets.length > 0 && assets[0].url) {
-            if (mediaModalCategory === 'image') {
-                setScratchHiddenImg(assets[0].url)
-            } else {
-                setAudioUrl(assets[0].url)
+        if (assets && assets.length > 0) {
+            if (componentData?.type === 'gallery') {
+                if (targetGalleryItemIndex >= 0 && targetGalleryItemIndex < galleryItems.length) {
+                    // Replace existing item's image
+                    const updated = [...galleryItems]
+                    updated[targetGalleryItemIndex] = {
+                        ...updated[targetGalleryItemIndex],
+                        url: assets[0].url || ''
+                    }
+                    setGalleryItems(updated)
+                } else {
+                    // Add multiple new photos to gallery!
+                    const newItems: GalleryItem[] = assets.map(a => ({
+                        url: a.url || '',
+                        caption: a.name ? a.name.replace(/\.[^/.]+$/, '') : ''
+                    }))
+                    setGalleryItems([...galleryItems, ...newItems])
+                }
+            } else if (componentData?.type === 'scratch_card') {
+                setScratchHiddenImg(assets[0].url || '')
+            } else if (componentData?.type === 'audio') {
+                setAudioUrl(assets[0].url || '')
             }
         }
         setIsMediaModalOpen(false)
+        setTargetGalleryItemIndex(-1)
+    }
+
+    // Gallery item helpers
+    const handleAddGalleryItem = () => {
+        setGalleryItems([
+            ...galleryItems,
+            {
+                url: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=600&q=80',
+                caption: `Photo ${galleryItems.length + 1}`
+            }
+        ])
+    }
+
+    const handleUpdateGalleryItem = (index: number, field: keyof GalleryItem, value: string) => {
+        const updated = [...galleryItems]
+        updated[index] = {
+            ...updated[index],
+            [field]: value
+        }
+        setGalleryItems(updated)
+    }
+
+    const handleRemoveGalleryItem = (index: number) => {
+        if (galleryItems.length <= 1) return
+        const updated = galleryItems.filter((_, i) => i !== index)
+        setGalleryItems(updated)
+    }
+
+    const handleMoveGalleryItem = (index: number, direction: 'up' | 'down') => {
+        const newIndex = direction === 'up' ? index - 1 : index + 1
+        if (newIndex < 0 || newIndex >= galleryItems.length) return
+        const updated = [...galleryItems]
+        const temp = updated[index]
+        updated[index] = updated[newIndex]
+        updated[newIndex] = temp
+        setGalleryItems(updated)
     }
 
     if (!componentData) return null
@@ -367,19 +466,22 @@ export function AIComponentInspector({
                             {componentData.type === 'fact_card' && <Layers className="w-4 h-4" />}
                             {componentData.type === 'scratch_card' && <Ticket className="w-4 h-4 text-amber-400" />}
                             {componentData.type === 'audio' && <Music className="w-4 h-4 text-purple-400" />}
+                            {componentData.type === 'gallery' && <ImageIcon className="w-4 h-4 text-purple-400" />}
                         </div>
                         <div>
                             <DialogTitle className="text-base font-bold text-white">
                                 {componentData.type === 'quiz' && 'Quiz Settings'}
-                                {componentData.type === 'fact_card' && 'Fact Card Settings'}
+                                {componentData.type === 'fact_card' && 'Highlight Card Settings'}
                                 {componentData.type === 'scratch_card' && 'Scratch Card Settings'}
                                 {componentData.type === 'audio' && 'Audio Guide Settings'}
+                                {componentData.type === 'gallery' && 'Media Gallery Settings'}
                             </DialogTitle>
                             <DialogDescription className="text-xs text-neutral-400">
                                 {componentData.type === 'quiz' && 'Customize question, answer options, and correct answer.'}
                                 {componentData.type === 'fact_card' && 'Customize icon, title, and description.'}
                                 {componentData.type === 'scratch_card' && 'Set hidden image/secret, foil cover style, and points.'}
                                 {componentData.type === 'audio' && 'Set audio track URL, guide title, and subtitle.'}
+                                {componentData.type === 'gallery' && 'Add photos, reorder images, and customize captions.'}
                             </DialogDescription>
                         </div>
                     </div>
@@ -686,6 +788,137 @@ export function AIComponentInspector({
                                     placeholder="Audio Narration (2:15)"
                                     className="h-9 bg-neutral-900 border-white/10 text-xs text-white"
                                 />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 5. MEDIA GALLERY EDITOR */}
+                    {componentData.type === 'gallery' && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-neutral-300">Gallery Title</label>
+                                    <Input
+                                        value={galleryTitle}
+                                        onChange={(e) => setGalleryTitle(e.target.value)}
+                                        placeholder="🖼️ Media Gallery"
+                                        className="h-9 bg-neutral-900 border-white/10 text-xs text-white"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-neutral-300">Subtitle / Hint</label>
+                                    <Input
+                                        value={gallerySubtitle}
+                                        onChange={(e) => setGallerySubtitle(e.target.value)}
+                                        placeholder="Swipe to explore"
+                                        className="h-9 bg-neutral-900 border-white/10 text-xs text-white"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Gallery Photos List */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-semibold text-neutral-300">
+                                        Photos in Gallery ({galleryItems.length})
+                                    </label>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        onClick={() => {
+                                            setTargetGalleryItemIndex(-1)
+                                            setMediaModalCategory('image')
+                                            setIsMediaModalOpen(true)
+                                        }}
+                                        className="h-7 text-xs bg-purple-600 hover:bg-purple-500 text-white font-medium shadow-md flex items-center gap-1 cursor-pointer"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" />
+                                        Add Photos from Media Library
+                                    </Button>
+                                </div>
+
+                                <div className="space-y-2 max-h-[36vh] overflow-y-auto pr-1">
+                                    {galleryItems.map((item, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="p-2.5 rounded-xl bg-neutral-900/80 border border-white/10 flex items-center gap-3 group/item hover:border-purple-500/40 transition-all"
+                                        >
+                                            {/* Photo Thumbnail */}
+                                            <div className="relative w-16 h-12 rounded-lg overflow-hidden border border-white/10 bg-black shrink-0 group/thumb">
+                                                {item.url ? (
+                                                    <img src={item.url} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-neutral-500">
+                                                        <ImageIcon className="w-4 h-4" />
+                                                    </div>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setTargetGalleryItemIndex(idx)
+                                                        setMediaModalCategory('image')
+                                                        setIsMediaModalOpen(true)
+                                                    }}
+                                                    className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center text-[10px] text-white font-medium transition-opacity cursor-pointer"
+                                                >
+                                                    Change
+                                                </button>
+                                            </div>
+
+                                            {/* Caption Input */}
+                                            <div className="flex-1 min-w-0 space-y-1">
+                                                <Input
+                                                    value={item.caption || ''}
+                                                    onChange={(e) => handleUpdateGalleryItem(idx, 'caption', e.target.value)}
+                                                    placeholder={`Photo ${idx + 1} caption...`}
+                                                    className="h-8 bg-neutral-950 border-white/10 text-xs text-white placeholder:text-neutral-500"
+                                                />
+                                            </div>
+
+                                            {/* Order & Delete actions */}
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    disabled={idx === 0}
+                                                    onClick={() => handleMoveGalleryItem(idx, 'up')}
+                                                    className="w-6 h-6 rounded flex items-center justify-center text-neutral-400 hover:text-white disabled:opacity-20 cursor-pointer text-xs"
+                                                    title="Move Up"
+                                                >
+                                                    ▲
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled={idx === galleryItems.length - 1}
+                                                    onClick={() => handleMoveGalleryItem(idx, 'down')}
+                                                    className="w-6 h-6 rounded flex items-center justify-center text-neutral-400 hover:text-white disabled:opacity-20 cursor-pointer text-xs"
+                                                    title="Move Down"
+                                                >
+                                                    ▼
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled={galleryItems.length <= 1}
+                                                    onClick={() => handleRemoveGalleryItem(idx)}
+                                                    className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 disabled:opacity-20 cursor-pointer"
+                                                    title="Remove Photo"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleAddGalleryItem}
+                                    className="w-full h-8 text-xs border-dashed border-white/20 bg-neutral-900/40 hover:bg-neutral-900 text-neutral-300 cursor-pointer"
+                                >
+                                    <Plus className="w-3.5 h-3.5 mr-1" />
+                                    Add Blank Item
+                                </Button>
                             </div>
                         </div>
                     )}

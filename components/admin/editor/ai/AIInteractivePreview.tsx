@@ -11,6 +11,8 @@ import {
     FactCardData,
     ScratchCardData,
     AudioCardData,
+    GalleryData,
+    GalleryItem,
     generateQuizHtml,
     generateFactCardHtml,
     generateScratchCardHtml,
@@ -346,8 +348,46 @@ export function AIInteractivePreview({
 
         return {
             audioUrl: audioTag?.src || '',
-            title: titleEl?.innerText?.trim() || 'Curator Audio Guide',
+            title: titleEl?.innerText?.trim() || 'Audio Guide',
             subtitle: subtitleEl?.innerText?.trim() || 'Audio Narration'
+        }
+    }
+
+    const parseGalleryElement = (galleryEl: HTMLElement): GalleryData => {
+        const titleEl = galleryEl.querySelector('.text-amber-400, span.uppercase, h4, h3') as HTMLElement | null
+        const subtitleEl = galleryEl.querySelector('.text-neutral-400, .text-neutral-300, span.text-[11px]') as HTMLElement | null
+        const imageCards = galleryEl.querySelectorAll('.snap-start, .rounded-2xl, .shrink-0')
+
+        const items: GalleryItem[] = []
+        imageCards.forEach((card) => {
+            const img = card.querySelector('img') as HTMLImageElement | null
+            const captionEl = card.querySelector('.absolute, div, p, span') as HTMLElement | null
+            if (img && img.src && !img.classList.contains('scratch-hidden-img')) {
+                items.push({
+                    url: img.src,
+                    caption: captionEl?.innerText?.trim() || ''
+                })
+            }
+        })
+
+        if (items.length === 0) {
+            const imgs = galleryEl.querySelectorAll('img')
+            imgs.forEach((img, idx) => {
+                if (img.src && !img.classList.contains('scratch-hidden-img')) {
+                    items.push({
+                        url: img.src,
+                        caption: img.alt || `Photo ${idx + 1}`
+                    })
+                }
+            })
+        }
+
+        return {
+            title: titleEl?.innerText?.trim() || '🖼️ Media Gallery',
+            subtitle: subtitleEl?.innerText?.trim() || 'Swipe to explore',
+            items: items.length > 0 ? items : [
+                { url: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80', caption: 'Photo 1' }
+            ]
         }
     }
 
@@ -404,17 +444,27 @@ export function AIInteractivePreview({
             }
         })
 
-        // 2. Images (Double-click opens Media Library Modal)
+        // 2. Images (Double-click opens Media Library Modal or Gallery Inspector)
         const images = container.querySelectorAll('img:not(.scratch-hidden-img)')
         images.forEach((img, idx) => {
             const imgEl = img as HTMLImageElement
+            const galleryParent = imgEl.closest('[data-component="gallery"], .overflow-x-auto, .snap-x') as HTMLElement | null
+
             imgEl.style.cursor = 'pointer'
-            imgEl.title = 'Double-click to open Media Library and replace image'
+            imgEl.title = galleryParent ? 'Double-click to manage gallery photos' : 'Double-click to open Media Library and replace image'
             imgEl.ondblclick = (e) => {
                 e.stopPropagation()
-                setTargetMediaIndex(idx)
-                setMediaTypeToReplace('image')
-                setIsMediaModalOpen(true)
+                if (galleryParent) {
+                    const actualGallery = galleryParent.hasAttribute('data-component') ? galleryParent : galleryParent.closest('[data-component="gallery"], .space-y-2, .space-y-2.5') || galleryParent
+                    const data = parseGalleryElement(actualGallery as HTMLElement)
+                    setTargetComponentEl(actualGallery as HTMLElement)
+                    setActiveComponentData({ type: 'gallery', data })
+                    setIsInspectorOpen(true)
+                } else {
+                    setTargetMediaIndex(idx)
+                    setMediaTypeToReplace('image')
+                    setIsMediaModalOpen(true)
+                }
             }
         })
 
@@ -537,13 +587,27 @@ export function AIInteractivePreview({
             })
         })
 
-        // 8. Galleries, Stats, Quotes, Details, Hero Media Cards & Section blocks
+        // 8. Media Galleries (Edit Gallery & Add Photos)
+        const galleryCards = container.querySelectorAll('[data-component="gallery"], .overflow-x-auto, .snap-x')
+        galleryCards.forEach((gallery) => {
+            const galleryEl = (gallery.hasAttribute('data-component') ? gallery : gallery.closest('[data-component="gallery"], .space-y-2, .space-y-2.5') || gallery) as HTMLElement
+            if (!galleryEl) return
+
+            attachComponentActionBar(galleryEl, 'Edit Gallery', () => {
+                const data = parseGalleryElement(galleryEl)
+                setTargetComponentEl(galleryEl)
+                setActiveComponentData({ type: 'gallery', data })
+                setIsInspectorOpen(true)
+            })
+        })
+
+        // 9. Stats, Quotes, Details, Hero Media Cards & Section blocks
         const allBlocksAndCards = container.querySelectorAll<HTMLElement>(
-            '[data-component="gallery"], [data-component="stats"], [data-component="quote"], details, blockquote, .snap-x, .grid-cols-2, .rounded-3xl, .rounded-2xl, .p-4, .p-5, figure'
+            '[data-component="stats"], [data-component="quote"], details, blockquote, .grid-cols-2, .rounded-3xl, .rounded-2xl, .p-4, .p-5, figure'
         )
         allBlocksAndCards.forEach((el) => {
             // Avoid double-attaching if it's already inside a specialized component
-            if (el.closest('[data-component="quiz"], [data-component="scratch_card"], [data-component="fact_card"], [data-component="audio"]')) return
+            if (el.closest('[data-component="quiz"], [data-component="scratch_card"], [data-component="fact_card"], [data-component="audio"], [data-component="gallery"]')) return
             attachComponentActionBar(el, null)
         })
 

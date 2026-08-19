@@ -47,13 +47,6 @@ interface AIModeEditorProps {
     onOpenQR?: () => void
 }
 
-const QUICK_PROMPTS = [
-    "Voyager 1 space mission with audio player & knowledge quiz",
-    "Dinosaur exhibition: interactive 3D T-Rex model & fun facts",
-    "Masterpiece restoration: before/after comparison with curatorial notes",
-    "Secrets of Ancient Egypt with artifact gallery & atmospheric theme"
-]
-
 const QUICK_MODIFICATIONS = [
     "Change background to deep blue gradient",
     "Enlarge the main headline and add gold accent",
@@ -450,19 +443,6 @@ export function AIModeEditor({
                                 placeholder="e.g. Create an immersive story about the Voyager 1 space probe. Add a launch date headline, an audio player with interstellar radio signals, an image gallery, and finish with a 2-question quiz..."
                                 className="min-h-[110px] bg-neutral-900 border-white/10 text-white placeholder:text-neutral-500 focus-visible:ring-purple-500 text-sm"
                             />
-                            {/* Quick prompts */}
-                            <div className="flex flex-wrap gap-1.5 pt-1">
-                                {QUICK_PROMPTS.map((qp, idx) => (
-                                    <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() => setPrompt(qp)}
-                                        className="text-[11px] bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-purple-300 px-2.5 py-1 rounded-full border border-white/5 transition-colors text-left"
-                                    >
-                                        + {qp.slice(0, 44)}...
-                                    </button>
-                                ))}
-                            </div>
                         </div>
 
                         {/* 2. Categorized Media Assets (Photos, Videos, Audio, 3D Models) */}

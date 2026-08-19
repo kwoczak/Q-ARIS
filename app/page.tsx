@@ -15,7 +15,8 @@ import {
   Layers, 
   Sparkles, 
   Volume2,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Film
 } from "lucide-react";
 
 export default function Home() {
@@ -149,7 +150,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* --- INTERACTIVE DEMO STAND & SCANNER --- */}
+      {/* --- INTERACTIVE DEMO STAND & SCANNER WITH PROMO VIDEO --- */}
       <section id="interactive-demo" className="py-24 bg-black relative overflow-hidden">
         {/* Background Gradients */}
         <div className="absolute top-1/2 left-1/4 w-80 h-80 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
@@ -158,32 +159,58 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400">
-              <Sparkles className="w-3.5 h-3.5" /> Hands-On Showcase
+              <Sparkles className="w-3.5 h-3.5" /> Hands-On Showcase & Video Demo
             </div>
             <h2 className="text-3xl md:text-4xl font-bold">Experience Q-ARIS Live</h2>
-            <p className="text-neutral-400">Scan the QR code with your phone to start the live NASA Voyager guide instantly. No app download required.</p>
+            <p className="text-neutral-400">Watch the promo video below or scan the QR code with your phone camera to experience the live NASA Voyager WebAR guide directly.</p>
           </div>
 
-          <div className="flex justify-center items-center">
-            
-            {/* Centered: Physical Gallery Stand & QR Code */}
-            <div className="w-full max-w-[340px] bg-neutral-900 border border-white/10 rounded-2xl p-6 shadow-[0_0_50px_rgba(59,130,246,0.15)] relative group">
-              {/* Horizontal Neon Scanner Animation */}
-              <div className="absolute top-6 left-6 right-6 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-bounce opacity-80 z-20 shadow-[0_0_15px_rgba(59,130,246,0.8)]" style={{ animationDuration: '3s' }} />
-              
-              <div className="aspect-square bg-white rounded-xl p-4 flex items-center justify-center relative overflow-hidden">
-                <img 
-                  src="/qr-demo.png" 
-                  alt="Demo Scan QR Code" 
-                  className="w-full h-full object-contain" 
-                />
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center max-w-7xl mx-auto">
+            {/* Promo Video Player (Enlarged) */}
+            <div className="lg:col-span-8 relative group w-full">
+              <div className="relative rounded-2xl bg-neutral-900/80 border border-white/10 p-4 shadow-[0_0_60px_rgba(59,130,246,0.2)] overflow-hidden backdrop-blur-sm">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 mb-3 text-xs text-neutral-400 font-medium">
+                  <span className="flex items-center gap-2 text-blue-400 font-semibold">
+                    <Film className="w-4 h-4" /> Prezentacja Wideo Q-ARIS
+                  </span>
+                  <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider">
+                    Promo Video
+                  </span>
+                </div>
+                <div className="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center border border-white/5 shadow-inner">
+                  <video 
+                    controls 
+                    playsInline 
+                    preload="metadata"
+                    className="w-full h-full object-cover rounded-xl"
+                    src="/videos/film%20q-aris%20poziom%20napisy.mp4"
+                  >
+                    Twoja przeglądarka nie wspiera odtwarzacza wideo.
+                  </video>
+                </div>
               </div>
+            </div>
 
-              <div className="mt-6 text-center space-y-2">
-                <h4 className="text-sm font-bold text-neutral-300 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                  <QrCode className="w-4 h-4 text-blue-400" /> Exhibit: Voyager 1 Guide
-                </h4>
-                <p className="text-xs text-neutral-500">Scan this QR Code with your smartphone camera to launch the WebAR guide directly.</p>
+            {/* Vertically Centered: Physical Gallery Stand & QR Code */}
+            <div className="lg:col-span-4 flex items-center justify-center h-full">
+              <div className="w-full max-w-[340px] bg-neutral-900 border border-white/10 rounded-2xl p-6 shadow-[0_0_50px_rgba(59,130,246,0.15)] relative group flex flex-col justify-center items-center my-auto">
+                {/* Horizontal Neon Scanner Animation */}
+                <div className="absolute top-6 left-6 right-6 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-bounce opacity-80 z-20 shadow-[0_0_15px_rgba(59,130,246,0.8)]" style={{ animationDuration: '3s' }} />
+                
+                <div className="w-full aspect-square bg-white rounded-xl p-4 flex items-center justify-center relative overflow-hidden">
+                  <img 
+                    src="/qr-demo.png" 
+                    alt="Demo Scan QR Code" 
+                    className="w-full h-full object-contain" 
+                  />
+                </div>
+
+                <div className="mt-6 text-center space-y-2">
+                  <h4 className="text-sm font-bold text-neutral-300 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                    <QrCode className="w-4 h-4 text-blue-400" /> Eksponat: Voyager 1 Guide
+                  </h4>
+                  <p className="text-xs text-neutral-500">Zeskanuj kod QR aparatem w telefonie, aby uruchomić interaktywny przewodnik bez instalowania aplikacji.</p>
+                </div>
               </div>
             </div>
 

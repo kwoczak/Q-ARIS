@@ -35,6 +35,7 @@ interface AIMediaLibraryModalProps {
     onClose: () => void
     onSelectAssets: (assets: AIAttachment[]) => void
     initialCategory?: 'all' | 'image' | 'video' | 'audio' | 'model_3d'
+    lockCategory?: boolean
     selectedUrls?: string[]
 }
 
@@ -65,11 +66,14 @@ export function AIMediaLibraryModal({
     onClose,
     onSelectAssets,
     initialCategory = 'all',
+    lockCategory,
     selectedUrls = []
 }: AIMediaLibraryModalProps) {
     const [assets, setAssets] = useState<MediaAsset[]>([])
     const [isLoading, setIsLoading] = useState(false)
-    const [activeTab, setActiveTab] = useState<string>(initialCategory === 'model_3d' ? 'model' : initialCategory)
+    const isLocked = lockCategory ?? (initialCategory !== 'all')
+    const categoryNormalized = initialCategory === 'model_3d' ? 'model' : initialCategory
+    const [activeTab, setActiveTab] = useState<string>(categoryNormalized)
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedItems, setSelectedItems] = useState<Map<string, AIAttachment>>(new Map())
     const [isUploading, setIsUploading] = useState(false)
@@ -82,7 +86,8 @@ export function AIMediaLibraryModal({
     useEffect(() => {
         if (isOpen) {
             fetchMedia()
-            setActiveTab(initialCategory === 'model_3d' ? 'model' : initialCategory)
+            const normalized = initialCategory === 'model_3d' ? 'model' : initialCategory
+            setActiveTab(normalized)
             setSelectedItems(new Map())
             setSearchQuery('')
         } else {
@@ -109,6 +114,14 @@ export function AIMediaLibraryModal({
 
     // Toggle selection of asset
     const toggleAsset = (asset: MediaAsset) => {
+        // Enforce type match if locked
+        if (isLocked) {
+            if (categoryNormalized === 'image' && asset.type !== 'image') return
+            if (categoryNormalized === 'audio' && asset.type !== 'audio') return
+            if (categoryNormalized === 'video' && asset.type !== 'video') return
+            if (categoryNormalized === 'model' && asset.type !== 'model') return
+        }
+
         const key = asset.url
         const newMap = new Map(selectedItems)
 
@@ -150,6 +163,14 @@ export function AIMediaLibraryModal({
                 else if (file.type.startsWith('audio/')) { folder = 'audio'; aiType = 'audio' }
                 else if (file.name.endsWith('.glb') || file.name.endsWith('.gltf')) { folder = 'models'; aiType = 'model_3d' }
 
+                // Check lock compatibility on upload
+                if (isLocked) {
+                    if (categoryNormalized === 'image' && aiType !== 'image') continue
+                    if (categoryNormalized === 'audio' && aiType !== 'audio') continue
+                    if (categoryNormalized === 'video' && aiType !== 'video') continue
+                    if (categoryNormalized === 'model' && aiType !== 'model_3d') continue
+                }
+
                 const uploadedUrl = await uploadAsset(file, folder)
                 if (uploadedUrl) {
                     // Auto-select uploaded file with its actual original name
@@ -190,6 +211,13 @@ export function AIMediaLibraryModal({
 
         if (!matchesSearch) return false
 
+        if (isLocked) {
+            if (categoryNormalized === 'image') return a.type === 'image'
+            if (categoryNormalized === 'audio') return a.type === 'audio'
+            if (categoryNormalized === 'video') return a.type === 'video'
+            if (categoryNormalized === 'model') return a.type === 'model'
+        }
+
         if (activeTab === 'all') return true
         if (activeTab === 'images' || activeTab === 'image') return a.type === 'image'
         if (activeTab === 'videos' || activeTab === 'video') return a.type === 'video'
@@ -212,6 +240,18 @@ export function AIMediaLibraryModal({
         }
     }
 
+    const fileAccept = isLocked
+        ? categoryNormalized === 'image'
+            ? 'image/*'
+            : categoryNormalized === 'audio'
+            ? 'audio/*'
+            : categoryNormalized === 'video'
+            ? 'video/*'
+            : categoryNormalized === 'model'
+            ? '.glb,.gltf'
+            : '*/*'
+        : 'image/*,video/*,audio/*,.glb,.gltf'
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="bg-neutral-900 border-neutral-800 text-white sm:max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden shadow-2xl">
@@ -227,7 +267,7 @@ export function AIMediaLibraryModal({
                     ref={fileInputRef}
                     type="file"
                     multiple
-                    accept="image/*,video/*,audio/*,.glb,.gltf"
+                    accept={fileAccept}
                     className="hidden"
                     onChange={handleUploadFiles}
                 />
@@ -237,10 +277,24 @@ export function AIMediaLibraryModal({
                     <div>
                         <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
                             <LayoutGrid className="w-5 h-5 text-purple-400" />
-                            Media Library
+                            {isLocked
+                                ? categoryNormalized === 'image'
+                                    ? 'Select Image Asset'
+                                    : categoryNormalized === 'audio'
+                                    ? 'Select Audio Track / Voiceover'
+                                    : categoryNormalized === 'video'
+                                    ? 'Select Video Asset'
+                                    : 'Select 3D Model'
+                                : 'Media Library'}
                         </DialogTitle>
                         <DialogDescription className="text-neutral-400 text-xs mt-0.5">
-                            Select media files from your Quaris library or upload new files to attach to this AI stage.
+                            {isLocked
+                                ? categoryNormalized === 'image'
+                                    ? 'Choose an image from your library or upload a new photo.'
+                                    : categoryNormalized === 'audio'
+                                    ? 'Choose an audio track from your library or upload a sound file.'
+                                    : 'Select a compatible asset from your library.'
+                                : 'Select media files from your Quaris library or upload new files to attach to this AI stage.'}
                         </DialogDescription>
                     </div>
                     <Button
@@ -254,35 +308,50 @@ export function AIMediaLibraryModal({
                         ) : (
                             <UploadCloud className="w-3.5 h-3.5 mr-1.5" />
                         )}
-                        Upload Files
+                        {isLocked
+                            ? categoryNormalized === 'image'
+                                ? 'Upload Image'
+                                : categoryNormalized === 'audio'
+                                ? 'Upload Audio'
+                                : 'Upload File'
+                            : 'Upload Files'}
                     </Button>
                 </DialogHeader>
 
                 {/* Tabs & Search Filter */}
                 <div className="px-5 py-3 border-b border-white/10 bg-neutral-900/80 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-                        <TabsList className="bg-neutral-950 border border-white/10 p-1 h-9">
-                            <TabsTrigger value="all" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                                All
-                            </TabsTrigger>
-                            <TabsTrigger value="images" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                                <ImageIcon className="w-3.5 h-3.5 mr-1" />
-                                Images
-                            </TabsTrigger>
-                            <TabsTrigger value="videos" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                                <Video className="w-3.5 h-3.5 mr-1" />
-                                Videos
-                            </TabsTrigger>
-                            <TabsTrigger value="audio" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                                <Music className="w-3.5 h-3.5 mr-1" />
-                                Audio
-                            </TabsTrigger>
-                            <TabsTrigger value="model" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                                <Box className="w-3.5 h-3.5 mr-1" />
-                                3D Models
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                    {isLocked ? (
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neutral-950 border border-purple-500/30 text-xs font-semibold text-purple-300">
+                            {categoryNormalized === 'image' && <><ImageIcon className="w-3.5 h-3.5 text-purple-400" /> Images Filter Active</>}
+                            {categoryNormalized === 'audio' && <><Music className="w-3.5 h-3.5 text-purple-400" /> Audio Tracks Only</>}
+                            {categoryNormalized === 'video' && <><Video className="w-3.5 h-3.5 text-purple-400" /> Videos Only</>}
+                            {categoryNormalized === 'model' && <><Box className="w-3.5 h-3.5 text-purple-400" /> 3D Models Only</>}
+                        </div>
+                    ) : (
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
+                            <TabsList className="bg-neutral-950 border border-white/10 p-1 h-9">
+                                <TabsTrigger value="all" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                                    All
+                                </TabsTrigger>
+                                <TabsTrigger value="images" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                                    <ImageIcon className="w-3.5 h-3.5 mr-1" />
+                                    Images
+                                </TabsTrigger>
+                                <TabsTrigger value="videos" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                                    <Video className="w-3.5 h-3.5 mr-1" />
+                                    Videos
+                                </TabsTrigger>
+                                <TabsTrigger value="audio" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                                    <Music className="w-3.5 h-3.5 mr-1" />
+                                    Audio
+                                </TabsTrigger>
+                                <TabsTrigger value="model" className="text-xs data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                                    <Box className="w-3.5 h-3.5 mr-1" />
+                                    3D Models
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    )}
 
                     <div className="relative w-full sm:w-64">
                         <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />

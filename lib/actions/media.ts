@@ -69,7 +69,7 @@ export async function getAllMediaAssets(): Promise<{ success: boolean; data?: Me
 
         const supabase = await createAdminClient();
         
-        const foldersToScan = ['images', 'audio', 'videos', 'models', 'backgrounds', 'blocks', 'tts', 'general', 'ai-materials', 'ai-inline-edits', 'ai-reference'];
+        const foldersToScan = ['images', 'audio', 'videos', 'models', 'backgrounds', 'blocks', 'tts', 'general', 'ai-generated', 'ai-materials', 'ai-inline-edits', 'ai-reference'];
         let allFiles: any[] = [];
 
         for (const folder of foldersToScan) {

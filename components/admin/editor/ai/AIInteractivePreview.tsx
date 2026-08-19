@@ -18,12 +18,17 @@ import {
     generateScratchCardHtml,
     generateAudioCardHtml,
     generateGalleryHtml,
+    generateImageCardHtml,
+    generateVideoCardHtml,
+    generateModel3DHtml,
     generateStatsHtml,
     generateQuoteHtml
 } from './AIComponentInspector'
 import { AIBackgroundModal, StageBackground } from './AIBackgroundModal'
 import {
     Image as ImageIcon,
+    Video as VideoIcon,
+    Box as BoxIcon,
     Music,
     Check,
     Sparkles,
@@ -759,6 +764,26 @@ export function AIInteractivePreview({
                     subtitle: 'Narration Track'
                 })
                 break
+            case 'image':
+                snippet = generateImageCardHtml({
+                    url: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=800&q=80',
+                    caption: 'Featured Exhibition Photograph'
+                })
+                break
+            case 'video':
+                snippet = generateVideoCardHtml({
+                    url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4',
+                    title: 'Documentary Video Clip',
+                    subtitle: 'Video Player'
+                })
+                break
+            case 'model_3d':
+                snippet = generateModel3DHtml({
+                    url: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
+                    title: '3D Interactive Artifact',
+                    subtitle: 'Drag to rotate in 3D'
+                })
+                break
             case 'gallery':
                 snippet = generateGalleryHtml()
                 break
@@ -848,7 +873,7 @@ export function AIInteractivePreview({
             {/* ADD COMPONENT DIALOG                                                      */}
             {/* ========================================================================= */}
             <Dialog open={isAddComponentOpen} onOpenChange={setIsAddComponentOpen}>
-                <DialogContent className="max-w-md w-full bg-neutral-950 border border-purple-500/30 text-white shadow-2xl p-0 overflow-hidden sm:rounded-2xl z-50">
+                <DialogContent className="max-w-lg w-full bg-neutral-950 border border-purple-500/30 text-white shadow-2xl p-0 overflow-hidden sm:rounded-2xl z-50">
                     <DialogHeader className="p-5 border-b border-white/10 bg-neutral-900/60">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
@@ -857,13 +882,83 @@ export function AIInteractivePreview({
                             <div>
                                 <DialogTitle className="text-base font-bold text-white">Add Component</DialogTitle>
                                 <DialogDescription className="text-xs text-neutral-400">
-                                    Choose an interactive component to insert into your stage.
+                                    Choose an interactive or multimedia component to insert into your stage.
                                 </DialogDescription>
                             </div>
                         </div>
                     </DialogHeader>
 
-                    <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[65vh] overflow-y-auto">
+                    <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[68vh] overflow-y-auto">
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('image')}
+                            className="p-3 rounded-xl border border-blue-500/30 bg-blue-950/20 hover:bg-blue-950/40 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 shrink-0">
+                                <ImageIcon className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-blue-300">🖼️ Single Photo / Image</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Standalone photo with caption & smart framing</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('video')}
+                            className="p-3 rounded-xl border border-red-500/30 bg-red-950/20 hover:bg-red-950/40 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
+                                <VideoIcon className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-red-300">🎬 Video Clip Player</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Interactive video player with controls & caption</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('model_3d')}
+                            className="p-3 rounded-xl border border-purple-500/40 bg-purple-950/30 hover:bg-purple-950/50 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
+                                <BoxIcon className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">📦 3D Model Viewer</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Interactive 3D model (GLB/GLTF) with rotation & AR</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('gallery')}
+                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
+                                <Sparkles className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🖼️ Photo Gallery</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Swipeable multi-photo carousel with 3:4 cards</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleInsertComponent('audio')}
+                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0">
+                                <Music className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🎧 Audio Guide</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Audio narration player card</p>
+                            </div>
+                        </button>
+
                         <button
                             type="button"
                             onClick={() => handleInsertComponent('scratch_card')}
@@ -901,36 +996,8 @@ export function AIInteractivePreview({
                                 <Layers className="w-4 h-4" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">💎 Fact Card</h4>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">💎 Highlight Card</h4>
                                 <p className="text-[10px] text-neutral-400 mt-0.5">Curatorial highlight card with icon & description</p>
-                            </div>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => handleInsertComponent('audio')}
-                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer"
-                        >
-                            <div className="w-9 h-9 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0">
-                                <Music className="w-4 h-4" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🎧 Audio Guide</h4>
-                                <p className="text-[10px] text-neutral-400 mt-0.5">Audio narration player card</p>
-                            </div>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => handleInsertComponent('gallery')}
-                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer"
-                        >
-                            <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
-                                <ImageIcon className="w-4 h-4" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🖼️ Exhibit Gallery</h4>
-                                <p className="text-[10px] text-neutral-400 mt-0.5">Horizontal swipe image carousel</p>
                             </div>
                         </button>
 
@@ -951,7 +1018,7 @@ export function AIInteractivePreview({
                         <button
                             type="button"
                             onClick={() => handleInsertComponent('quote')}
-                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer col-span-1 sm:col-span-2"
+                            className="p-3 rounded-xl border border-white/10 bg-neutral-900/60 hover:bg-neutral-800/80 text-left transition-all flex items-start gap-3 group cursor-pointer"
                         >
                             <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0">
                                 <Quote className="w-4 h-4" />

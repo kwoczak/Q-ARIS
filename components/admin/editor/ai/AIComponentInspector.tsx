@@ -238,6 +238,94 @@ ${itemsHtml}
 </div>`
 }
 
+export interface ImageCardData {
+    url?: string
+    caption?: string
+    aspectRatio?: '4/3' | '16/9' | '1/1' | '3/4'
+    fit?: 'cover' | 'contain' | 'cover-top'
+}
+
+export interface VideoCardData {
+    url?: string
+    title?: string
+    subtitle?: string
+}
+
+export interface Model3DData {
+    url?: string
+    title?: string
+    subtitle?: string
+}
+
+export function generateImageCardHtml(data?: ImageCardData): string {
+    const url = data?.url || 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=800&q=80'
+    const caption = data?.caption !== undefined ? data.caption : 'Exhibition Featured Visual'
+    const ratio = data?.aspectRatio || '4/3'
+    const fit = data?.fit || 'cover'
+
+    const ratioClass = ratio === '16/9' ? 'aspect-video' : ratio === '1/1' ? 'aspect-square' : ratio === '3/4' ? 'aspect-[3/4]' : 'aspect-[4/3]'
+    const fitClass = fit === 'contain' ? 'object-contain' : fit === 'cover-top' ? 'object-cover object-top' : 'object-cover object-center'
+
+    if (fit === 'contain') {
+        return `<div data-component="image" class="relative rounded-3xl overflow-hidden border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.5)] my-3 bg-neutral-950 flex flex-col items-center justify-center">
+  <div class="relative w-full ${ratioClass} overflow-hidden flex items-center justify-center">
+    <img src="${url}" alt="" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-35 scale-125 pointer-events-none" />
+    <img src="${url}" alt="${caption}" class="relative z-10 max-w-full max-h-full object-contain drop-shadow-md" />
+  </div>
+  ${caption ? `<div class="w-full p-3 bg-neutral-950/90 border-t border-white/10 text-xs text-neutral-300 font-medium">${caption}</div>` : ''}
+</div>`
+    }
+
+    return `<div data-component="image" class="relative rounded-3xl overflow-hidden border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.5)] my-3 group/image">
+  <img src="${url}" alt="${caption}" class="w-full ${ratioClass} ${fitClass}" />
+  ${caption ? `<div class="p-3 bg-neutral-950/85 border-t border-white/10 text-xs text-neutral-200 font-medium">${caption}</div>` : ''}
+</div>`
+}
+
+export function generateVideoCardHtml(data?: VideoCardData): string {
+    const url = data?.url || 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4'
+    const title = data?.title || 'Featured Documentary Clip'
+    const subtitle = data?.subtitle || 'Interactive Video Player'
+
+    return `<div data-component="video" class="relative rounded-3xl overflow-hidden border border-white/15 shadow-2xl bg-neutral-950 my-3 group/video">
+  <video src="${url}" controls playsinline preload="metadata" class="w-full aspect-video object-cover bg-black rounded-t-3xl"></video>
+  <div class="p-3.5 bg-neutral-950/90 border-t border-white/10 flex items-center justify-between text-xs">
+    <div>
+      <h4 class="font-bold text-white">${title}</h4>
+      <p class="text-[10px] text-neutral-400 mt-0.5">${subtitle}</p>
+    </div>
+    <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 font-mono font-bold">🎬 VIDEO</span>
+  </div>
+</div>`
+}
+
+export function generateModel3DHtml(data?: Model3DData): string {
+    const url = data?.url || 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
+    const title = data?.title || '3D Exhibit Artifact'
+    const subtitle = data?.subtitle || 'Interactive 3D Viewer • Drag to Rotate'
+
+    return `<div data-component="model_3d" class="relative rounded-3xl overflow-hidden border border-purple-500/30 bg-neutral-950 shadow-2xl p-1 my-3">
+  <div class="relative w-full h-72 rounded-2xl overflow-hidden bg-gradient-to-b from-neutral-900 via-neutral-950 to-black">
+    <model-viewer
+      src="${url}"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      shadow-intensity="1"
+      class="w-full h-full"
+    ></model-viewer>
+    <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-[10px] text-purple-300 font-semibold uppercase tracking-wider flex items-center gap-1.5 pointer-events-none">
+      <span>📦</span> 3D Artifact • AR Ready
+    </div>
+  </div>
+  <div class="p-3 text-xs">
+    <h4 class="font-bold text-white">${title}</h4>
+    <p class="text-[11px] text-neutral-400 mt-0.5">${subtitle}</p>
+  </div>
+</div>`
+}
+
 export function generateStatsHtml(): string {
     return `<div data-component="stats" class="grid grid-cols-2 gap-2.5 my-3">
   <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-center">

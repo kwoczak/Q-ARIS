@@ -161,11 +161,22 @@ export function AIModeEditor({
             for (let i = 0; i < files.length; i++) {
                 const file = files[i]
                 let type: AIAttachment['type'] = 'other'
+                // Images uploaded in chat default to visual feedback / bug inspection
+                let purpose: AIAttachment['purpose'] = 'visual_feedback'
 
-                if (file.type.startsWith('image/')) type = 'image'
-                else if (file.type.startsWith('video/')) type = 'video'
-                else if (file.type.startsWith('audio/')) type = 'audio'
-                else if (file.name.endsWith('.glb') || file.name.endsWith('.gltf')) type = 'model_3d'
+                if (file.type.startsWith('image/')) {
+                    type = 'image'
+                    purpose = 'visual_feedback'
+                } else if (file.type.startsWith('video/')) {
+                    type = 'video'
+                    purpose = 'content_asset'
+                } else if (file.type.startsWith('audio/')) {
+                    type = 'audio'
+                    purpose = 'content_asset'
+                } else if (file.name.endsWith('.glb') || file.name.endsWith('.gltf')) {
+                    type = 'model_3d'
+                    purpose = 'content_asset'
+                }
 
                 let url: string | null = null
                 try {
@@ -180,13 +191,13 @@ export function AIModeEditor({
                         id: Math.random().toString(36).substring(2, 9),
                         name: file.name,
                         type,
+                        purpose,
                         url
                     })
                 }
             }
 
             setChatAttachments(prev => [...prev, ...newAttachments])
-            setMaterials(prev => [...prev, ...newAttachments])
         } catch (err: any) {
             console.error("Chat upload error:", err)
             setErrorMessage("Error uploading chat attachment: " + (err.message || 'Unknown error'))
@@ -238,13 +249,13 @@ export function AIModeEditor({
                         id: Math.random().toString(36).substring(2, 9),
                         name: screenshotName,
                         type: 'image',
+                        purpose: 'visual_feedback', // Tagged strictly as visual inspection
                         url
                     })
                 }
             }
 
             setChatAttachments(prev => [...prev, ...newAttachments])
-            setMaterials(prev => [...prev, ...newAttachments])
         } catch (err: any) {
             console.error("Paste image error:", err)
         } finally {
@@ -380,9 +391,10 @@ export function AIModeEditor({
         setChatHistory(updatedHistory)
 
         try {
+            // Only non-visual-feedback items are added to permanent materials
             const allMaterials = [...materials]
             for (const att of currentAttached) {
-                if (!allMaterials.some(m => m.url === att.url)) {
+                if (att.purpose === 'content_asset' && !allMaterials.some(m => m.url === att.url)) {
                     allMaterials.push(att)
                 }
             }
@@ -447,19 +459,30 @@ export function AIModeEditor({
     const modelMaterials = materials.filter(m => m.type === 'model_3d')
 
     const handleAttachMediaAssets = (newAssets: AIAttachment[]) => {
+        const taggedAssets = newAssets.map(a => ({ ...a, purpose: 'content_asset' as const }))
         if (isMediaModalForChat) {
             setChatAttachments(prev => {
                 const existingUrls = new Set(prev.map(m => m.url))
-                const filteredNew = newAssets.filter(na => !existingUrls.has(na.url))
+                const filteredNew = taggedAssets.filter(na => !existingUrls.has(na.url))
                 return [...prev, ...filteredNew]
             })
         }
         setMaterials(prev => {
             const existingUrls = new Set(prev.map(m => m.url))
-            const filteredNew = newAssets.filter(na => !existingUrls.has(na.url))
+            const filteredNew = taggedAssets.filter(na => !existingUrls.has(na.url))
             return [...prev, ...filteredNew]
         })
         setIsMediaModalForChat(false)
+    }
+
+    const toggleAttachmentPurpose = (id: string) => {
+        setChatAttachments(prev => prev.map(att => {
+            if (att.id === id) {
+                const nextPurpose = att.purpose === 'visual_feedback' ? 'content_asset' : 'visual_feedback'
+                return { ...att, purpose: nextPurpose }
+            }
+            return att
+        }))
     }
 
     const removeMaterial = (id: string) => {
@@ -1034,17 +1057,35 @@ export function AIModeEditor({
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         {chatAttachments.map((att) => (
-                                            <div key={att.id} className="flex items-center gap-1.5 bg-neutral-900 border border-purple-500/30 pl-1.5 pr-2 py-1 rounded-lg text-xs">
+                                            <div key={att.id} className="flex items-center gap-2 bg-neutral-900 border border-purple-500/30 pl-1.5 pr-2 py-1 rounded-lg text-xs shadow-sm">
                                                 {att.type === 'image' ? (
-                                                    <img src={att.url} alt={att.name} className="w-5 h-5 rounded object-cover border border-white/10" />
+                                                    <img src={att.url} alt={att.name} className="w-6 h-6 rounded object-cover border border-white/10" />
                                                 ) : (
                                                     getMaterialIcon(att.type)
                                                 )}
-                                                <span className="truncate max-w-[120px] text-neutral-200 text-[11px]" title={att.name}>{att.name}</span>
+                                                <span className="truncate max-w-[100px] text-neutral-200 text-[11px]" title={att.name}>{att.name}</span>
+                                                
+                                                {/* Purpose Selector / Toggle */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleAttachmentPurpose(att.id)}
+                                                    className={`text-[9.5px] px-1.5 py-0.5 rounded font-medium border transition-colors cursor-pointer ${
+                                                        att.purpose === 'visual_feedback'
+                                                            ? 'bg-purple-950/80 text-purple-300 border-purple-500/40 hover:bg-purple-900/50'
+                                                            : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40 hover:bg-emerald-900/50'
+                                                    }`}
+                                                    title={att.purpose === 'visual_feedback'
+                                                        ? "🔍 Vision Bug Report: Analyzed by AI for layout fixes. Will NOT be inserted into HTML. Click to change."
+                                                        : "🖼️ Content Asset: AI will insert this into HTML page. Click to change."}
+                                                >
+                                                    {att.purpose === 'visual_feedback' ? '🔍 Vision Bug' : '🖼️ Insert'}
+                                                </button>
+
                                                 <button
                                                     type="button"
                                                     onClick={() => removeChatAttachment(att.id)}
-                                                    className="text-neutral-400 hover:text-red-400 ml-0.5 cursor-pointer"
+                                                    className="text-neutral-400 hover:text-red-400 ml-0.5 cursor-pointer p-0.5"
+                                                    title="Remove attachment"
                                                 >
                                                     <X className="w-3 h-3" />
                                                 </button>

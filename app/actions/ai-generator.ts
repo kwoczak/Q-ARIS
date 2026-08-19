@@ -1,7 +1,7 @@
 'use server'
 
 import OpenAI from 'openai'
-import { AIGenerationRequest, AIGenerationResponse, AITokenUsage } from '@/types/schema'
+import { AIAttachment, AIGenerationRequest, AIGenerationResponse, AITokenUsage } from '@/types/schema'
 
 import { getSession } from '@/lib/auth-lib'
 import { createAdminClient } from '@/lib/supabase/server'
@@ -56,24 +56,38 @@ export async function generateStageWithAI(request: AIGenerationRequest): Promise
     const requestedModel = process.env.OPENAI_MODEL || 'gpt-4o'
     const modelToUse = requestedModel
 
-    const materialsCount = request.materials?.length || 0
-    const materialsDescription = request.materials && request.materials.length > 0
-        ? `\n🚨 CRITICAL MANDATE - USER UPLOADED ${materialsCount} MEDIA ATTACHMENTS:
-YOU MUST INTEGRATE EVERY SINGLE ONE OF THESE ${materialsCount} MEDIA ASSETS INTO YOUR HTML OUTPUT. DO NOT OMIT ANY ATTACHMENT!
-${request.materials.map((m, idx) => `  * Attachment #${idx + 1} [${m.type.toUpperCase()}]: "${m.name}" => EXACT URL: ${m.url}`).join('\n')}
+    // Separate exhibit content assets from visual bug report screenshots
+    const isVisualFeedback = (m: AIAttachment) =>
+        m.purpose === 'visual_feedback' ||
+        m.name.toLowerCase().startsWith('screenshot_') ||
+        m.name.toLowerCase().includes('screenshot') ||
+        m.name.toLowerCase().includes('pasted_image')
+
+    const contentMaterials = (request.materials || []).filter(m => !isVisualFeedback(m))
+    const visualFeedbackItems = [
+        ...(request.attachedMedia || []).filter(isVisualFeedback),
+        ...(request.materials || []).filter(isVisualFeedback)
+    ]
+    const uniqueVisualFeedback = visualFeedbackItems.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i)
+
+    const materialsCount = contentMaterials.length
+    const materialsDescription = materialsCount > 0
+        ? `\n🚨 CRITICAL MANDATE - EXHIBIT CONTENT MEDIA ATTACHMENTS (${materialsCount} assets):
+YOU MUST INTEGRATE EVERY SINGLE ONE OF THESE ${materialsCount} EXHIBIT MEDIA ASSETS INTO YOUR HTML OUTPUT.
+${contentMaterials.map((m, idx) => `  * Exhibit Asset #${idx + 1} [${m.type.toUpperCase()}]: "${m.name}" => EXACT URL: ${m.url}`).join('\n')}
 
 MANDATORY RULES FOR MULTI-MEDIA INTEGRATION:
 - If 1 image is provided: Place it as the main Hero Showcase image.
 - If 2 or more images are provided:
   * Place the first image in the Hero Showcase card.
   * Display ALL other images across the page as an interactive Horizontal Snap-Carousel gallery:
-    "<div class=\\"space-y-2\\"><div class=\\"flex items-center justify-between\\"><span class=\\"text-xs font-bold uppercase tracking-wider text-amber-400\\">🖼️ Galeria Eksponatów</span><span class=\\"text-[11px] text-neutral-400\\">${request.materials.filter(m => m.type === 'image').length} zdjęcia</span></div><div class=\\"flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide -mx-1 px-1\\"><div class=\\"relative rounded-2xl overflow-hidden border border-white/10 shrink-0 snap-start w-52 h-36 group\\"><img src=\\"URL\\" class=\\"w-full h-full object-cover\\" /><div class=\\"absolute bottom-0 inset-x-0 p-2 bg-black/70 text-[10px] text-neutral-300\\">Podpis</div></div>...</div></div>"
+    "<div class=\\"space-y-2\\"><div class=\\"flex items-center justify-between\\"><span class=\\"text-xs font-bold uppercase tracking-wider text-amber-400\\">🖼️ Galeria Eksponatów</span><span class=\\"text-[11px] text-neutral-400\\">${contentMaterials.filter(m => m.type === 'image').length} zdjęcia</span></div><div class=\\"flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide -mx-1 px-1\\"><div class=\\"relative rounded-2xl overflow-hidden border border-white/10 shrink-0 snap-start w-52 h-36 group\\"><img src=\\"URL\\" class=\\"w-full h-full object-cover\\" /><div class=\\"absolute bottom-0 inset-x-0 p-2 bg-black/70 text-[10px] text-neutral-300\\">Podpis</div></div>...</div></div>"
     OR place individual images inside each corresponding Fact/Artifact card!
 - If audio is provided: Add an interactive Audio Guide player card (<audio controls src="URL" class="w-full rounded-xl"></audio>).
 - If video is provided: Embed a responsive video player (<video controls playsinline src="URL" class="w-full rounded-2xl"></video>).
 - If 3D model is provided: Embed <model-viewer src="URL" ar camera-controls class="w-full h-64 rounded-3xl bg-neutral-900/50"></model-viewer>.
 `
-        : '\nNo custom media files uploaded yet.'
+        : '\nNo custom exhibit media files uploaded yet.'
 
     const currentContext = request.currentContent?.custom_html
         ? `\nCURRENT HTML STATE (The user may have manually edited text, images, or copy directly on the preview screen. YOU MUST RESPECT AND PRESERVE all their customized text, wording, image URLs, and modifications unless their latest prompt explicitly asks to replace them):\n\`\`\`html\n${request.currentContent.custom_html}\n\`\`\`\n`
@@ -87,11 +101,11 @@ YOUR GOAL:
 Generate breathtaking, 10/10 UX mobile exhibition screens (width ~390px) that evoke wonder, elegance, and immersion.
 
 CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
-1. ZERO OMISSION OF USER MEDIA ASSETS:
-   - If user uploads multiple images, videos, or audio files, EVERY SINGLE ONE must be present in the generated HTML.
+1. ZERO OMISSION OF REAL EXHIBIT ASSETS:
+   - Every exhibit asset in the EXHIBIT CONTENT MEDIA ATTACHMENTS list must be present in the HTML output.
    - Do NOT just pick one image and discard the rest! If multiple images exist, showcase the first as Hero and build an interactive swipeable Gallery Carousel or 2-column Artifact Grid for the remaining images!
 
-2. NO BORING / DRY PAGES:
+2. NO BORING / DRY PAGES & PERFECT MOBILE READABILITY:
    - NEVER output plain unstyled text, standard HTML bullet lists (<ul><li>), or flat monochrome blocks.
    - Every piece of information must be presented as a visually rich component: Cards with glassmorphism, glowing borders, badge pills, statistic counters, or interactive tap widgets.
 
@@ -108,9 +122,8 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
 
 4. TOTAL CREATIVE & TECHNICAL FREEDOM:
    - You have 100% full freedom to write custom HTML, inline CSS, embedded <style> animations (@keyframes, pulsing glows, floating elements), and JavaScript event handlers (onclick, onchange).
-   - You do NOT need to fit into any predefined block schema. You are building a bespoke mobile web app screen.
 
-5. COMPONENT ARCHITECTURE TO INCLUDE:
+5. COMPONENT ARCHITECTURE & RESPONSIVENESS RULES:
    - EYEBROW BADGE: Pill badge on top (e.g. "<div class=\\"inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-md\\"><span>🏛️</span><span>Starożytny Egipt • Krok 1</span></div>")
    - MAJESTIC HERO TITLE: Bold gradient headline (e.g. "<h1 class=\\"text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-br from-white via-amber-100 to-amber-400 bg-clip-text text-transparent leading-tight\\">...</h1>")
    - LEAD PARAGRAPH: Styled lead paragraph with glassmorphic container or accent quote border.
@@ -118,8 +131,12 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
      "<div class=\\"relative rounded-3xl overflow-hidden border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group\\"><img src=\\"URL\\" alt=\\"...\\" class=\\"w-full h-56 object-cover\\" /><div class=\\"absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent text-xs text-neutral-300\\">Caption / Detail</div></div>"
    - MULTI-IMAGE GALLERY / CAROUSEL (When 2+ images exist):
      "<div class=\\"space-y-2\\"><div class=\\"flex items-center justify-between\\"><span class=\\"text-xs font-bold uppercase tracking-wider text-amber-400\\">🖼️ Galeria Eksponatów</span><span class=\\"text-[11px] text-neutral-400\\">Przesuń, by obejrzeć</span></div><div class=\\"flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide -mx-1 px-1\\"><div class=\\"relative rounded-2xl overflow-hidden border border-white/10 shrink-0 snap-start w-52 h-36 group\\"><img src=\\"URL_1\\" class=\\"w-full h-full object-cover\\" /><div class=\\"absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent text-[10px] text-neutral-200\\">Eksponat 1</div></div><div class=\\"relative rounded-2xl overflow-hidden border border-white/10 shrink-0 snap-start w-52 h-36 group\\"><img src=\\"URL_2\\" class=\\"w-full h-full object-cover\\" /><div class=\\"absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent text-[10px] text-neutral-200\\">Eksponat 2</div></div></div></div>"
-   - FACT & HIGHLIGHT CARDS (2-3 cards): Glassmorphic cards with glowing icon badges:
-     "<div class=\\"p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-lg flex items-start gap-3.5 hover:border-amber-500/40 transition-all\\"><div class=\\"w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-lg shrink-0\\">💎</div><div><h4 class=\\"font-bold text-sm text-white\\">Tytuł faktu</h4><p class=\\"text-xs text-neutral-400 mt-1 leading-relaxed\\">Opis ciekawostki...</p></div></div>"
+   - FACT & HIGHLIGHT CARDS (MANDATORY FULL-WIDTH VERTICAL STACK):
+     * NEVER use 2-column grids (grid-cols-2) for cards that contain title + description text! On a ~360px-390px mobile screen, 2 columns squeeze text into narrow 1-word vertical columns.
+     * ALL informational cards MUST be stacked vertically in 1 column (w-full, space-y-3.5 or grid grid-cols-1 gap-3.5).
+     * Structure: Use horizontal flex with icon on the left and text on the right:
+       "<div class=\\"p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-lg flex items-start gap-3.5 hover:border-amber-500/40 transition-all\\"><div class=\\"w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-lg shrink-0\\">💎</div><div class=\\"flex-1 min-w-0\\"><h4 class=\\"font-bold text-sm text-white\\">Tytuł faktu</h4><p class=\\"text-xs text-neutral-300 mt-1 leading-relaxed break-words\\">Opis ciekawostki z pełną szerokością i doskonałą czytelnością...</p></div></div>"
+     * 2-column grids (grid-cols-2) are STRICTLY RESTRICTED to micro numerical badges/counters (e.g. 2x2 grid of simple numbers like "146 m" / "2.3M Blocks" with max 3 words).
    - FULLY INTERACTIVE QUIZ WIDGET (With Instant Click Feedback):
      Use inline vanilla JS onclick handlers so user gets instant visual response (color change, score, explanation):
      "<div class=\\"p-5 rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-amber-500/30 shadow-2xl backdrop-blur-xl space-y-4\\">
@@ -137,10 +154,12 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
 6. TARGET LANGUAGE:
    - Output all user-visible text, headers, quiz questions, buttons, and explanations in the requested language: "${request.language.toUpperCase()}".
 
-7. SCREENSHOT & VISUAL FEEDBACK ANALYSIS:
-   - When the user attaches a screenshot or visual reference in chat (e.g. showing broken card wrapping on narrow mobile screens, cut-off text, overflowing elements, or visual markup with arrows):
-   - Visually inspect the screenshot using computer vision to diagnose the exact styling/layout issue.
-   - Immediately fix the layout: ensure responsive padding, flexbox wrap/col, \`min-w-0\`, \`break-words\`, \`overflow-hidden\`, and proper gap/margin so the UI looks stunning on small mobile screens (~360px-390px)!
+7. VISUAL INSPECTION SCREENSHOTS & BUG REPORTS (STRICT MANDATE):
+   - When the user provides a visual bug report screenshot:
+     * ⛔ ABSOLUTE BAN: NEVER INSERT THE BUG REPORT SCREENSHOT URL INTO ANY <img src="..."> OR ANY BACKGROUND OF THE GENERATED HTML!
+     * 🛡️ IMMUTABILITY: PRESERVE all existing exhibition images and hero image URLs already present in the page HTML.
+     * 👁️ VISION ANALYSIS: Use computer vision to observe what styling/layout issue is visible (e.g. text squeezed into narrow vertical columns, bad wrapping, overflowing elements).
+     * 🛠️ FIX CODE: Immediately rewrite the HTML/CSS to fix the issue (e.g. replace cramped 2-column cards with full-width stacked cards \`w-full flex-col space-y-3\`, ensure \`flex-1 min-w-0 break-words\`).
 
 ${materialsDescription}
 ${currentContext}
@@ -162,7 +181,7 @@ Respond ONLY with a JSON object in this exact format:
         // Build user content array for multi-modal (vision)
         const userContentParts: any[] = []
 
-        // 1. Reference Image
+        // 1. Reference Image (Style moodboard)
         if (request.referenceImageUrl) {
             userContentParts.push({
                 type: 'text',
@@ -177,14 +196,32 @@ Respond ONLY with a JSON object in this exact format:
             })
         }
 
-        // 2. Chat Attached Media (e.g. Screenshots of broken layout, design feedback, new photos)
-        if (request.attachedMedia && request.attachedMedia.length > 0) {
-            for (const m of request.attachedMedia) {
-                if (m.type === 'image' && (m.url.startsWith('http') || m.url.startsWith('data:image/'))) {
-                    userContentParts.push({
-                        type: 'text',
-                        text: `[USER ATTACHED SCREENSHOT / IMAGE: "${m.name}"] => Inspect this visual screenshot/image carefully and apply the requested adjustments or fixes to the design.`
-                    })
+        // 2. Visual Bug Report Screenshots (Inspection ONLY - NEVER insert in HTML)
+        if (uniqueVisualFeedback.length > 0) {
+            for (const m of uniqueVisualFeedback) {
+                userContentParts.push({
+                    type: 'text',
+                    text: `[VISUAL BUG REPORT / INSPECTION SCREENSHOT - DO NOT INSERT INTO HTML]: "${m.name}". The user provided this screenshot to show a bug or layout defect in the current preview. Use vision to inspect what is broken in the layout and fix the CSS/HTML code accordingly. DO NOT use this image URL anywhere in the HTML output!`
+                })
+                userContentParts.push({
+                    type: 'image_url',
+                    image_url: {
+                        url: m.url,
+                        detail: 'high'
+                    }
+                })
+            }
+        }
+
+        // 3. New Content Assets explicitly attached in chat to be inserted
+        const newContentAssets = (request.attachedMedia || []).filter(m => !isVisualFeedback(m))
+        if (newContentAssets.length > 0) {
+            for (const m of newContentAssets) {
+                userContentParts.push({
+                    type: 'text',
+                    text: `[NEW EXHIBIT CONTENT ASSET TO INSERT: ${m.type.toUpperCase()}]: "${m.name}" => EXACT URL: ${m.url}. Integrate this asset into the stage layout.`
+                })
+                if (m.type === 'image') {
                     userContentParts.push({
                         type: 'image_url',
                         image_url: {
@@ -192,16 +229,11 @@ Respond ONLY with a JSON object in this exact format:
                             detail: 'high'
                         }
                     })
-                } else {
-                    userContentParts.push({
-                        type: 'text',
-                        text: `[USER ATTACHED ${m.type.toUpperCase()}: "${m.name}"] => EXACT URL: ${m.url}`
-                    })
                 }
             }
         }
 
-        // 3. User Text Prompt
+        // 4. User Text Prompt
         userContentParts.push({
             type: 'text',
             text: `User Prompt: ${request.prompt}\nTarget Language: ${request.language}`

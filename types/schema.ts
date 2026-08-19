@@ -173,6 +173,7 @@ export interface AIAttachment {
     name: string
     type: 'image' | 'video' | 'audio' | 'model_3d' | 'other'
     url: string
+    purpose?: 'content_asset' | 'visual_feedback' | 'style_reference'
 }
 
 export interface AIChatMessage {

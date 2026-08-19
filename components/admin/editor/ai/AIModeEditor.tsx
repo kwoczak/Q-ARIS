@@ -71,6 +71,7 @@ export function AIModeEditor({
     const [language, setLanguage] = useState(currentLanguage || 'en')
     const [materials, setMaterials] = useState<AIAttachment[]>([])
     const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null)
+    const [generateImages, setGenerateImages] = useState(true)
     const [isUploadingMedia, setIsUploadingMedia] = useState(false)
     const [isUploadingRef, setIsUploadingRef] = useState(false)
     const [isEnhancingPrompt, setIsEnhancingPrompt] = useState(false)
@@ -371,6 +372,7 @@ export function AIModeEditor({
                 materials,
                 referenceImageUrl: referenceImageUrl || undefined,
                 language,
+                generateImages,
                 currentTitle: stage.title,
                 currentContent: stage.content
             })
@@ -381,6 +383,15 @@ export function AIModeEditor({
 
             if (res.tokenUsage) {
                 onTokenUsageUpdate(res.tokenUsage)
+            }
+
+            // Sync generated images to materials library
+            if (res.generatedImages && res.generatedImages.length > 0) {
+                setMaterials(prev => {
+                    const existingUrls = new Set(prev.map(m => m.url))
+                    const newUnique = res.generatedImages!.filter(g => !existingUrls.has(g.url))
+                    return [...prev, ...newUnique]
+                })
             }
 
             // Apply updates to stage
@@ -675,6 +686,28 @@ export function AIModeEditor({
                                 placeholder="e.g. Create an immersive story about the Voyager 1 space probe. Add a launch date headline, an audio player with interstellar radio signals, an image gallery, and finish with a 2-question quiz..."
                                 className="min-h-[110px] bg-neutral-900 border-white/10 text-white placeholder:text-neutral-500 focus-visible:ring-purple-500 text-sm"
                             />
+
+                            {/* Auto-generate AI images toggle checkbox */}
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-purple-950/20 border border-purple-500/20 hover:border-purple-500/30 transition-all">
+                                <label htmlFor="generateImagesCheckbox" className="flex items-start gap-2.5 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        id="generateImagesCheckbox"
+                                        checked={generateImages}
+                                        onChange={(e) => setGenerateImages(e.target.checked)}
+                                        className="mt-0.5 w-4 h-4 rounded border-purple-500/40 bg-neutral-900 text-purple-600 focus:ring-purple-500 cursor-pointer accent-purple-600"
+                                    />
+                                    <div className="text-xs text-neutral-300">
+                                        <span className="font-semibold text-white flex items-center gap-1.5">
+                                            <span>🎨 Auto-generate AI exhibition images (2–3 photos)</span>
+                                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono font-medium">DALL-E 3</span>
+                                        </span>
+                                        <p className="text-[11px] text-neutral-400 mt-0.5">
+                                            AI will design, generate and embed photorealistic museum visuals (Hero showcase & gallery) directly into the page.
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
                         {/* 2. Categorized Media Assets (Photos, Videos, Audio, 3D Models) */}

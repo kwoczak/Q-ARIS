@@ -169,6 +169,42 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
    - If the user provides a visual bug report screenshot:
      * Inspect with vision to diagnose and fix layout/CSS issues. Do NOT replace exhibit images.
 
+${request.generateImages ? `
+9. 🚨 AI IMAGE GENERATION (DALL-E) ENABLED:
+The user specifically requested automatic AI image generation for this stage.
+You must plan 2 to 3 bespoke exhibition photographs/illustrations:
+1. Hero Showcase Image (role: "hero")
+2. First Gallery / Detail Image (role: "gallery")
+3. Second Gallery / Detail Image (role: "gallery")
+
+In your JSON output:
+1. Include an "image_prompts" array:
+   "image_prompts": [
+     {
+       "id": "hero_img",
+       "title": "Short title of hero image (e.g. Voyager 1 Interstellar Probe)",
+       "prompt": "Highly detailed, photorealistic 8k cinematic shot in English with dramatic exhibition lighting...",
+       "role": "hero"
+     },
+     {
+       "id": "gallery_img_1",
+       "title": "Short title of first detail image",
+       "prompt": "Highly detailed, museum artifact macro photograph in English...",
+       "role": "gallery"
+     },
+     {
+       "id": "gallery_img_2",
+       "title": "Short title of second detail image",
+       "prompt": "Highly detailed, photorealistic photograph in English...",
+       "role": "gallery"
+     }
+   ]
+2. In your "custom_html", insert the images using exact placeholder src tags:
+   - For hero: <img src="__AI_IMAGE_hero_img__" alt="..." class="w-full h-56 object-cover" />
+   - For gallery 1: <img src="__AI_IMAGE_gallery_img_1__" alt="..." class="w-full h-full object-cover" />
+   - For gallery 2: <img src="__AI_IMAGE_gallery_img_2__" alt="..." class="w-full h-full object-cover" />
+` : ''}
+
 ${materialsDescription}
 ${currentContext}
 
@@ -181,7 +217,7 @@ Respond ONLY with a JSON object in this exact format:
     "overlayOpacity": 0
   },
   "custom_html": "<div class=\\"w-full min-h-full px-5 py-6 space-y-6 text-white\\">...entire mobile stage layout...</div>",
-  "assistant_reply": "Brief description of what was created or changed."
+  "assistant_reply": "Brief description of what was created or changed."${request.generateImages ? `,\n  "image_prompts": [\n    {\n      "id": "hero_img",\n      "title": "Hero Image Title",\n      "prompt": "Detailed photorealistic 8k prompt in English...",\n      "role": "hero"\n    }\n  ]` : ''}
 }
 `
 
@@ -234,7 +270,7 @@ Respond ONLY with a JSON object in this exact format:
         // 3. User Text Prompt
         userContentParts.push({
             type: 'text',
-            text: `User Prompt: ${request.prompt}\nTarget Language: ${request.language}`
+            text: `User Prompt: ${request.prompt}\nTarget Language: ${request.language}${request.generateImages ? '\n[NOTE: Generate 2-3 AI image prompts in image_prompts and insert placeholders __AI_IMAGE_...__ into HTML]' : ''}`
         })
 
         // Build messages array
@@ -252,16 +288,19 @@ Respond ONLY with a JSON object in this exact format:
             }
         }
 
+        // Add current user prompt
         messages.push({
             role: 'user',
-            content: userContentParts.length === 1 ? userContentParts[0].text : (userContentParts as any)
+            content: userContentParts
         })
 
         // Construct request params
         const requestParams: any = {
             model: modelToUse,
             messages,
-            response_format: { type: 'json_object' }
+            response_format: { type: 'json_object' },
+            temperature: 0.7,
+            max_tokens: 4000
         }
 
         // Try passing reasoning_effort if supported or model is o3/o1/terra
@@ -310,13 +349,89 @@ Respond ONLY with a JSON object in this exact format:
             }
         }
 
+        let finalCustomHtml = parsed.custom_html || ''
+        const generatedAttachments: AIAttachment[] = []
+        let totalImageCost = 0
+        let generatedImageCount = 0
+
+        // Handle DALL-E AI Image Generation if requested
+        if (request.generateImages && Array.isArray(parsed.image_prompts) && parsed.image_prompts.length > 0) {
+            const promptsToGenerate = parsed.image_prompts.slice(0, 3)
+            for (const imgItem of promptsToGenerate) {
+                if (!imgItem.prompt) continue
+                try {
+                    const imgRes = await openai.images.generate({
+                        model: 'dall-e-3',
+                        prompt: imgItem.prompt,
+                        n: 1,
+                        size: '1024x1024',
+                        quality: 'standard',
+                        response_format: 'url'
+                    })
+
+                    const tempUrl = imgRes.data?.[0]?.url
+                    if (tempUrl) {
+                        let permanentUrl = tempUrl
+                        try {
+                            const resFetch = await fetch(tempUrl)
+                            const arrayBuf = await resFetch.arrayBuffer()
+                            const adminSupabase = await createAdminClient()
+                            const timestamp = Date.now()
+                            const shortHash = Math.random().toString(36).substring(2, 7)
+                            const safeName = (imgItem.title || 'ai_image')
+                                .replace(/[^a-zA-Z0-9_\-]/g, '_')
+                                .toLowerCase()
+                                .substring(0, 40)
+                            const filePath = `ai-generated/${session?.userId || 'curator'}/${safeName}_${timestamp}_${shortHash}.png`
+
+                            const { error: uploadError } = await adminSupabase.storage
+                                .from('assets')
+                                .upload(filePath, Buffer.from(arrayBuf), {
+                                    contentType: 'image/png',
+                                    upsert: true
+                                })
+
+                            if (!uploadError) {
+                                const { data: { publicUrl } } = adminSupabase.storage
+                                    .from('assets')
+                                    .getPublicUrl(filePath)
+                                permanentUrl = publicUrl
+                            }
+                        } catch (storageErr) {
+                            console.warn("Could not save DALL-E image to Supabase storage, using direct URL:", storageErr)
+                        }
+
+                        const attachment: AIAttachment = {
+                            id: Math.random().toString(36).substring(2, 9),
+                            name: `${imgItem.title || 'AI Image'}.png`,
+                            type: 'image',
+                            url: permanentUrl,
+                            purpose: 'content_asset'
+                        }
+                        generatedAttachments.push(attachment)
+
+                        // Replace placeholder in custom_html
+                        const placeholder = `__AI_IMAGE_${imgItem.id}__`
+                        finalCustomHtml = finalCustomHtml.replaceAll(placeholder, permanentUrl)
+
+                        // Cost tracking: DALL-E 3 standard 1024x1024 is $0.040 per image
+                        totalImageCost += 0.040
+                        generatedImageCount += 1
+                    }
+                } catch (dalleErr) {
+                    console.error("DALL-E generation error for prompt:", imgItem.prompt, dalleErr)
+                }
+            }
+        }
+
         // Token usage & cost
         const usage = completion.usage
         const promptTokens = usage?.prompt_tokens || 0
         const completionTokens = usage?.completion_tokens || 0
         const totalTokens = usage?.total_tokens || (promptTokens + completionTokens)
         const reasoningTokens = (usage as any)?.completion_tokens_details?.reasoning_tokens || 0
-        const estimatedCostUsd = calculateCost(completion.model || modelToUse, promptTokens, completionTokens)
+        const rawModelCost = calculateCost(completion.model || modelToUse, promptTokens, completionTokens)
+        const estimatedCostUsd = Number((rawModelCost + totalImageCost).toFixed(4))
 
         const tokenUsage: AITokenUsage = {
             promptTokens,
@@ -324,7 +439,9 @@ Respond ONLY with a JSON object in this exact format:
             reasoningTokens,
             totalTokens,
             estimatedCostUsd,
-            modelUsed: completion.model || modelToUse
+            modelUsed: completion.model || modelToUse,
+            imagesCostUsd: totalImageCost > 0 ? Number(totalImageCost.toFixed(4)) : undefined,
+            imagesCount: generatedImageCount > 0 ? generatedImageCount : undefined
         }
 
         return {
@@ -335,9 +452,12 @@ Respond ONLY with a JSON object in this exact format:
                 value: 'linear-gradient(180deg, #0f172a 0%, #020617 100%)',
                 overlayOpacity: 0.1
             },
-            custom_html: parsed.custom_html || '',
-            message: parsed.assistant_reply || 'Pomyślnie wygenerowano nowy projekt etapu.',
-            tokenUsage
+            custom_html: finalCustomHtml,
+            message: parsed.assistant_reply || (generatedImageCount > 0
+                ? `Wygenerowano projekt etapu wraz z ${generatedImageCount} zdjęciami AI (DALL-E 3).`
+                : 'Pomyślnie wygenerowano nowy projekt etapu.'),
+            tokenUsage,
+            generatedImages: generatedAttachments.length > 0 ? generatedAttachments : undefined
         }
     } catch (err: any) {
         console.error("AI Generation Error:", err)

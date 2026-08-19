@@ -192,6 +192,8 @@ export interface AITokenUsage {
     totalTokens: number
     estimatedCostUsd: number
     modelUsed: string
+    imagesCostUsd?: number
+    imagesCount?: number
 }
 
 export interface AIGenerationRequest {
@@ -201,6 +203,7 @@ export interface AIGenerationRequest {
     attachedMedia?: AIAttachment[]
     referenceImageUrl?: string
     language: string
+    generateImages?: boolean
     currentContent?: StageContent
     currentTitle?: string
     chatHistory?: { role: 'user' | 'assistant'; content: string; attachments?: AIAttachment[] }[]
@@ -215,4 +218,5 @@ export interface AIGenerationResponse {
     blocks?: StageBlock[]
     message?: string
     tokenUsage?: AITokenUsage
+    generatedImages?: AIAttachment[]
 }

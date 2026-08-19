@@ -1,6 +1,6 @@
 import React from 'react'
 import { AITokenUsage } from '@/types/schema'
-import { Coins, Cpu, ArrowDownLeft, ArrowUpRight, Undo2, Redo2, History } from 'lucide-react'
+import { Coins, Cpu, ArrowDownLeft, ArrowUpRight, Undo2, Redo2, History, Image as ImageIcon } from 'lucide-react'
 
 export interface StageHistorySnapshot {
     title: string
@@ -96,7 +96,7 @@ export function AITokenTracker({
             </div>
 
             {/* Right side: Live Token Stats & Cost */}
-            <div className="flex items-center gap-4 flex-wrap ml-auto">
+            <div className="flex items-center gap-3 flex-wrap ml-auto">
                 {/* Tokens IN */}
                 <div className="flex items-center gap-1.5 bg-neutral-900/80 px-2.5 py-1 rounded-md border border-white/5" title="Prompt / Input Tokens">
                     <ArrowDownLeft className="w-3.5 h-3.5 text-blue-400" />
@@ -120,6 +120,19 @@ export function AITokenTracker({
                     ) : null}
                 </div>
 
+                {/* AI Images Count & Cost */}
+                {lastUsage?.imagesCount ? (
+                    <div className="flex items-center gap-1.5 bg-purple-950/60 px-2.5 py-1 rounded-md border border-purple-500/30 text-purple-300" title={`Generated ${lastUsage.imagesCount} AI images with DALL-E 3 (+$${lastUsage.imagesCostUsd?.toFixed(3)})`}>
+                        <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
+                        <span className="font-mono font-semibold">{lastUsage.imagesCount} AI {lastUsage.imagesCount === 1 ? 'img' : 'imgs'}</span>
+                        {lastUsage.imagesCostUsd ? (
+                            <span className="text-[10px] text-purple-400/90 font-mono">
+                                (+${lastUsage.imagesCostUsd.toFixed(2)})
+                            </span>
+                        ) : null}
+                    </div>
+                ) : null}
+
                 {/* Total Tokens */}
                 <div className="flex items-center gap-1.5 bg-neutral-900/80 px-2.5 py-1 rounded-md border border-white/5" title="Total Tokens in Session">
                     <Cpu className="w-3.5 h-3.5 text-neutral-400" />
@@ -130,7 +143,7 @@ export function AITokenTracker({
                 </div>
 
                 {/* Live USD Cost */}
-                <div className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-950/50 to-emerald-900/30 px-3 py-1 rounded-md border border-emerald-500/30 text-emerald-300 font-medium" title="Estimated OpenAI Cost">
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-950/50 to-emerald-900/30 px-3 py-1 rounded-md border border-emerald-500/30 text-emerald-300 font-medium" title="Estimated OpenAI & DALL-E Cost">
                     <Coins className="w-3.5 h-3.5 text-emerald-400" />
                     <span className="text-emerald-400/80">Cost:</span>
                     <span className="font-mono font-bold text-emerald-300">

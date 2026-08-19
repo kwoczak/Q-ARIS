@@ -154,7 +154,7 @@ export function generateAudioCardHtml(audio: AudioCardData): string {
     <span class="text-lg">🎧</span>
   </div>
   <div class="flex-1 min-w-0">
-    <h4 class="font-bold text-xs sm:text-sm text-white truncate">${audio.title || 'Curator Audio Guide'}</h4>
+    <h4 class="font-bold text-xs sm:text-sm text-white truncate">${audio.title || 'Audio Guide'}</h4>
     <p class="text-[11px] text-neutral-300 truncate">${audio.subtitle || 'Audio Narration'}</p>
     <audio controls class="w-full h-8 mt-2 opacity-90" src="${audio.audioUrl || ''}">
       Your browser does not support audio.
@@ -166,17 +166,17 @@ export function generateAudioCardHtml(audio: AudioCardData): string {
 export function generateGalleryHtml(): string {
     return `<div data-component="gallery" class="space-y-2.5 my-3">
   <div class="flex items-center justify-between">
-    <span class="text-xs font-bold uppercase tracking-wider text-amber-400">🖼️ Exhibit Gallery</span>
+    <span class="text-xs font-bold uppercase tracking-wider text-amber-400">🖼️ Media Gallery</span>
     <span class="text-[11px] text-neutral-400">Swipe to explore</span>
   </div>
   <div class="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide -mx-1 px-1">
     <div class="relative rounded-2xl overflow-hidden border border-white/15 shrink-0 snap-start w-56 h-40 group">
       <img src="https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover" />
-      <div class="absolute bottom-0 inset-x-0 p-2.5 bg-gradient-to-t from-black/90 to-transparent text-[11px] text-white font-medium">Exhibit A</div>
+      <div class="absolute bottom-0 inset-x-0 p-2.5 bg-gradient-to-t from-black/90 to-transparent text-[11px] text-white font-medium">Showcase 1</div>
     </div>
     <div class="relative rounded-2xl overflow-hidden border border-white/15 shrink-0 snap-start w-56 h-40 group">
       <img src="https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover" />
-      <div class="absolute bottom-0 inset-x-0 p-2.5 bg-gradient-to-t from-black/90 to-transparent text-[11px] text-white font-medium">Exhibit B</div>
+      <div class="absolute bottom-0 inset-x-0 p-2.5 bg-gradient-to-t from-black/90 to-transparent text-[11px] text-white font-medium">Showcase 2</div>
     </div>
   </div>
 </div>`
@@ -198,7 +198,7 @@ export function generateStatsHtml(): string {
 export function generateQuoteHtml(): string {
     return `<div data-component="quote" class="p-4 rounded-2xl bg-gradient-to-r from-purple-950/30 to-amber-950/20 border-l-4 border-amber-400 border-y border-r border-white/10 my-3">
   <p class="italic text-xs sm:text-sm text-neutral-200 leading-relaxed">"Across the cosmic sea, the exploration of distant worlds reflects the limitless boundaries of human curiosity."</p>
-  <span class="block mt-2 text-[10px] uppercase font-bold tracking-wider text-amber-300">— Chief Curator</span>
+  <span class="block mt-2 text-[10px] uppercase font-bold tracking-wider text-amber-300">— Key Note / Author</span>
 </div>`
 }
 
@@ -237,7 +237,7 @@ export function AIComponentInspector({
 
     // Audio Card State
     const [audioUrl, setAudioUrl] = useState('')
-    const [audioTitle, setAudioTitle] = useState('Curator Audio Guide')
+    const [audioTitle, setAudioTitle] = useState('Audio Guide')
     const [audioSubtitle, setAudioSubtitle] = useState('Audio Narration')
 
     // Media modal for picking hidden scratch image or audio
@@ -263,8 +263,8 @@ export function AIComponentInspector({
         } else if (componentData.type === 'scratch_card') {
             const s = componentData.data
             setScratchHiddenImg(s.hiddenImage || '')
-            setScratchHiddenTitle(s.hiddenTitle || 'Secret Artifact Revealed')
-            setScratchHiddenDesc(s.hiddenDescription || 'You have uncovered the secret hidden detail of this exhibit!')
+            setScratchHiddenTitle(s.hiddenTitle || 'Secret Revealed')
+            setScratchHiddenDesc(s.hiddenDescription || 'You have uncovered the secret hidden detail of this story!')
             setScratchCoverText(s.coverText || '🪙 SCRATCH TO REVEAL')
             setScratchSubtext(s.scratchInstruction || '(Rub with finger or mouse)')
             setScratchFoil(s.foilTheme || 'silver')
@@ -272,7 +272,7 @@ export function AIComponentInspector({
         } else if (componentData.type === 'audio') {
             const a = componentData.data
             setAudioUrl(a.audioUrl || '')
-            setAudioTitle(a.title || 'Curator Audio Guide')
+            setAudioTitle(a.title || 'Audio Guide')
             setAudioSubtitle(a.subtitle || 'Audio Narration')
         }
     }, [componentData])

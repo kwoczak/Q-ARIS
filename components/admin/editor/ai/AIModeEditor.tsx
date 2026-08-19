@@ -671,10 +671,10 @@ export function AIModeEditor({
                                         </button>
                                     </div>
                                     <ul className="space-y-1.5 text-[11.5px] text-neutral-300 list-disc list-inside leading-relaxed">
-                                        <li><strong className="text-white">Theme & Topic:</strong> Clearly specify the subject (e.g. <em>Ancient Egypt, Space Exploration, Renaissance Art</em>).</li>
+                                        <li><strong className="text-white">Theme & Topic:</strong> Clearly specify the subject (e.g. <em>Ancient Egypt, SpaceX Falcon 9, Rainforest Fauna, Brand Showcase</em>).</li>
                                         <li><strong className="text-white">Visual Mood:</strong> Specify atmospheric colors (e.g. <em>Obsidian & gold gradient, dark cosmic nebula, emerald glow</em>).</li>
-                                        <li><strong className="text-white">Structure & Sections:</strong> List desired sections (e.g. <em>Hero title, curatorial intro story, highlight fact cards, timeline</em>).</li>
-                                        <li><strong className="text-white">Interactive Elements:</strong> Request widgets (e.g. <em>2-question interactive quiz with instant feedback, audio guide player, 3D model</em>).</li>
+                                        <li><strong className="text-white">Structure & Sections:</strong> List desired sections (e.g. <em>Hero title, engaging intro story, highlight insight cards, stats grid</em>).</li>
+                                        <li><strong className="text-white">Interactive Elements:</strong> Request widgets (e.g. <em>2-question interactive quiz with instant feedback, rub-to-reveal scratch card, audio guide player</em>).</li>
                                         <li><strong className="text-white">Attached Media:</strong> Explain how uploaded photos/audio should be displayed (e.g. <em>Hero showcase + swipeable gallery carousel</em>).</li>
                                     </ul>
                                 </div>
@@ -683,7 +683,7 @@ export function AIModeEditor({
                             <Textarea
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="e.g. Create an immersive story about the Voyager 1 space probe. Add a launch date headline, an audio player with interstellar radio signals, an image gallery, and finish with a 2-question quiz..."
+                                placeholder="e.g. Create an engaging, immersive experience about SpaceX Falcon 9. Add a launch date headline, an audio player with rocket telemetry, an image gallery, and finish with a 2-question quiz..."
                                 className="min-h-[110px] bg-neutral-900 border-white/10 text-white placeholder:text-neutral-500 focus-visible:ring-purple-500 text-sm"
                             />
 
@@ -699,11 +699,11 @@ export function AIModeEditor({
                                     />
                                     <div className="text-xs text-neutral-300">
                                         <span className="font-semibold text-white flex items-center gap-1.5">
-                                            <span>🎨 Auto-generate AI exhibition images (2–3 photos)</span>
+                                            <span>🎨 Auto-generate AI visuals (2–3 bespoke photos)</span>
                                             <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono font-medium">GPT-Image</span>
                                         </span>
                                         <p className="text-[11px] text-neutral-400 mt-0.5">
-                                            AI will design, generate and embed photorealistic museum visuals (Hero showcase & gallery) directly into the page.
+                                            AI will design, generate and embed photorealistic high-fidelity visuals (Hero showcase & gallery) directly into the page.
                                         </p>
                                     </div>
                                 </label>

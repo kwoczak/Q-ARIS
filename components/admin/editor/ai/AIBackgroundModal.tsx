@@ -128,7 +128,7 @@ export function AIBackgroundModal({
                         <div>
                             <DialogTitle className="text-base font-bold text-white">Stage Background</DialogTitle>
                             <DialogDescription className="text-xs text-neutral-400">
-                                Choose a luxury curated gradient preset or full-screen exhibit image.
+                                Choose a luxury curated gradient preset or full-screen custom image.
                             </DialogDescription>
                         </div>
                     </div>

@@ -326,8 +326,8 @@ export function StageProperties({
             case 'scratch_card':
                 snippet = generateScratchCardHtml({
                     hiddenImage: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80',
-                    hiddenTitle: 'Secret Artifact Revealed',
-                    hiddenDescription: 'You have uncovered the secret hidden detail of this exhibit!',
+                    hiddenTitle: 'Secret Revealed',
+                    hiddenDescription: 'You have uncovered the secret hidden detail!',
                     coverText: '🪙 SCRATCH TO REVEAL',
                     scratchInstruction: '(Rub with finger or mouse)',
                     foilTheme: 'silver',
@@ -336,26 +336,26 @@ export function StageProperties({
                 break
             case 'quiz':
                 snippet = generateQuizHtml({
-                    question: 'What is the most remarkable feature of this exhibit?',
-                    options: ['Primary discovery', 'Historical artifact', 'Cosmic phenomenon'],
+                    question: 'What is the most remarkable feature of this topic?',
+                    options: ['Primary discovery', 'Key milestone', 'Cosmic phenomenon'],
                     correctIndex: 0,
                     points: '+50 PTS',
-                    explanation: 'The primary discovery represents a turning point in modern research.',
+                    explanation: 'This primary insight represents a turning point in understanding.',
                     title: '⚡ Explorer Quiz'
                 })
                 break
             case 'fact_card':
                 snippet = generateFactCardHtml({
                     icon: '💎',
-                    title: 'Curatorial Highlight',
-                    description: 'This key insight provides crucial context to understanding the exhibit.'
+                    title: 'Key Insight',
+                    description: 'This key insight provides crucial context and depth to the story.'
                 })
                 break
             case 'audio':
                 snippet = generateAudioCardHtml({
                     audioUrl: '',
-                    title: 'Curator Audio Guide',
-                    subtitle: 'Narration Track'
+                    title: 'Audio Guide',
+                    subtitle: 'Audio Narration'
                 })
                 break
             case 'gallery':
@@ -383,7 +383,7 @@ export function StageProperties({
             const audioTrack = assets[0]
             const snippet = generateAudioCardHtml({
                 audioUrl: audioTrack.url,
-                title: audioTrack.name ? audioTrack.name.replace(/\.[^/.]+$/, '') : 'Curator Voiceover',
+                title: audioTrack.name ? audioTrack.name.replace(/\.[^/.]+$/, '') : 'Voiceover',
                 subtitle: 'Audio Narration'
             })
 
@@ -812,7 +812,7 @@ export function StageProperties({
                             </div>
                             <div>
                                 <h4 className="font-bold text-xs text-white group-hover:text-amber-300">🎟️ Scratch Card</h4>
-                                <p className="text-[10px] text-neutral-400 mt-0.5">Interactive rub-to-reveal canvas with secret image & fact</p>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Interactive rub-to-reveal canvas with secret image & detail</p>
                             </div>
                         </button>
 
@@ -839,8 +839,8 @@ export function StageProperties({
                                 <Layers className="w-4 h-4" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">💎 Fact Card</h4>
-                                <p className="text-[10px] text-neutral-400 mt-0.5">Curatorial highlight card with icon & description</p>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">💎 Highlight Card</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Key insight card with icon & description</p>
                             </div>
                         </button>
 
@@ -853,7 +853,7 @@ export function StageProperties({
                                 <Music className="w-4 h-4" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🎧 Audio Guide</h4>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🎧 Audio Track</h4>
                                 <p className="text-[10px] text-neutral-400 mt-0.5">Audio narration player card</p>
                             </div>
                         </button>
@@ -867,7 +867,7 @@ export function StageProperties({
                                 <Sparkles className="w-4 h-4" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🖼️ Exhibit Gallery</h4>
+                                <h4 className="font-bold text-xs text-white group-hover:text-purple-300">🖼️ Media Gallery</h4>
                                 <p className="text-[10px] text-neutral-400 mt-0.5">Horizontal swipe image carousel</p>
                             </div>
                         </button>
@@ -895,8 +895,8 @@ export function StageProperties({
                                 <Quote className="w-4 h-4" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-xs text-white group-hover:text-amber-300">💬 Curatorial Quote</h4>
-                                <p className="text-[10px] text-neutral-400 mt-0.5">Elegant emphasized quote block with author attribution</p>
+                                <h4 className="font-bold text-xs text-white group-hover:text-amber-300">💬 Quote Block</h4>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Emphasized quote block with author attribution</p>
                             </div>
                         </button>
                     </div>

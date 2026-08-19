@@ -747,7 +747,18 @@ export function AIInteractivePreview({
             temp.innerHTML = snippet
             const el = temp.firstElementChild
             if (el) {
-                containerRef.current.appendChild(el)
+                const rootWrapper = (containerRef.current.children.length === 1 && containerRef.current.firstElementChild?.children.length
+                    ? containerRef.current.firstElementChild
+                    : containerRef.current) as HTMLElement
+
+                if (!rootWrapper.className.includes('p-') && !rootWrapper.className.includes('px-')) {
+                    rootWrapper.classList.add('p-4')
+                }
+                if (!rootWrapper.className.includes('space-y-') && !rootWrapper.className.includes('gap-')) {
+                    rootWrapper.classList.add('space-y-6')
+                }
+
+                rootWrapper.appendChild(el)
                 emitHtmlUpdate()
                 attachEditableBehaviors()
                 initScratchCards()
@@ -766,7 +777,7 @@ export function AIInteractivePreview({
             const audioTrack = assets[0]
             const snippet = generateAudioCardHtml({
                 audioUrl: audioTrack.url,
-                title: audioTrack.name ? audioTrack.name.replace(/\.[^/.]+$/, '') : 'Curator Voiceover',
+                title: audioTrack.name ? audioTrack.name.replace(/\.[^/.]+$/, '') : 'Voiceover',
                 subtitle: 'Audio Narration'
             })
 
@@ -782,7 +793,10 @@ export function AIInteractivePreview({
                 const temp = document.createElement('div')
                 temp.innerHTML = snippet
                 if (temp.firstElementChild) {
-                    containerRef.current.insertBefore(temp.firstElementChild, containerRef.current.firstChild)
+                    const rootWrapper = (containerRef.current.children.length === 1 && containerRef.current.firstElementChild?.children.length
+                        ? containerRef.current.firstElementChild
+                        : containerRef.current) as HTMLElement
+                    rootWrapper.insertBefore(temp.firstElementChild, rootWrapper.firstChild)
                 }
             }
 

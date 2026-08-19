@@ -318,6 +318,75 @@ export function StageProperties({
         handleUpdateStage(updatedStage, `Edit ${key}`)
     }
 
+    const insertComponentIntoHtml = (html: string, snippet: string, position: 'top' | 'bottom' = 'bottom'): string => {
+        if (!html || !html.trim()) {
+            return `<div class="space-y-6 p-4 w-full">\n  ${snippet}\n</div>`
+        }
+
+        try {
+            if (typeof window !== 'undefined') {
+                const parser = new DOMParser()
+                const doc = parser.parseFromString(html, 'text/html')
+                const body = doc.body
+
+                // 1. If wrapped in a single main container (e.g. <div class="space-y-6 p-4">)
+                if (body.children.length === 1 && body.firstElementChild) {
+                    const wrapper = body.firstElementChild as HTMLElement
+                    // Ensure wrapper has padding if missing
+                    if (!wrapper.className.includes('p-') && !wrapper.className.includes('px-')) {
+                        wrapper.classList.add('p-4')
+                    }
+                    if (!wrapper.className.includes('space-y-') && !wrapper.className.includes('gap-')) {
+                        wrapper.classList.add('space-y-6')
+                    }
+
+                    const temp = doc.createElement('div')
+                    temp.innerHTML = snippet.trim()
+                    const newEl = temp.firstElementChild
+                    if (newEl) {
+                        if (position === 'top') {
+                            wrapper.insertBefore(newEl, wrapper.firstChild)
+                        } else {
+                            wrapper.appendChild(newEl)
+                        }
+                        return body.innerHTML
+                    }
+                } else if (body.children.length > 1) {
+                    // 2. Multiple root children without a wrapper: wrap in standard padded layout
+                    const wrapper = doc.createElement('div')
+                    wrapper.className = 'space-y-6 p-4 w-full'
+                    while (body.firstChild) {
+                        wrapper.appendChild(body.firstChild)
+                    }
+
+                    const temp = doc.createElement('div')
+                    temp.innerHTML = snippet.trim()
+                    const newEl = temp.firstElementChild
+                    if (newEl) {
+                        if (position === 'top') {
+                            wrapper.insertBefore(newEl, wrapper.firstChild)
+                        } else {
+                            wrapper.appendChild(newEl)
+                        }
+                    }
+                    body.appendChild(wrapper)
+                    return body.innerHTML
+                }
+            }
+        } catch (err) {
+            console.error('Error inserting component into HTML:', err)
+        }
+
+        // Fallback: append inside existing div if closed
+        const trimmed = html.trim()
+        if (trimmed.endsWith('</div>')) {
+            const lastDivIndex = trimmed.lastIndexOf('</div>')
+            return `${trimmed.slice(0, lastDivIndex)}\n  ${snippet}\n</div>`
+        }
+
+        return `<div class="space-y-6 p-4 w-full">\n  ${trimmed}\n  ${snippet}\n</div>`
+    }
+
     const handleInsertComponent = (type: string) => {
         if (!formData) return
 
@@ -371,7 +440,7 @@ export function StageProperties({
 
         if (snippet) {
             const currentHtml = formData.content?.custom_html || ''
-            const updatedHtml = currentHtml ? `${currentHtml}\n${snippet}` : snippet
+            const updatedHtml = insertComponentIntoHtml(currentHtml, snippet, 'bottom')
             handleContentChange('custom_html', updatedHtml)
         }
 
@@ -388,7 +457,7 @@ export function StageProperties({
             })
 
             const currentHtml = formData.content?.custom_html || ''
-            const updatedHtml = `${snippet}\n${currentHtml}`
+            const updatedHtml = insertComponentIntoHtml(currentHtml, snippet, 'top')
             handleContentChange('custom_html', updatedHtml)
         }
         setIsVoiceoverModalOpen(false)

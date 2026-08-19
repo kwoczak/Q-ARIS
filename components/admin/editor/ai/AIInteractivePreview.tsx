@@ -434,32 +434,37 @@ export function AIInteractivePreview({
         // Helper to inject hover action bar (Settings + Delete) on interactive component containers
         const attachComponentActionBar = (
             el: HTMLElement,
-            title: string,
-            onEdit: () => void
+            title?: string | null,
+            onEdit?: () => void
         ) => {
-            if (el.dataset.quarisInspectorAttached) return
+            if (!el || el.dataset.quarisInspectorAttached || el.classList.contains('quaris-inspector-bar') || el.classList.contains('quaris-inspector-btn')) return
+            if (el === container) return
+
             el.dataset.quarisInspectorAttached = 'true'
             el.classList.add('relative', 'group/component')
 
             const bar = document.createElement('div')
-            bar.className = 'quaris-inspector-bar absolute -top-3 right-3 hidden group-hover/component:flex items-center gap-1.5 z-40 animate-in fade-in zoom-in-95'
+            bar.className = 'quaris-inspector-bar absolute -top-2.5 right-2 hidden group-hover/component:flex items-center gap-1.5 z-40 animate-in fade-in zoom-in-95 pointer-events-auto select-none'
 
-            // Edit button
-            const editBtn = document.createElement('button')
-            editBtn.type = 'button'
-            editBtn.className = 'quaris-inspector-btn flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold shadow-xl border border-purple-300/40 transition-all cursor-pointer'
-            editBtn.innerHTML = `<span>⚙️ ${title}</span>`
-            editBtn.onclick = (e) => {
-                e.stopPropagation()
-                e.preventDefault()
-                onEdit()
+            // Edit button (if interactive inspector exists)
+            if (onEdit && title) {
+                const editBtn = document.createElement('button')
+                editBtn.type = 'button'
+                editBtn.className = 'quaris-inspector-btn flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold shadow-xl border border-purple-300/40 transition-all cursor-pointer'
+                editBtn.innerHTML = `<span>⚙️ ${title}</span>`
+                editBtn.onclick = (e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    onEdit()
+                }
+                bar.appendChild(editBtn)
             }
 
-            // Delete button
+            // Delete button (Always available on hover for every component/block)
             const deleteBtn = document.createElement('button')
             deleteBtn.type = 'button'
-            deleteBtn.className = 'quaris-inspector-btn flex items-center gap-1 px-2 py-1 rounded-full bg-red-600 hover:bg-red-500 text-white text-[11px] font-semibold shadow-xl border border-red-300/40 transition-all cursor-pointer'
-            deleteBtn.innerHTML = `<span>🗑️</span>`
+            deleteBtn.className = 'quaris-inspector-btn flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-600/90 hover:bg-red-500 text-white text-[11px] font-semibold shadow-xl border border-red-300/40 transition-all cursor-pointer backdrop-blur-md'
+            deleteBtn.innerHTML = `<span>🗑️ Delete</span>`
             deleteBtn.title = 'Delete this component'
             deleteBtn.onclick = (e) => {
                 e.stopPropagation()
@@ -468,7 +473,6 @@ export function AIInteractivePreview({
                 emitHtmlUpdate()
             }
 
-            bar.appendChild(editBtn)
             bar.appendChild(deleteBtn)
             el.appendChild(bar)
         }
@@ -487,11 +491,11 @@ export function AIInteractivePreview({
             })
         })
 
-        // 5. Fact Cards
+        // 5. Fact / Highlight Cards
         const factCards = container.querySelectorAll('[data-component="fact_card"]')
         factCards.forEach((card) => {
             const cardEl = card as HTMLElement
-            attachComponentActionBar(cardEl, 'Edit Fact', () => {
+            attachComponentActionBar(cardEl, 'Edit Highlight', () => {
                 const iconEl = cardEl.querySelector('.rounded-xl, .text-lg')
                 const titleEl = cardEl.querySelector('h4, h3, strong')
                 const descEl = cardEl.querySelector('p')
@@ -501,8 +505,8 @@ export function AIInteractivePreview({
                     type: 'fact_card',
                     data: {
                         icon: iconEl?.textContent?.trim() || '💎',
-                        title: titleEl?.textContent?.trim() || 'Fact Title',
-                        description: descEl?.textContent?.trim() || 'Fact Description'
+                        title: titleEl?.textContent?.trim() || 'Highlight Title',
+                        description: descEl?.textContent?.trim() || 'Highlight Description'
                     }
                 })
                 setIsInspectorOpen(true)
@@ -531,6 +535,28 @@ export function AIInteractivePreview({
                 setActiveComponentData({ type: 'audio', data })
                 setIsInspectorOpen(true)
             })
+        })
+
+        // 8. Galleries, Stats, Quotes, Details, Hero Media Cards & Section blocks
+        const allBlocksAndCards = container.querySelectorAll<HTMLElement>(
+            '[data-component="gallery"], [data-component="stats"], [data-component="quote"], details, blockquote, .snap-x, .grid-cols-2, .rounded-3xl, .rounded-2xl, .p-4, .p-5, figure'
+        )
+        allBlocksAndCards.forEach((el) => {
+            // Avoid double-attaching if it's already inside a specialized component
+            if (el.closest('[data-component="quiz"], [data-component="scratch_card"], [data-component="fact_card"], [data-component="audio"]')) return
+            attachComponentActionBar(el, null)
+        })
+
+        // 9. All Direct Top-Level & Second-Level Children (to guarantee 100% of blocks/elements can be deleted)
+        const rootChildren = Array.from(container.children) as HTMLElement[]
+        rootChildren.forEach((rootChild) => {
+            if (rootChild.children.length > 0 && (rootChild.classList.contains('space-y-6') || rootChild.classList.contains('space-y-4') || rootChild.classList.contains('space-y-3'))) {
+                Array.from(rootChild.children).forEach((subChild) => {
+                    attachComponentActionBar(subChild as HTMLElement, null)
+                })
+            } else {
+                attachComponentActionBar(rootChild, null)
+            }
         })
     }, [isEditable, emitHtmlUpdate])
 

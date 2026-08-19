@@ -1,8 +1,6 @@
-'use client'
-
 import React, { useState, useRef } from 'react'
 import { Stage, StageContent, AIAttachment, AIChatMessage, AITokenUsage } from '@/types/schema'
-import { generateStageWithAI } from '@/app/actions/ai-generator'
+import { generateStageWithAI, enhancePromptWithAI } from '@/app/actions/ai-generator'
 import { uploadAsset } from '@/lib/supabase/storage'
 import { AIProgressBar } from './AIProgressBar'
 import { AIMediaLibraryModal } from './AIMediaLibraryModal'
@@ -35,7 +33,8 @@ import {
     LayoutGrid,
     Plus,
     Paperclip,
-    Loader2
+    Loader2,
+    Wand2
 } from 'lucide-react'
 
 interface AIModeEditorProps {
@@ -74,6 +73,8 @@ export function AIModeEditor({
     const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null)
     const [isUploadingMedia, setIsUploadingMedia] = useState(false)
     const [isUploadingRef, setIsUploadingRef] = useState(false)
+    const [isEnhancingPrompt, setIsEnhancingPrompt] = useState(false)
+    const [isEnhancingChatPrompt, setIsEnhancingChatPrompt] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [isPromptTipsOpen, setIsPromptTipsOpen] = useState(false)
 
@@ -298,6 +299,53 @@ export function AIModeEditor({
             reader.onerror = reject
             reader.readAsDataURL(file)
         })
+    }
+
+    // Enhance Prompt with AI (Expand brief into rich detailed prompt)
+    const handleEnhancePrompt = async () => {
+        if (!prompt.trim() || isEnhancingPrompt) return
+
+        setIsEnhancingPrompt(true)
+        setErrorMessage(null)
+
+        try {
+            const res = await enhancePromptWithAI({
+                prompt,
+                language
+            })
+
+            if (res.success && res.enhancedPrompt) {
+                setPrompt(res.enhancedPrompt)
+            } else {
+                setErrorMessage(res.error || 'Failed to enhance prompt.')
+            }
+        } catch (err: any) {
+            console.error("Enhance prompt error:", err)
+            setErrorMessage(err.message || 'Error occurred while enhancing prompt.')
+        } finally {
+            setIsEnhancingPrompt(false)
+        }
+    }
+
+    // Enhance Chat Prompt with AI
+    const handleEnhanceChatPrompt = async () => {
+        if (!chatInput.trim() || isEnhancingChatPrompt) return
+
+        setIsEnhancingChatPrompt(true)
+        try {
+            const res = await enhancePromptWithAI({
+                prompt: chatInput,
+                language
+            })
+
+            if (res.success && res.enhancedPrompt) {
+                setChatInput(res.enhancedPrompt)
+            }
+        } catch (err: any) {
+            console.error("Enhance chat prompt error:", err)
+        } finally {
+            setIsEnhancingChatPrompt(false)
+        }
     }
 
     // Execute Initial AI Generation
@@ -556,21 +604,43 @@ export function AIModeEditor({
                             )}
                         </div>
 
-                        {/* 1. Prompt Input with (i) Recommendations Button */}
+                        {/* 1. Prompt Input with (i) Recommendations Button and Enhance Button */}
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <Label className="text-xs font-medium text-neutral-300">
                                     1. Stage Description (Prompt) <span className="text-purple-400">*</span>
                                 </Label>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsPromptTipsOpen(!isPromptTipsOpen)}
-                                    className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 font-medium px-2 py-0.5 rounded-md hover:bg-purple-950/60 border border-purple-500/25 transition-all cursor-pointer"
-                                    title="Tips for writing a great prompt"
-                                >
-                                    <Info className="w-3.5 h-3.5" />
-                                    <span>Prompt Tips</span>
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        disabled={isEnhancingPrompt || !prompt.trim()}
+                                        onClick={handleEnhancePrompt}
+                                        className="inline-flex items-center gap-1.5 text-[11px] text-amber-300 hover:text-amber-200 font-semibold px-2.5 py-0.5 rounded-md bg-gradient-to-r from-amber-950/60 to-amber-900/40 hover:from-amber-950/90 hover:to-amber-900/70 border border-amber-500/40 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                                        title="AI will expand and enrich your brief with atmospheric storytelling and widgets"
+                                    >
+                                        {isEnhancingPrompt ? (
+                                            <>
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                                                <span>Enhancing...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                                                <span>Enhance my prompt</span>
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsPromptTipsOpen(!isPromptTipsOpen)}
+                                        className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 font-medium px-2 py-0.5 rounded-md hover:bg-purple-950/60 border border-purple-500/25 transition-all cursor-pointer"
+                                        title="Tips for writing a great prompt"
+                                    >
+                                        <Info className="w-3.5 h-3.5" />
+                                        <span>Prompt Tips</span>
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Prompt Tips Recommendations Card */}
@@ -1148,6 +1218,23 @@ export function AIModeEditor({
                                     disabled={isGenerating}
                                     className="bg-neutral-900 border-white/10 text-white placeholder:text-neutral-500 focus-visible:ring-purple-500 text-xs h-10 flex-1"
                                 />
+
+                                {/* Quick Enhance Chat Prompt Button */}
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    disabled={isGenerating || isEnhancingChatPrompt || !chatInput.trim()}
+                                    onClick={handleEnhanceChatPrompt}
+                                    className="h-10 w-10 text-amber-400/70 hover:text-amber-300 hover:bg-neutral-900 shrink-0 rounded-xl cursor-pointer"
+                                    title="Enhance prompt with AI"
+                                >
+                                    {isEnhancingChatPrompt ? (
+                                        <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                                    ) : (
+                                        <Wand2 className="w-4 h-4" />
+                                    )}
+                                </Button>
 
                                 {/* Submit Button */}
                                 <Button

@@ -154,12 +154,20 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
 6. TARGET LANGUAGE:
    - Output all user-visible text, headers, quiz questions, buttons, and explanations in the requested language: "${request.language.toUpperCase()}".
 
-7. VISUAL INSPECTION SCREENSHOTS & BUG REPORTS (STRICT MANDATE):
-   - When the user provides a visual bug report screenshot:
-     * ⛔ ABSOLUTE BAN: NEVER INSERT THE BUG REPORT SCREENSHOT URL INTO ANY <img src="..."> OR ANY BACKGROUND OF THE GENERATED HTML!
-     * 🛡️ IMMUTABILITY: PRESERVE all existing exhibition images and hero image URLs already present in the page HTML.
-     * 👁️ VISION ANALYSIS: Use computer vision to observe what styling/layout issue is visible (e.g. text squeezed into narrow vertical columns, bad wrapping, overflowing elements).
-     * 🛠️ FIX CODE: Immediately rewrite the HTML/CSS to fix the issue (e.g. replace cramped 2-column cards with full-width stacked cards \`w-full flex-col space-y-3\`, ensure \`flex-1 min-w-0 break-words\`).
+7. ZERO CONTENT LOSS ON REFINEMENTS (MANDATORY):
+   - When modifying an existing screen from CURRENT HTML STATE (e.g. changing background, tweaking text, styling adjustments, adding quiz/audio):
+     * YOU MUST PRESERVE 100% of all existing headlines, curatorial stories, highlight cards, galleries, and widgets from the CURRENT HTML STATE.
+     * NEVER output an empty layout, stripped content, or placeholder '...'.
+     * If the user asks to change background (e.g. "zmień tło na takie" or "change background to deep blue"):
+       - Return the new background in "background" (e.g. background: { type: "image", value: "URL", overlayOpacity: 0.35 } or background: { type: "gradient", value: "..." }).
+       - KEEP ALL existing custom_html sections completely intact and fully styled!
+
+8. ATTACHED IMAGES & BACKGROUND REQUESTS:
+   - If the user attaches an image and asks to use it as background (e.g. "zmień tło na takie"):
+     * Set "background": { "type": "image", "value": "EXACT_ATTACHED_IMAGE_URL", "overlayOpacity": 0.35 }
+     * Maintain all existing custom_html elements so text remains readable over the new background.
+   - If the user provides a visual bug report screenshot:
+     * Inspect with vision to diagnose and fix layout/CSS issues. Do NOT replace exhibit images.
 
 ${materialsDescription}
 ${currentContext}
@@ -196,32 +204,22 @@ Respond ONLY with a JSON object in this exact format:
             })
         }
 
-        // 2. Visual Bug Report Screenshots (Inspection ONLY - NEVER insert in HTML)
-        if (uniqueVisualFeedback.length > 0) {
-            for (const m of uniqueVisualFeedback) {
-                userContentParts.push({
-                    type: 'text',
-                    text: `[VISUAL BUG REPORT / INSPECTION SCREENSHOT - DO NOT INSERT INTO HTML]: "${m.name}". The user provided this screenshot to show a bug or layout defect in the current preview. Use vision to inspect what is broken in the layout and fix the CSS/HTML code accordingly. DO NOT use this image URL anywhere in the HTML output!`
-                })
-                userContentParts.push({
-                    type: 'image_url',
-                    image_url: {
-                        url: m.url,
-                        detail: 'high'
-                    }
-                })
-            }
-        }
+        // 2. Attached Media (Backgrounds, exhibit photos, or inspection screenshots)
+        if (request.attachedMedia && request.attachedMedia.length > 0) {
+            for (const m of request.attachedMedia) {
+                if (m.purpose === 'visual_feedback') {
+                    userContentParts.push({
+                        type: 'text',
+                        text: `[ATTACHED SCREENSHOT / VISUAL FEEDBACK: "${m.name}" => URL: ${m.url}]: Use vision to inspect layout bugs. If user prompt specifically asks to use this image as background (e.g. 'zmień tło na takie'), set background.type = 'image', background.value = '${m.url}', overlayOpacity = 0.35 while keeping all custom_html intact!`
+                    })
+                } else {
+                    userContentParts.push({
+                        type: 'text',
+                        text: `[ATTACHED MEDIA ASSET: ${m.type.toUpperCase()} "${m.name}" => EXACT URL: ${m.url}]: If user asks to use this as background or insert into page, use this exact URL.`
+                    })
+                }
 
-        // 3. New Content Assets explicitly attached in chat to be inserted
-        const newContentAssets = (request.attachedMedia || []).filter(m => !isVisualFeedback(m))
-        if (newContentAssets.length > 0) {
-            for (const m of newContentAssets) {
-                userContentParts.push({
-                    type: 'text',
-                    text: `[NEW EXHIBIT CONTENT ASSET TO INSERT: ${m.type.toUpperCase()}]: "${m.name}" => EXACT URL: ${m.url}. Integrate this asset into the stage layout.`
-                })
-                if (m.type === 'image') {
+                if (m.type === 'image' && (m.url.startsWith('http') || m.url.startsWith('data:image/'))) {
                     userContentParts.push({
                         type: 'image_url',
                         image_url: {
@@ -233,7 +231,7 @@ Respond ONLY with a JSON object in this exact format:
             }
         }
 
-        // 4. User Text Prompt
+        // 3. User Text Prompt
         userContentParts.push({
             type: 'text',
             text: `User Prompt: ${request.prompt}\nTarget Language: ${request.language}`
@@ -347,5 +345,79 @@ Respond ONLY with a JSON object in this exact format:
             success: false,
             error: err?.message || 'Wystąpił błąd podczas komunikacji z OpenAI.'
         }
+    }
+}
+
+export interface PromptEnhancementRequest {
+    prompt: string
+    language?: string
+}
+
+export interface PromptEnhancementResponse {
+    success: boolean
+    enhancedPrompt?: string
+    error?: string
+}
+
+export async function enhancePromptWithAI(request: PromptEnhancementRequest): Promise<PromptEnhancementResponse> {
+    const session = await getSession()
+    if (session) {
+        let isAllowed = session.role === 'admin' || session.username === 'curator_demo'
+        if (!isAllowed && session.userId) {
+            const adminSupabase = await createAdminClient()
+            const { data: user } = await adminSupabase.from('users').select('username, role').eq('id', session.userId).single()
+            if (user?.username === 'curator_demo' || user?.role === 'admin') {
+                isAllowed = true
+            }
+        }
+        if (!isAllowed) {
+            return {
+                success: false,
+                error: 'Dostępne wyłącznie dla konta curator_demo.'
+            }
+        }
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+        return { success: false, error: 'Brak klucza API OpenAI.' }
+    }
+
+    const openai = new OpenAI({ apiKey })
+
+    const systemPrompt = `You are a World-Class Lead Creative Technologist & Prompt Engineering Maestro for Quaris (a luxury interactive second-screen museum & storytelling web app).
+Your mission: Take a short/brief user prompt (e.g. "Voyager mission with a quiz" or "Dinozaury z modelem 3D i audio") and transform it into an atmospheric, highly structured, masterpiece-level prompt.
+
+STRUCTURE OF THE ENHANCED PROMPT:
+1. THEMATIC HOOK & MOOD: Rich visual atmosphere (e.g. cosmic deep nebula with starlight glow / obsidian and gold Egyptian luxury / neon emerald glow).
+2. KEY STORY SECTIONS: Specify a bold hero title, captivating introductory narrative, 2-3 glassmorphic highlight fact cards with icons.
+3. INTERACTIVE MULTIMEDIA: Explicitly request interactive widgets (e.g. 2-question interactive quiz with instant feedback, swipeable artifact gallery, audio guide player, 3D model viewer, or fun fact reveal).
+4. TONE & READABILITY: Clear, engaging, Apple-level polish.
+5. LANGUAGE: Write the enhanced prompt in the exact same language as the user's input (if Polish -> output in Polish, if English -> output in English).
+6. OUTPUT FORMAT: Return ONLY the raw enhanced prompt text ready to be pasted directly into the textarea. DO NOT include quotes, introductory phrases like "Here is your enhanced prompt:", or markdown backticks.`
+
+    try {
+        const response = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `Original brief: "${request.prompt}"\nLanguage: ${request.language || 'auto'}` }
+            ],
+            temperature: 0.7,
+            max_tokens: 500
+        })
+
+        const enhancedText = response.choices[0]?.message?.content?.trim()
+        if (!enhancedText) {
+            return { success: false, error: 'Empty response from prompt enhancer.' }
+        }
+
+        return {
+            success: true,
+            enhancedPrompt: enhancedText
+        }
+    } catch (err: any) {
+        console.error("Enhance prompt error:", err)
+        return { success: false, error: err.message || 'Failed to enhance prompt.' }
     }
 }

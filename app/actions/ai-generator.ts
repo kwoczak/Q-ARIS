@@ -56,9 +56,23 @@ export async function generateStageWithAI(request: AIGenerationRequest): Promise
     const requestedModel = process.env.OPENAI_MODEL || 'gpt-4o'
     const modelToUse = requestedModel
 
+    const materialsCount = request.materials?.length || 0
     const materialsDescription = request.materials && request.materials.length > 0
-        ? `\nAvailable User Materials (Use these exact URLs in your HTML where appropriate):\n` +
-          request.materials.map((m) => `- [${m.type.toUpperCase()}] "${m.name}": ${m.url}`).join('\n')
+        ? `\n🚨 CRITICAL MANDATE - USER UPLOADED ${materialsCount} MEDIA ATTACHMENTS:
+YOU MUST INTEGRATE EVERY SINGLE ONE OF THESE ${materialsCount} MEDIA ASSETS INTO YOUR HTML OUTPUT. DO NOT OMIT ANY ATTACHMENT!
+${request.materials.map((m, idx) => `  * Attachment #${idx + 1} [${m.type.toUpperCase()}]: "${m.name}" => EXACT URL: ${m.url}`).join('\n')}
+
+MANDATORY RULES FOR MULTI-MEDIA INTEGRATION:
+- If 1 image is provided: Place it as the main Hero Showcase image.
+- If 2 or more images are provided:
+  * Place the first image in the Hero Showcase card.
+  * Display ALL other images across the page as an interactive Horizontal Snap-Carousel gallery:
+    "<div class=\\"space-y-2\\"><div class=\\"flex items-center justify-between\\"><span class=\\"text-xs font-bold uppercase tracking-wider text-amber-400\\">🖼️ Galeria Eksponatów</span><span class=\\"text-[11px] text-neutral-400\\">${request.materials.filter(m => m.type === 'image').length} zdjęcia</span></div><div class=\\"flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide -mx-1 px-1\\"><div class=\\"relative rounded-2xl overflow-hidden border border-white/10 shrink-0 snap-start w-52 h-36 group\\"><img src=\\"URL\\" class=\\"w-full h-full object-cover\\" /><div class=\\"absolute bottom-0 inset-x-0 p-2 bg-black/70 text-[10px] text-neutral-300\\">Podpis</div></div>...</div></div>"
+    OR place individual images inside each corresponding Fact/Artifact card!
+- If audio is provided: Add an interactive Audio Guide player card (<audio controls src="URL" class="w-full rounded-xl"></audio>).
+- If video is provided: Embed a responsive video player (<video controls playsinline src="URL" class="w-full rounded-2xl"></video>).
+- If 3D model is provided: Embed <model-viewer src="URL" ar camera-controls class="w-full h-64 rounded-3xl bg-neutral-900/50"></model-viewer>.
+`
         : '\nNo custom media files uploaded yet.'
 
     const currentContext = request.currentContent?.custom_html
@@ -73,11 +87,15 @@ YOUR GOAL:
 Generate breathtaking, 10/10 UX mobile exhibition screens (width ~390px) that evoke wonder, elegance, and immersion.
 
 CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
-1. NO BORING / DRY PAGES:
+1. ZERO OMISSION OF USER MEDIA ASSETS:
+   - If user uploads multiple images, videos, or audio files, EVERY SINGLE ONE must be present in the generated HTML.
+   - Do NOT just pick one image and discard the rest! If multiple images exist, showcase the first as Hero and build an interactive swipeable Gallery Carousel or 2-column Artifact Grid for the remaining images!
+
+2. NO BORING / DRY PAGES:
    - NEVER output plain unstyled text, standard HTML bullet lists (<ul><li>), or flat monochrome blocks.
    - Every piece of information must be presented as a visually rich component: Cards with glassmorphism, glowing borders, badge pills, statistic counters, or interactive tap widgets.
 
-2. ATMOSPHERIC BACKGROUNDS & THEME PALETTES:
+3. ATMOSPHERIC BACKGROUNDS & THEME PALETTES:
    - Match the background to the theme:
      * Ancient Egypt / History: Multi-stop rich gold & obsidian gradient:
        "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 158, 11, 0.3), transparent 70%), linear-gradient(180deg, #1c1917 0%, #0c0a09 100%)"
@@ -88,16 +106,18 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
      * Nature / Science: Emerald glow:
        "radial-gradient(ellipse at 50% 0%, rgba(16, 185, 129, 0.25), transparent 60%), linear-gradient(180deg, #022c22 0%, #020617 100%)"
 
-3. TOTAL CREATIVE & TECHNICAL FREEDOM:
+4. TOTAL CREATIVE & TECHNICAL FREEDOM:
    - You have 100% full freedom to write custom HTML, inline CSS, embedded <style> animations (@keyframes, pulsing glows, floating elements), and JavaScript event handlers (onclick, onchange).
    - You do NOT need to fit into any predefined block schema. You are building a bespoke mobile web app screen.
 
-4. COMPONENT ARCHITECTURE TO INCLUDE:
+5. COMPONENT ARCHITECTURE TO INCLUDE:
    - EYEBROW BADGE: Pill badge on top (e.g. "<div class=\\"inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-md\\"><span>🏛️</span><span>Starożytny Egipt • Krok 1</span></div>")
    - MAJESTIC HERO TITLE: Bold gradient headline (e.g. "<h1 class=\\"text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-br from-white via-amber-100 to-amber-400 bg-clip-text text-transparent leading-tight\\">...</h1>")
    - LEAD PARAGRAPH: Styled lead paragraph with glassmorphic container or accent quote border.
    - HERO MEDIA / IMAGE CARD: Rounded-3xl container with glowing border, aspect ratio, gradient shadow, and badge overlay:
      "<div class=\\"relative rounded-3xl overflow-hidden border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group\\"><img src=\\"URL\\" alt=\\"...\\" class=\\"w-full h-56 object-cover\\" /><div class=\\"absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent text-xs text-neutral-300\\">Caption / Detail</div></div>"
+   - MULTI-IMAGE GALLERY / CAROUSEL (When 2+ images exist):
+     "<div class=\\"space-y-2\\"><div class=\\"flex items-center justify-between\\"><span class=\\"text-xs font-bold uppercase tracking-wider text-amber-400\\">🖼️ Galeria Eksponatów</span><span class=\\"text-[11px] text-neutral-400\\">Przesuń, by obejrzeć</span></div><div class=\\"flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide -mx-1 px-1\\"><div class=\\"relative rounded-2xl overflow-hidden border border-white/10 shrink-0 snap-start w-52 h-36 group\\"><img src=\\"URL_1\\" class=\\"w-full h-full object-cover\\" /><div class=\\"absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent text-[10px] text-neutral-200\\">Eksponat 1</div></div><div class=\\"relative rounded-2xl overflow-hidden border border-white/10 shrink-0 snap-start w-52 h-36 group\\"><img src=\\"URL_2\\" class=\\"w-full h-full object-cover\\" /><div class=\\"absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent text-[10px] text-neutral-200\\">Eksponat 2</div></div></div></div>"
    - FACT & HIGHLIGHT CARDS (2-3 cards): Glassmorphic cards with glowing icon badges:
      "<div class=\\"p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-lg flex items-start gap-3.5 hover:border-amber-500/40 transition-all\\"><div class=\\"w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-lg shrink-0\\">💎</div><div><h4 class=\\"font-bold text-sm text-white\\">Tytuł faktu</h4><p class=\\"text-xs text-neutral-400 mt-1 leading-relaxed\\">Opis ciekawostki...</p></div></div>"
    - FULLY INTERACTIVE QUIZ WIDGET (With Instant Click Feedback):
@@ -114,7 +134,7 @@ CRITICAL DESIGN & UX RULES (NEVER VIOLATE):
    - INTERACTIVE REVEAL / FUN FACT ACCORDION:
      "<details class=\\"group p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md [&_summary::-webkit-details-marker]:hidden cursor-pointer\\"><summary class=\\"flex items-center justify-between font-bold text-xs text-white\\"><span class=\\"flex items-center gap-2\\"><span>💡</span><span>Sekretna ciekawostka (Kliknij, aby odkryć)</span></span><span class=\\"text-amber-400 transition-transform duration-300 group-open:rotate-180 text-xs\\">▼</span></summary><p class=\\"mt-3 text-xs text-neutral-400 leading-relaxed pt-2.5 border-t border-white/5\\">Ukryta treść ciekawostki...</p></details>"
 
-5. TARGET LANGUAGE:
+6. TARGET LANGUAGE:
    - Output all user-visible text, headers, quiz questions, buttons, and explanations in the requested language: "${request.language.toUpperCase()}".
 
 ${materialsDescription}

@@ -640,6 +640,7 @@ export function StageProperties({
                                             language={currentLanguage}
                                             isGamified={story.is_gamified ?? true}
                                             onCustomHtmlChange={(newHtml) => handleContentChange('custom_html', newHtml)}
+                                            onBackgroundChange={(bg) => handleContentChange('background', bg)}
                                         />
                                     </div>
                                 )}

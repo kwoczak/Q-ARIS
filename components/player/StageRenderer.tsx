@@ -37,7 +37,8 @@ export function StageRenderer({
     onChangeLanguage,
     isGamified = true,
     isPaused = false,
-    onCustomHtmlChange
+    onCustomHtmlChange,
+    onBackgroundChange
 }: {
     stage: Stage
     isPreview?: boolean
@@ -46,6 +47,7 @@ export function StageRenderer({
     isGamified?: boolean
     isPaused?: boolean
     onCustomHtmlChange?: (newHtml: string) => void
+    onBackgroundChange?: (bg: any) => void
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -190,6 +192,8 @@ export function StageRenderer({
                         html={content.custom_html}
                         onHtmlChange={onCustomHtmlChange}
                         isEditable={true}
+                        background={content.background}
+                        onBackgroundChange={onBackgroundChange}
                     />
                 ) : (
                     <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden touch-pan-y">

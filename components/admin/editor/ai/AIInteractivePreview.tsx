@@ -358,14 +358,40 @@ export function AIInteractivePreview({
         const subtitleEl = galleryEl.querySelector('.text-neutral-400, .text-neutral-300, span:last-child, p') as HTMLElement | null
         const imageCards = galleryEl.querySelectorAll('.snap-start, .rounded-2xl, .shrink-0')
 
+        let aspectRatio: 'portrait' | 'square' | 'landscape' = 'portrait'
+        if (galleryEl.innerHTML.includes('aspect-square')) {
+            aspectRatio = 'square'
+        } else if (galleryEl.innerHTML.includes('aspect-[16/10]') || galleryEl.innerHTML.includes('aspect-video') || galleryEl.innerHTML.includes('h-40')) {
+            aspectRatio = 'landscape'
+        }
+
         const items: GalleryItem[] = []
         imageCards.forEach((card) => {
-            const img = card.querySelector('img') as HTMLImageElement | null
+            // Find main content image (ignore blur ambient background)
+            const imgs = card.querySelectorAll('img')
+            let mainImg: HTMLImageElement | null = null
+            for (let i = 0; i < imgs.length; i++) {
+                const img = imgs[i]
+                if (!img.classList.contains('blur-xl') && !img.classList.contains('scratch-hidden-img')) {
+                    mainImg = img
+                    break
+                }
+            }
+            if (!mainImg && imgs.length > 0) mainImg = imgs[0]
+
             const captionEl = card.querySelector('.absolute, div, p, span') as HTMLElement | null
-            if (img && img.src && !img.classList.contains('scratch-hidden-img')) {
+            if (mainImg && mainImg.src && !mainImg.classList.contains('scratch-hidden-img')) {
+                let fit: 'cover' | 'contain' | 'cover-top' | 'cover-bottom' = 'cover'
+                if (mainImg.classList.contains('object-contain') || card.innerHTML.includes('object-contain') || card.querySelector('.blur-xl')) {
+                    fit = 'contain'
+                } else if (mainImg.classList.contains('object-top')) {
+                    fit = 'cover-top'
+                }
+
                 items.push({
-                    url: img.src,
-                    caption: captionEl?.innerText?.trim() || ''
+                    url: mainImg.src,
+                    caption: captionEl?.innerText?.trim() || '',
+                    fit
                 })
             }
         })
@@ -373,10 +399,11 @@ export function AIInteractivePreview({
         if (items.length === 0) {
             const imgs = galleryEl.querySelectorAll('img')
             imgs.forEach((img, idx) => {
-                if (img.src && !img.classList.contains('scratch-hidden-img')) {
+                if (img.src && !img.classList.contains('scratch-hidden-img') && !img.classList.contains('blur-xl')) {
                     items.push({
                         url: img.src,
-                        caption: img.alt || `Photo ${idx + 1}`
+                        caption: img.alt || `Photo ${idx + 1}`,
+                        fit: 'cover'
                     })
                 }
             })
@@ -385,8 +412,9 @@ export function AIInteractivePreview({
         return {
             title: titleEl?.innerText?.trim() || '🖼️ Media Gallery',
             subtitle: subtitleEl?.innerText?.trim() || 'Swipe to explore',
+            aspectRatio,
             items: items.length > 0 ? items : [
-                { url: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80', caption: 'Photo 1' }
+                { url: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80', caption: 'Photo 1', fit: 'cover' }
             ]
         }
     }

@@ -176,32 +176,37 @@ You must plan 2 to 3 bespoke photographs/illustrations:
 2. First Gallery / Detail Image (role: "gallery")
 3. Second Gallery / Detail Image (role: "gallery")
 
+CRITICAL COMPOSITION & CROPPING RULE FOR DALL-E PROMPTS:
+- All image prompts must request a **medium-wide or medium shot** with **generous negative space / breathing room around all edges**.
+- The main subject (rocket, person, artifact, statue, celestial body) must be centered and completely enclosed within the frame, NEVER touching the borders or cut off at the top/bottom.
+- Avoid extreme close-ups or cropped top/bottom compositions.
+
 In your JSON output:
 1. Include an "image_prompts" array:
    "image_prompts": [
      {
        "id": "hero_img",
        "title": "Short title of hero image",
-       "prompt": "Highly detailed, photorealistic 8k cinematic shot in English with dramatic atmospheric lighting...",
+       "prompt": "Centered medium shot with generous margin breathing room, highly detailed photorealistic 8k cinematic shot in English with atmospheric lighting...",
        "role": "hero"
      },
      {
        "id": "gallery_img_1",
        "title": "Short title of first detail image",
-       "prompt": "Highly detailed, high-fidelity macro photograph in English...",
+       "prompt": "Centered medium shot with ample negative space around subject, high-fidelity photograph in English...",
        "role": "gallery"
      },
      {
        "id": "gallery_img_2",
        "title": "Short title of second detail image",
-       "prompt": "Highly detailed, photorealistic photograph in English...",
+       "prompt": "Centered shot with generous margin padding, highly detailed photorealistic photograph in English...",
        "role": "gallery"
      }
    ]
 2. In your "custom_html", insert the images using exact placeholder src tags:
-   - For hero: <img src="__AI_IMAGE_hero_img__" alt="..." class="w-full h-56 object-cover" />
-   - For gallery 1: <img src="__AI_IMAGE_gallery_img_1__" alt="..." class="w-full h-full object-cover" />
-   - For gallery 2: <img src="__AI_IMAGE_gallery_img_2__" alt="..." class="w-full h-full object-cover" />
+   - For hero: <img src="__AI_IMAGE_hero_img__" alt="..." class="w-full aspect-[4/3] rounded-3xl object-cover shadow-2xl border border-white/10" />
+   - For gallery 1: <img src="__AI_IMAGE_gallery_img_1__" alt="..." class="w-full h-full object-cover object-center" />
+   - For gallery 2: <img src="__AI_IMAGE_gallery_img_2__" alt="..." class="w-full h-full object-cover object-center" />
 ` : ''}
 
 ${materialsDescription}
@@ -358,8 +363,13 @@ Respond ONLY with a JSON object in this exact format:
             const promptsToGenerate = parsed.image_prompts.slice(0, 3)
             for (let idx = 0; idx < promptsToGenerate.length; idx++) {
                 const imgItem = promptsToGenerate[idx]
-                const promptText = typeof imgItem === 'string' ? imgItem : imgItem.prompt
-                if (!promptText) continue
+                const rawPrompt = typeof imgItem === 'string' ? imgItem : imgItem.prompt
+                if (!rawPrompt) continue
+
+                const framingSuffix = ", medium wide shot, centered subject with generous breathing room and safe margin padding on all sides, no edge clipping, complete subject in frame, 8k cinematic photography"
+                const promptText = rawPrompt.includes('breathing room') || rawPrompt.includes('safe margin')
+                    ? rawPrompt
+                    : `${rawPrompt}${framingSuffix}`
 
                 try {
                     // Use native OpenAI image models (gpt-image-1-mini / gpt-image-1)

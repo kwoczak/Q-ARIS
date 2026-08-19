@@ -59,11 +59,13 @@ export interface ScratchCardData {
 export interface GalleryItem {
     url: string
     caption?: string
+    fit?: 'cover' | 'contain' | 'cover-top' | 'cover-bottom'
 }
 
 export interface GalleryData {
     title?: string
     subtitle?: string
+    aspectRatio?: 'portrait' | 'square' | 'landscape'
     items: GalleryItem[]
 }
 
@@ -178,22 +180,51 @@ export function generateAudioCardHtml(audio: AudioCardData): string {
 export function generateGalleryHtml(gallery?: GalleryData): string {
     const title = gallery?.title || '🖼️ Media Gallery'
     const subtitle = gallery?.subtitle || 'Swipe to explore'
+    const aspectRatio = gallery?.aspectRatio || 'portrait'
     const items = gallery?.items && gallery.items.length > 0 ? gallery.items : [
         {
             url: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80',
-            caption: 'Showcase 1'
+            caption: 'Showcase 1',
+            fit: 'cover' as const
         },
         {
             url: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=600&q=80',
-            caption: 'Showcase 2'
+            caption: 'Showcase 2',
+            fit: 'cover' as const
         }
     ]
 
+    const cardRatioClass = aspectRatio === 'square'
+        ? 'w-56 aspect-square'
+        : aspectRatio === 'landscape'
+        ? 'w-64 aspect-[16/10]'
+        : 'w-52 aspect-[3/4]' // Portrait default for gorgeous mobile display
+
     const itemsHtml = items
-        .map((item, idx) => `    <div class="relative rounded-2xl overflow-hidden border border-white/15 shrink-0 snap-start w-56 h-40 group">
-      <img src="${item.url}" alt="${item.caption || `Showcase ${idx + 1}`}" class="w-full h-full object-cover" />
-      ${item.caption ? `<div class="absolute bottom-0 inset-x-0 p-2.5 bg-gradient-to-t from-black/90 to-transparent text-[11px] text-white font-medium">${item.caption}</div>` : ''}
-    </div>`)
+        .map((item, idx) => {
+            const fitMode = item.fit || 'cover'
+            const captionHtml = item.caption
+                ? `<div class="absolute bottom-0 inset-x-0 z-20 p-2.5 bg-gradient-to-t from-black/90 via-black/50 to-transparent text-[11px] text-white font-medium">${item.caption}</div>`
+                : ''
+
+            if (fitMode === 'contain') {
+                return `    <div class="relative rounded-2xl overflow-hidden border border-white/15 shrink-0 snap-start ${cardRatioClass} bg-neutral-950 group flex items-center justify-center">
+      <img src="${item.url}" alt="" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-35 scale-125 pointer-events-none" />
+      <img src="${item.url}" alt="${item.caption || `Showcase ${idx + 1}`}" class="relative z-10 max-w-full max-h-full object-contain drop-shadow-md" />
+      ${captionHtml}
+    </div>`
+            } else if (fitMode === 'cover-top') {
+                return `    <div class="relative rounded-2xl overflow-hidden border border-white/15 shrink-0 snap-start ${cardRatioClass} bg-neutral-950 group">
+      <img src="${item.url}" alt="${item.caption || `Showcase ${idx + 1}`}" class="w-full h-full object-cover object-top" />
+      ${captionHtml}
+    </div>`
+            } else {
+                return `    <div class="relative rounded-2xl overflow-hidden border border-white/15 shrink-0 snap-start ${cardRatioClass} bg-neutral-950 group">
+      <img src="${item.url}" alt="${item.caption || `Showcase ${idx + 1}`}" class="w-full h-full object-cover object-center" />
+      ${captionHtml}
+    </div>`
+            }
+        })
         .join('\n')
 
     return `<div data-component="gallery" class="space-y-2.5 my-3">
@@ -268,6 +299,7 @@ export function AIComponentInspector({
     // Gallery State
     const [galleryTitle, setGalleryTitle] = useState('🖼️ Media Gallery')
     const [gallerySubtitle, setGallerySubtitle] = useState('Swipe to explore')
+    const [galleryAspectRatio, setGalleryAspectRatio] = useState<'portrait' | 'square' | 'landscape'>('portrait')
     const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([])
     const [targetGalleryItemIndex, setTargetGalleryItemIndex] = useState<number>(-1)
 
@@ -309,8 +341,9 @@ export function AIComponentInspector({
             const g = componentData.data
             setGalleryTitle(g.title || '🖼️ Media Gallery')
             setGallerySubtitle(g.subtitle || 'Swipe to explore')
+            setGalleryAspectRatio(g.aspectRatio || 'portrait')
             setGalleryItems(g.items && g.items.length > 0 ? [...g.items] : [
-                { url: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80', caption: 'Photo 1' }
+                { url: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=600&q=80', caption: 'Photo 1', fit: 'cover' }
             ])
         }
     }, [componentData])
@@ -380,6 +413,7 @@ export function AIComponentInspector({
             const newHtml = generateGalleryHtml({
                 title: galleryTitle,
                 subtitle: gallerySubtitle,
+                aspectRatio: galleryAspectRatio,
                 items: galleryItems
             })
             onSave(newHtml)
@@ -862,6 +896,46 @@ export function AIComponentInspector({
                                 </div>
                             </div>
 
+                            {/* Card Aspect Ratio Selector */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-neutral-300">Card Proportions / Aspect Ratio</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setGalleryAspectRatio('portrait')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                            galleryAspectRatio === 'portrait'
+                                                ? 'bg-purple-600/30 border-purple-500 text-white shadow-md'
+                                                : 'bg-neutral-900 border-white/10 text-neutral-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <span>📱 Portrait (3:4)</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setGalleryAspectRatio('square')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                            galleryAspectRatio === 'square'
+                                                ? 'bg-purple-600/30 border-purple-500 text-white shadow-md'
+                                                : 'bg-neutral-900 border-white/10 text-neutral-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <span>🔲 Square (1:1)</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setGalleryAspectRatio('landscape')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                            galleryAspectRatio === 'landscape'
+                                                ? 'bg-purple-600/30 border-purple-500 text-white shadow-md'
+                                                : 'bg-neutral-900 border-white/10 text-neutral-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <span>🖼️ Landscape (16:10)</span>
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Gallery Photos List */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
@@ -883,73 +957,118 @@ export function AIComponentInspector({
                                     </Button>
                                 </div>
 
-                                <div className="space-y-2 max-h-[36vh] overflow-y-auto pr-1">
+                                <div className="space-y-2.5 max-h-[38vh] overflow-y-auto pr-1">
                                     {galleryItems.map((item, idx) => (
                                         <div
                                             key={idx}
-                                            className="p-2.5 rounded-xl bg-neutral-900/80 border border-white/10 flex items-center gap-3 group/item hover:border-purple-500/40 transition-all"
+                                            className="p-3 rounded-xl bg-neutral-900/80 border border-white/10 flex flex-col gap-2.5 group/item hover:border-purple-500/40 transition-all"
                                         >
-                                            {/* Photo Thumbnail */}
-                                            <div className="relative w-16 h-12 rounded-lg overflow-hidden border border-white/10 bg-black shrink-0 group/thumb">
-                                                {item.url ? (
-                                                    <img src={item.url} alt="" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-neutral-500">
-                                                        <ImageIcon className="w-4 h-4" />
-                                                    </div>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setTargetGalleryItemIndex(idx)
-                                                        setMediaModalCategory('image')
-                                                        setIsMediaModalOpen(true)
-                                                    }}
-                                                    className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center text-[10px] text-white font-medium transition-opacity cursor-pointer"
-                                                >
-                                                    Change
-                                                </button>
+                                            <div className="flex items-center gap-3">
+                                                {/* Photo Thumbnail */}
+                                                <div className="relative w-16 h-14 rounded-lg overflow-hidden border border-white/10 bg-black shrink-0 group/thumb">
+                                                    {item.url ? (
+                                                        <img src={item.url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-neutral-500">
+                                                            <ImageIcon className="w-4 h-4" />
+                                                        </div>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setTargetGalleryItemIndex(idx)
+                                                            setMediaModalCategory('image')
+                                                            setIsMediaModalOpen(true)
+                                                        }}
+                                                        className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center text-[10px] text-white font-medium transition-opacity cursor-pointer"
+                                                    >
+                                                        Change
+                                                    </button>
+                                                </div>
+
+                                                {/* Caption Input */}
+                                                <div className="flex-1 min-w-0 space-y-1">
+                                                    <Input
+                                                        value={item.caption || ''}
+                                                        onChange={(e) => handleUpdateGalleryItem(idx, 'caption', e.target.value)}
+                                                        placeholder={`Photo ${idx + 1} caption...`}
+                                                        className="h-8 bg-neutral-950 border-white/10 text-xs text-white placeholder:text-neutral-500"
+                                                    />
+                                                </div>
+
+                                                {/* Order & Delete actions */}
+                                                <div className="flex items-center gap-1 shrink-0">
+                                                    <button
+                                                        type="button"
+                                                        disabled={idx === 0}
+                                                        onClick={() => handleMoveGalleryItem(idx, 'up')}
+                                                        className="w-6 h-6 rounded flex items-center justify-center text-neutral-400 hover:text-white disabled:opacity-20 cursor-pointer text-xs"
+                                                        title="Move Up"
+                                                    >
+                                                        ▲
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={idx === galleryItems.length - 1}
+                                                        onClick={() => handleMoveGalleryItem(idx, 'down')}
+                                                        className="w-6 h-6 rounded flex items-center justify-center text-neutral-400 hover:text-white disabled:opacity-20 cursor-pointer text-xs"
+                                                        title="Move Down"
+                                                    >
+                                                        ▼
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={galleryItems.length <= 1}
+                                                        onClick={() => handleRemoveGalleryItem(idx)}
+                                                        className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 disabled:opacity-20 cursor-pointer"
+                                                        title="Remove Photo"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
                                             </div>
 
-                                            {/* Caption Input */}
-                                            <div className="flex-1 min-w-0 space-y-1">
-                                                <Input
-                                                    value={item.caption || ''}
-                                                    onChange={(e) => handleUpdateGalleryItem(idx, 'caption', e.target.value)}
-                                                    placeholder={`Photo ${idx + 1} caption...`}
-                                                    className="h-8 bg-neutral-950 border-white/10 text-xs text-white placeholder:text-neutral-500"
-                                                />
-                                            </div>
-
-                                            {/* Order & Delete actions */}
-                                            <div className="flex items-center gap-1 shrink-0">
-                                                <button
-                                                    type="button"
-                                                    disabled={idx === 0}
-                                                    onClick={() => handleMoveGalleryItem(idx, 'up')}
-                                                    className="w-6 h-6 rounded flex items-center justify-center text-neutral-400 hover:text-white disabled:opacity-20 cursor-pointer text-xs"
-                                                    title="Move Up"
-                                                >
-                                                    ▲
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    disabled={idx === galleryItems.length - 1}
-                                                    onClick={() => handleMoveGalleryItem(idx, 'down')}
-                                                    className="w-6 h-6 rounded flex items-center justify-center text-neutral-400 hover:text-white disabled:opacity-20 cursor-pointer text-xs"
-                                                    title="Move Down"
-                                                >
-                                                    ▼
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    disabled={galleryItems.length <= 1}
-                                                    onClick={() => handleRemoveGalleryItem(idx)}
-                                                    className="w-6 h-6 rounded flex items-center justify-center text-neutral-500 hover:text-red-400 disabled:opacity-20 cursor-pointer"
-                                                    title="Remove Photo"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
+                                            {/* Smart Framing & Fit Selector for this photo */}
+                                            <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px]">
+                                                <span className="text-neutral-400 text-[10px]">Photo Framing:</span>
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleUpdateGalleryItem(idx, 'fit', 'cover')}
+                                                        className={`px-2 py-0.5 rounded text-[10px] font-medium border cursor-pointer transition-all ${
+                                                            (!item.fit || item.fit === 'cover')
+                                                                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-sm'
+                                                                : 'bg-neutral-950 border-white/10 text-neutral-400 hover:text-white'
+                                                        }`}
+                                                        title="Cover Center (Fill frame)"
+                                                    >
+                                                        Center
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleUpdateGalleryItem(idx, 'fit', 'cover-top')}
+                                                        className={`px-2 py-0.5 rounded text-[10px] font-medium border cursor-pointer transition-all ${
+                                                            item.fit === 'cover-top'
+                                                                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-sm'
+                                                                : 'bg-neutral-950 border-white/10 text-neutral-400 hover:text-white'
+                                                        }`}
+                                                        title="Align Top (Perfect for Rockets, Statues & People)"
+                                                    >
+                                                        🔝 Top (Rockets/Heads)
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleUpdateGalleryItem(idx, 'fit', 'contain')}
+                                                        className={`px-2 py-0.5 rounded text-[10px] font-medium border cursor-pointer transition-all ${
+                                                            item.fit === 'contain'
+                                                                ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-sm'
+                                                                : 'bg-neutral-950 border-white/10 text-neutral-400 hover:text-white'
+                                                        }`}
+                                                        title="Show Full Image (100% visible with soft blurred backdrop)"
+                                                    >
+                                                        ✨ Show Full (Contain + Blur)
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

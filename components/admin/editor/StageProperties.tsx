@@ -809,17 +809,6 @@ export function StageProperties({
                                     <Palette className="w-3.5 h-3.5 text-amber-400" />
                                     Background
                                 </Button>
-
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setIsVoiceoverModalOpen(true)}
-                                    className="h-8 px-3 bg-neutral-900 hover:bg-neutral-800 border-white/10 text-neutral-200 hover:text-white text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
-                                >
-                                    <Music className="w-3.5 h-3.5 text-purple-400" />
-                                    Voiceover
-                                </Button>
                             </div>
                         )}
 

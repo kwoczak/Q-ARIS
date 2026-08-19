@@ -109,7 +109,7 @@ export function AIInteractivePreview({
         const images = container.querySelectorAll('img')
         images.forEach((img, idx) => {
             img.style.cursor = 'pointer'
-            img.title = 'Kliknij dwukrotnie, aby podmienić zdjęcie'
+            img.title = 'Double-click to replace image'
             img.ondblclick = (e) => {
                 e.stopPropagation()
                 setTargetElementIndex(idx)
@@ -121,7 +121,7 @@ export function AIInteractivePreview({
         // 3. Audio
         const audios = container.querySelectorAll('audio')
         audios.forEach((audio, idx) => {
-            audio.title = 'Kliknij dwukrotnie, aby podmienić plik audio'
+            audio.title = 'Double-click to replace audio file'
             audio.ondblclick = (e) => {
                 e.stopPropagation()
                 setTargetElementIndex(idx)
@@ -140,7 +140,7 @@ export function AIInteractivePreview({
 
         try {
             const url = await uploadAsset(file, 'ai-inline-edits')
-            if (!url) throw new Error("Błąd uploadu pliku")
+            if (!url) throw new Error("Upload failed")
 
             if (mediaTypeToReplace === 'image') {
                 const images = containerRef.current.querySelectorAll('img')
@@ -159,7 +159,7 @@ export function AIInteractivePreview({
             }
         } catch (err) {
             console.error("Media replace error:", err)
-            alert("Nie udało się podmienić pliku.")
+            alert("Failed to replace file.")
         } finally {
             setIsReplacingMedia(false)
             setMediaTypeToReplace(null)
@@ -175,11 +175,11 @@ export function AIInteractivePreview({
                 <div className="shrink-0 bg-purple-950/70 border-b border-purple-500/30 px-3 py-1.5 flex items-center justify-between text-[11px] text-purple-200 backdrop-blur-md z-40">
                     <div className="flex items-center gap-1.5">
                         <Pencil className="w-3.5 h-3.5 text-purple-400" />
-                        <span>Kliknij dowolny tekst, by edytować na żywo (2x klik na zdjęcie, by zmienić)</span>
+                        <span>Interactive Preview • Click text to edit live • Double-click image to replace</span>
                     </div>
                     {hasUnsavedEdits && (
                         <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 animate-pulse">
-                            Zmieniono
+                            Modified
                         </span>
                     )}
                 </div>
@@ -198,7 +198,7 @@ export function AIInteractivePreview({
             {isReplacingMedia && (
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-2 text-white">
                     <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
-                    <p className="text-xs font-medium">Podmienianie pliku...</p>
+                    <p className="text-xs font-medium">Replacing file...</p>
                 </div>
             )}
 

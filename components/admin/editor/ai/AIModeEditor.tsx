@@ -27,7 +27,10 @@ import {
     Check,
     AlertCircle,
     FileText,
-    QrCode
+    QrCode,
+    Info,
+    Lightbulb,
+    HelpCircle
 } from 'lucide-react'
 
 interface AIModeEditorProps {
@@ -42,18 +45,18 @@ interface AIModeEditorProps {
 }
 
 const QUICK_PROMPTS = [
-    "Misja kosmiczna Voyager 1 z odtwarzaczem audio i quizem wiedzy",
-    "Wystawa dinozaurów: interaktywny model 3D tyranozaura i karta ciekawostek",
-    "Renowacja arcydzieła: porównanie przed/po z eleganckim opisem kuratorskim",
-    "Tajemnice starożytnego Egiptu z galerią artefaktów i klimatycznym tłem"
+    "Voyager 1 space mission with audio player & knowledge quiz",
+    "Dinosaur exhibition: interactive 3D T-Rex model & fun facts",
+    "Masterpiece restoration: before/after comparison with curatorial notes",
+    "Secrets of Ancient Egypt with artifact gallery & atmospheric theme"
 ]
 
 const QUICK_MODIFICATIONS = [
-    "Zmień tło na ciemnoniebieski gradient",
-    "Zwiększ rozmiar głównego nagłówka i dodaj akcent",
-    "Dodaj na dole quiz sprawdzający wiedzę z 3 odpowiedziami",
-    "Popraw czytelność tekstu i dodaj efekt glassmorphism do kart",
-    "Zmniejsz odstępy i spraw, by układ był bardziej zwarty"
+    "Change background to deep blue gradient",
+    "Enlarge the main headline and add gold accent",
+    "Add a 3-question interactive quiz at the bottom",
+    "Enhance readability and add glassmorphism to cards",
+    "Tighten spacing and make layout more compact"
 ]
 
 export function AIModeEditor({
@@ -63,17 +66,18 @@ export function AIModeEditor({
     onTokenUsageUpdate,
     isGenerating,
     setIsGenerating,
-    currentLanguage = 'pl',
+    currentLanguage = 'en',
     onOpenQR
 }: AIModeEditorProps) {
     // Initial Form State
     const [prompt, setPrompt] = useState('')
-    const [language, setLanguage] = useState(currentLanguage || 'pl')
+    const [language, setLanguage] = useState(currentLanguage || 'en')
     const [materials, setMaterials] = useState<AIAttachment[]>([])
     const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null)
     const [isUploadingMedia, setIsUploadingMedia] = useState(false)
     const [isUploadingRef, setIsUploadingRef] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [isPromptTipsOpen, setIsPromptTipsOpen] = useState(false)
 
     // Chat / Iteration State
     const [chatHistory, setChatHistory] = useState<AIChatMessage[]>([])
@@ -117,7 +121,6 @@ export function AIModeEditor({
                     }
                 } catch (upErr) {
                     console.warn("Storage upload failed, reading locally as data URL...", upErr)
-                    // Fallback to local Data URL for preview/AI vision
                     const dataUrl = await readFileAsDataURL(file)
                     newAttachments.push({
                         id: Math.random().toString(36).substring(2, 9),
@@ -131,7 +134,7 @@ export function AIModeEditor({
             setMaterials(prev => [...prev, ...newAttachments])
         } catch (err: any) {
             console.error("Upload error:", err)
-            setErrorMessage("Błąd podczas wgrywania pliku: " + (err.message || 'Nieznany błąd'))
+            setErrorMessage("Error uploading file: " + (err.message || 'Unknown error'))
         } finally {
             setIsUploadingMedia(false)
             if (fileInputRef.current) fileInputRef.current.value = ''
@@ -159,7 +162,7 @@ export function AIModeEditor({
             }
         } catch (err: any) {
             console.error("Reference upload error:", err)
-            setErrorMessage("Błąd wgrywania zdjęcia referencyjnego.")
+            setErrorMessage("Error uploading reference image.")
         } finally {
             setIsUploadingRef(false)
             if (refImageInputRef.current) refImageInputRef.current.value = ''
@@ -178,7 +181,7 @@ export function AIModeEditor({
     // Execute Initial AI Generation
     const handleInitialGenerate = async () => {
         if (!prompt.trim()) {
-            setErrorMessage("Proszę wpisać opis tego, co chcesz wygenerować.")
+            setErrorMessage("Please enter a description of what you want to create.")
             return
         }
 
@@ -203,7 +206,7 @@ export function AIModeEditor({
             })
 
             if (!res.success) {
-                throw new Error(res.error || 'Generowanie nie powiodło się.')
+                throw new Error(res.error || 'Generation failed.')
             }
 
             if (res.tokenUsage) {
@@ -228,7 +231,7 @@ export function AIModeEditor({
             const assistantMsg: AIChatMessage = {
                 id: Math.random().toString(36).substring(2, 9),
                 role: 'assistant',
-                content: res.message || 'Wygenerowano projekt etapu.',
+                content: res.message || 'Stage design generated successfully.',
                 timestamp: new Date().toLocaleTimeString(),
                 tokenUsage: res.tokenUsage
             }
@@ -236,7 +239,7 @@ export function AIModeEditor({
             setChatHistory([userMsg, assistantMsg])
         } catch (err: any) {
             console.error("Generation failed:", err)
-            setErrorMessage(err.message || 'Wystąpił błąd podczas generowania.')
+            setErrorMessage(err.message || 'An error occurred during generation.')
         } finally {
             setIsGenerating(false)
         }
@@ -273,7 +276,7 @@ export function AIModeEditor({
             })
 
             if (!res.success) {
-                throw new Error(res.error || 'Wprowadzenie poprawki nie powiodło się.')
+                throw new Error(res.error || 'Failed to apply refinement.')
             }
 
             if (res.tokenUsage) {
@@ -297,7 +300,7 @@ export function AIModeEditor({
             const assistantMsg: AIChatMessage = {
                 id: Math.random().toString(36).substring(2, 9),
                 role: 'assistant',
-                content: res.message || 'Wprowadzono żądane zmiany.',
+                content: res.message || 'Refinements applied successfully.',
                 timestamp: new Date().toLocaleTimeString(),
                 tokenUsage: res.tokenUsage
             }
@@ -305,7 +308,7 @@ export function AIModeEditor({
             setChatHistory([...updatedHistory, assistantMsg])
         } catch (err: any) {
             console.error("Chat error:", err)
-            setErrorMessage(err.message || 'Błąd podczas nanoszenia poprawek.')
+            setErrorMessage(err.message || 'Error while applying refinements.')
         } finally {
             setIsGenerating(false)
         }
@@ -359,10 +362,10 @@ export function AIModeEditor({
                             <div className="space-y-1">
                                 <h2 className="text-lg font-semibold flex items-center gap-2 text-white">
                                     <Sparkles className="w-5 h-5 text-purple-400" />
-                                    Kreator AI - Brief projektu
+                                    AI Creator - Project Brief
                                 </h2>
                                 <p className="text-xs text-neutral-400">
-                                    Opisz swój pomysł, dodaj materiały multimedialne i wskaż styl graficzny. Model OpenAI wygeneruje dla Ciebie kompletny ekran etapu.
+                                    Describe your concept, attach multimedia assets, and specify a visual style. OpenAI will generate a complete stage screen for you.
                                 </p>
                             </div>
                             {onOpenQR && (
@@ -378,15 +381,53 @@ export function AIModeEditor({
                             )}
                         </div>
 
-                        {/* 1. Prompt Input */}
+                        {/* 1. Prompt Input with (i) Recommendations Button */}
                         <div className="space-y-2">
-                            <Label className="text-xs font-medium text-neutral-300">
-                                1. Opis etapu (Prompt) <span className="text-purple-400">*</span>
-                            </Label>
+                            <div className="flex items-center justify-between">
+                                <Label className="text-xs font-medium text-neutral-300">
+                                    1. Stage Description (Prompt) <span className="text-purple-400">*</span>
+                                </Label>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPromptTipsOpen(!isPromptTipsOpen)}
+                                    className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 font-medium px-2 py-0.5 rounded-md hover:bg-purple-950/60 border border-purple-500/25 transition-all cursor-pointer"
+                                    title="Tips for writing a great prompt"
+                                >
+                                    <Info className="w-3.5 h-3.5" />
+                                    <span>Prompt Tips</span>
+                                </button>
+                            </div>
+
+                            {/* Prompt Tips Recommendations Card */}
+                            {isPromptTipsOpen && (
+                                <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/30 text-xs text-purple-200 space-y-2.5 shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div className="flex items-center justify-between font-semibold text-purple-300">
+                                        <span className="flex items-center gap-1.5">
+                                            <Lightbulb className="w-4 h-4 text-amber-400" />
+                                            Recommendations for a Great Prompt:
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsPromptTipsOpen(false)}
+                                            className="text-purple-400 hover:text-white p-0.5"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                    <ul className="space-y-1.5 text-[11.5px] text-neutral-300 list-disc list-inside leading-relaxed">
+                                        <li><strong className="text-white">Theme & Topic:</strong> Clearly specify the subject (e.g. <em>Ancient Egypt, Space Exploration, Renaissance Art</em>).</li>
+                                        <li><strong className="text-white">Visual Mood:</strong> Specify atmospheric colors (e.g. <em>Obsidian & gold gradient, dark cosmic nebula, emerald glow</em>).</li>
+                                        <li><strong className="text-white">Structure & Sections:</strong> List desired sections (e.g. <em>Hero title, curatorial intro story, highlight fact cards, timeline</em>).</li>
+                                        <li><strong className="text-white">Interactive Elements:</strong> Request widgets (e.g. <em>2-question interactive quiz with instant feedback, audio guide player, 3D model</em>).</li>
+                                        <li><strong className="text-white">Attached Media:</strong> Explain how uploaded photos/audio should be displayed (e.g. <em>Hero showcase + swipeable gallery carousel</em>).</li>
+                                    </ul>
+                                </div>
+                            )}
+
                             <Textarea
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="Np. Stwórz immersyjną opowieść o sondzie Voyager 1. Dodaj nagłówek z datą startu, odtwarzacz audio z sygnałem radiowym, zdjęcie i na końcu krótki quiz z 2 pytaniami..."
+                                placeholder="e.g. Create an immersive story about the Voyager 1 space probe. Add a launch date headline, an audio player with interstellar radio signals, an image gallery, and finish with a 2-question quiz..."
                                 className="min-h-[110px] bg-neutral-900 border-white/10 text-white placeholder:text-neutral-500 focus-visible:ring-purple-500 text-sm"
                             />
                             {/* Quick prompts */}
@@ -398,7 +439,7 @@ export function AIModeEditor({
                                         onClick={() => setPrompt(qp)}
                                         className="text-[11px] bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-purple-300 px-2.5 py-1 rounded-full border border-white/5 transition-colors text-left"
                                     >
-                                        + {qp.slice(0, 42)}...
+                                        + {qp.slice(0, 44)}...
                                     </button>
                                 ))}
                             </div>
@@ -408,9 +449,9 @@ export function AIModeEditor({
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <Label className="text-xs font-medium text-neutral-300">
-                                    2. Twoje materiały (Zdjęcia, Wideo, Audio, Modele 3D)
+                                    2. Your Media Assets (Images, Videos, Audio, 3D Models)
                                 </Label>
-                                <span className="text-[11px] text-neutral-500">Opcjonalne</span>
+                                <span className="text-[11px] text-neutral-500">Optional</span>
                             </div>
 
                             <input
@@ -428,10 +469,10 @@ export function AIModeEditor({
                             >
                                 <UploadCloud className="w-6 h-6 text-neutral-400 group-hover:text-purple-400 transition-colors" />
                                 <p className="text-xs font-medium text-neutral-300 group-hover:text-white">
-                                    {isUploadingMedia ? "Wgrywanie plików..." : "Kliknij, aby wybrać lub upuść pliki tutaj"}
+                                    {isUploadingMedia ? "Uploading files..." : "Click to browse or drag & drop files here"}
                                 </p>
                                 <p className="text-[10px] text-neutral-500">
-                                    Obsługuje JPG, PNG, MP4, MP3, WAV, GLB (3D)
+                                    Supports JPG, PNG, MP4, MP3, WAV, GLB (3D)
                                 </p>
                             </div>
 
@@ -464,9 +505,9 @@ export function AIModeEditor({
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <Label className="text-xs font-medium text-neutral-300">
-                                    3. Zdjęcie referencyjne stylu (Wzór graficzny / Zrzut ekranu)
+                                    3. Visual Style Reference (Design Mockup / Screenshot)
                                 </Label>
-                                <span className="text-[11px] text-neutral-500">Opcjonalne</span>
+                                <span className="text-[11px] text-neutral-500">Optional</span>
                             </div>
 
                             <input
@@ -485,8 +526,8 @@ export function AIModeEditor({
                                         className="w-16 h-16 object-cover rounded-lg shrink-0 border border-white/10"
                                     />
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-medium text-purple-300">Wzór stylu załączony</p>
-                                        <p className="text-[11px] text-neutral-400">AI dopasuje kolory i klimat do tego zrzutu.</p>
+                                        <p className="text-xs font-medium text-purple-300">Style reference attached</p>
+                                        <p className="text-[11px] text-neutral-400">AI will match color palette and visual elegance to this mockup.</p>
                                     </div>
                                     <Button
                                         size="icon"
@@ -506,7 +547,7 @@ export function AIModeEditor({
                                     className="w-full justify-start text-xs bg-neutral-900 border-white/10 text-neutral-300 hover:bg-neutral-800 hover:text-white"
                                 >
                                     <ImageIcon className="w-4 h-4 mr-2 text-purple-400" />
-                                    {isUploadingRef ? "Wgrywanie wzorca..." : "+ Wgraj zrzut ekranu strony www / plakatu jako wzór"}
+                                    {isUploadingRef ? "Uploading reference..." : "+ Upload website screenshot or poster as style reference"}
                                 </Button>
                             )}
                         </div>
@@ -514,15 +555,15 @@ export function AIModeEditor({
                         {/* 4. Language Selection */}
                         <div className="space-y-2">
                             <Label className="text-xs font-medium text-neutral-300">
-                                4. Język treści
+                                4. Content Language
                             </Label>
                             <Select value={language} onValueChange={setLanguage}>
                                 <SelectTrigger className="bg-neutral-900 border-white/10 text-white text-xs">
-                                    <SelectValue placeholder="Wybierz język" />
+                                    <SelectValue placeholder="Select language" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-neutral-900 border-neutral-800 text-white">
-                                    <SelectItem value="pl">Polski (PL)</SelectItem>
                                     <SelectItem value="en">English (EN)</SelectItem>
+                                    <SelectItem value="pl">Polski (PL)</SelectItem>
                                     <SelectItem value="de">Deutsch (DE)</SelectItem>
                                     <SelectItem value="es">Español (ES)</SelectItem>
                                     <SelectItem value="fr">Français (FR)</SelectItem>
@@ -533,15 +574,15 @@ export function AIModeEditor({
                             </Select>
                         </div>
 
-                        {/* Generate Action Button */}
+                        {/* Generate Action Button - Only "Create" */}
                         <div className="pt-2">
                             <Button
                                 onClick={handleInitialGenerate}
                                 disabled={isGenerating || !prompt.trim()}
-                                className="w-full h-12 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-purple-900/30 transition-all text-sm flex items-center justify-center gap-2"
+                                className="w-full h-12 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-purple-900/30 transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
                             >
                                 <Sparkles className="w-4 h-4 animate-pulse" />
-                                {isGenerating ? "Generowanie etapu..." : "Generuj z OpenAI (Reasoning Medium)"}
+                                {isGenerating ? "Creating..." : "Create"}
                             </Button>
                         </div>
                     </div>
@@ -554,7 +595,7 @@ export function AIModeEditor({
                         <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs">
                             <div className="flex items-center gap-2">
                                 <Bot className="w-4 h-4 text-purple-400" />
-                                <span className="font-semibold text-white">Asystent Etapu (Czat na żywo)</span>
+                                <span className="font-semibold text-white">AI Stage Assistant (Live Chat)</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 {onOpenQR && (
@@ -575,7 +616,7 @@ export function AIModeEditor({
                                     className="h-7 text-[11px] text-purple-300 hover:text-white hover:bg-purple-900/30 border border-purple-500/20"
                                 >
                                     <RotateCcw className="w-3 h-3 mr-1" />
-                                    Nowy Brief
+                                    New Brief
                                 </Button>
                             </div>
                         </div>
@@ -598,7 +639,7 @@ export function AIModeEditor({
                                     <div
                                         className={`max-w-[85%] rounded-2xl p-3.5 shadow-md ${
                                             msg.role === 'user'
-                                                ? 'bg-purple-600 text-white rounded-br-none'
+                                                 ? 'bg-purple-600 text-white rounded-br-none'
                                                 : 'bg-neutral-900 border border-white/10 text-neutral-200 rounded-bl-none'
                                         }`}
                                     >
@@ -624,7 +665,7 @@ export function AIModeEditor({
 
                         {/* Quick modification suggestions */}
                         <div className="pt-2">
-                            <p className="text-[11px] text-neutral-400 mb-1.5">Szybkie poprawki:</p>
+                            <p className="text-[11px] text-neutral-400 mb-1.5">Quick Edits:</p>
                             <div className="flex flex-wrap gap-1.5">
                                 {QUICK_MODIFICATIONS.map((mod, idx) => (
                                     <button
@@ -632,7 +673,7 @@ export function AIModeEditor({
                                         type="button"
                                         disabled={isGenerating}
                                         onClick={() => handleChatSubmit(mod)}
-                                        className="text-[11px] bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-purple-300 px-2.5 py-1 rounded-full border border-white/5 transition-colors disabled:opacity-50 text-left"
+                                        className="text-[11px] bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-purple-300 px-2.5 py-1 rounded-full border border-white/5 transition-colors disabled:opacity-50 text-left cursor-pointer"
                                     >
                                         {mod}
                                     </button>
@@ -652,7 +693,7 @@ export function AIModeEditor({
                                 <Input
                                     value={chatInput}
                                     onChange={(e) => setChatInput(e.target.value)}
-                                    placeholder="Napisz agentowi co zmienić (np. 'Zwiększ kontrast', 'Dodaj quiz', 'Zmień kolor tła')..."
+                                    placeholder="Tell the assistant what to refine (e.g. 'Increase contrast', 'Add interactive quiz', 'Change background color')..."
                                     disabled={isGenerating}
                                     className="bg-neutral-900 border-white/10 text-white placeholder:text-neutral-500 focus-visible:ring-purple-500 text-xs h-10"
                                 />
@@ -660,7 +701,7 @@ export function AIModeEditor({
                                     type="submit"
                                     size="icon"
                                     disabled={isGenerating || !chatInput.trim()}
-                                    className="h-10 w-10 bg-purple-600 hover:bg-purple-500 text-white shrink-0 rounded-xl"
+                                    className="h-10 w-10 bg-purple-600 hover:bg-purple-500 text-white shrink-0 rounded-xl cursor-pointer"
                                 >
                                     <Send className="w-4 h-4" />
                                 </Button>

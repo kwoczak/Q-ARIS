@@ -9,11 +9,11 @@ interface AIProgressBarProps {
 }
 
 const STEPS = [
-    { label: 'Przetwarzanie materiałów & promptu', icon: Sparkles, duration: 1500 },
-    { label: 'Analiza stylu wizualnego & wytycznych', icon: Eye, duration: 2500 },
-    { label: 'OpenAI Reasoning (Medium) - planowanie kompozycji', icon: BrainCircuit, duration: 4500 },
-    { label: 'Generowanie kodu HTML & responsywnego układu', icon: Code, duration: 3500 },
-    { label: 'Kompilowanie i odświeżanie podglądu na żywo', icon: CheckCircle2, duration: 1500 }
+    { label: 'Processing media assets & prompt', icon: Sparkles, duration: 1500 },
+    { label: 'Analyzing visual aesthetic & style guidelines', icon: Eye, duration: 2500 },
+    { label: 'OpenAI Reasoning (Medium) - architecting layout', icon: BrainCircuit, duration: 4500 },
+    { label: 'Generating custom HTML & interactive components', icon: Code, duration: 3500 },
+    { label: 'Compiling and refreshing live preview', icon: CheckCircle2, duration: 1500 }
 ]
 
 export function AIProgressBar({ isGenerating, customStepMessage }: AIProgressBarProps) {
@@ -88,7 +88,7 @@ export function AIProgressBar({ isGenerating, customStepMessage }: AIProgressBar
             </div>
 
             <p className="text-[11px] text-neutral-400 text-center italic">
-                Model OpenAI analizuje Twoje wytyczne w trybie głębokiego myślenia (Reasoning Medium)...
+                OpenAI model is analyzing your brief with deep thinking (Reasoning Medium)...
             </p>
         </div>
     )

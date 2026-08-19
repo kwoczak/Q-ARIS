@@ -27,31 +27,9 @@ export function AITokenTracker({
         : sessionUsage.costUsd.toFixed(3)}`
 
     return (
-        <div className="w-full bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 border-b border-purple-500/20 px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-300 shadow-sm animate-in fade-in duration-300">
-            {/* Left side: Model & Status */}
-            <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 font-medium">
-                    <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-                    <span className="truncate max-w-[200px]">{modelName}</span>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                    {isGenerating ? (
-                        <div className="flex items-center gap-1.5 text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                            <Activity className="w-3 h-3 animate-spin" />
-                            <span className="font-semibold tracking-wide">GENERATING...</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-1.5 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                            <span>READY</span>
-                        </div>
-                    )}
-                </div>
-            </div>
-
+        <div className="w-full bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 border-b border-purple-500/20 px-4 py-2 flex flex-wrap items-center justify-end gap-3 text-xs text-neutral-300 shadow-sm animate-in fade-in duration-300">
             {/* Right side: Live Token Stats & Cost */}
-            <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-4 flex-wrap ml-auto">
                 {/* Tokens IN */}
                 <div className="flex items-center gap-1.5 bg-neutral-900/80 px-2.5 py-1 rounded-md border border-white/5" title="Prompt / Input Tokens">
                     <ArrowDownLeft className="w-3.5 h-3.5 text-blue-400" />

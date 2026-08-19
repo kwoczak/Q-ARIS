@@ -541,10 +541,10 @@ export function StageProperties({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-white">
                             <QrCode className="w-5 h-5 text-blue-400" />
-                            Kod QR Etapu (Action Trigger)
+                            Stage QR Code (Action Trigger)
                         </DialogTitle>
                         <DialogDescription className="text-neutral-400 text-xs">
-                            Zeskanuj kod aparatem w telefonie, aby otworzyć ten etap w odtwarzaczu.
+                            Scan the QR code with your phone camera to open this stage directly on mobile.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -560,7 +560,7 @@ export function StageProperties({
                                         : 'text-neutral-400 hover:text-white'
                                 }`}
                             >
-                                📱 Test na telefonie (Wi-Fi)
+                                📱 Local Phone Test (Wi-Fi)
                             </button>
                             <button
                                 type="button"
@@ -571,7 +571,7 @@ export function StageProperties({
                                         : 'text-neutral-400 hover:text-white'
                                 }`}
                             >
-                                🌐 Domena (Vercel)
+                                🌐 Production Domain (Vercel)
                             </button>
                         </div>
 
@@ -579,8 +579,8 @@ export function StageProperties({
                             <div className="flex flex-col items-center justify-center p-6 bg-neutral-950 rounded-xl border border-white/10 text-center gap-3">
                                 <QrCode className="w-12 h-12 text-neutral-600 animate-pulse" />
                                 <div>
-                                    <p className="text-sm font-medium text-neutral-300">Brak wygenerowanego kodu QR dla tego etapu</p>
-                                    <p className="text-xs text-neutral-500 mt-1">Wygeneruj unikalny kod, aby powiązać ten etap z fizycznym eksponatem.</p>
+                                    <p className="text-sm font-medium text-neutral-300">No QR Code generated for this stage yet</p>
+                                    <p className="text-xs text-neutral-500 mt-1">Generate a unique access code to connect this stage with a physical exhibit.</p>
                                 </div>
                                 <Button
                                     onClick={handleCreateTrigger}
@@ -588,7 +588,7 @@ export function StageProperties({
                                     className="bg-blue-600 text-white hover:bg-blue-500 font-medium"
                                 >
                                     {isLoadingQr && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                                    Generuj Kod QR
+                                    Generate QR Code
                                 </Button>
                             </div>
                         ) : (
@@ -603,7 +603,7 @@ export function StageProperties({
 
                                 <div className="flex flex-col items-center gap-1 w-full bg-neutral-100 p-2.5 rounded-xl border border-neutral-200">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs text-neutral-500 font-medium">Kod checkpointu:</span>
+                                        <span className="text-xs text-neutral-500 font-medium">Checkpoint code:</span>
                                         <span className="font-mono text-xs font-bold text-neutral-900 bg-white px-2 py-0.5 rounded border border-neutral-300">{trigger.code}</span>
                                     </div>
                                     <p className="text-[10.5px] text-blue-600 font-mono break-all text-center font-semibold">
@@ -613,11 +613,11 @@ export function StageProperties({
 
                                 {qrTargetMode === 'local' ? (
                                     <p className="text-[11px] text-neutral-500 text-center leading-snug">
-                                        💡 Telefon musi być w tej samej sieci Wi-Fi co ten komputer. Pamiętaj, aby zapisać zmiany klikając <strong>Save Changes</strong>.
+                                        💡 Your phone must be connected to the same Wi-Fi network as this computer. Remember to click <strong>Save Changes</strong> first.
                                     </p>
                                 ) : (
                                     <p className="text-[11px] text-neutral-500 text-center leading-snug">
-                                        💡 Domena produkcyjna wczytuje wersję opublikowaną na Vercelu po zrobieniu <code>git push</code>.
+                                        💡 Production domain loads the version deployed to Vercel after running <code>git push</code>.
                                     </p>
                                 )}
 
@@ -636,11 +636,11 @@ export function StageProperties({
                                                 link.click()
                                             } catch (e) {
                                                 console.error(e)
-                                                alert("Błąd generowania High-Res QR")
+                                                alert("Error generating High-Res QR")
                                             }
                                         }}
                                     >
-                                        Pobierz High-Res PNG (1500px)
+                                        Download High-Res PNG (1500px)
                                     </Button>
 
                                     <Button
@@ -658,11 +658,11 @@ export function StageProperties({
                                                 link.click()
                                             } catch (e) {
                                                 console.error(e)
-                                                alert("Błąd generowania wektorowego SVG")
+                                                alert("Error generating Vector SVG")
                                             }
                                         }}
                                     >
-                                        Pobierz Wektorowy SVG (Druk)
+                                        Download Vector SVG (Print)
                                     </Button>
                                 </div>
                             </div>

@@ -700,7 +700,7 @@ export function AIModeEditor({
                                     <div className="text-xs text-neutral-300">
                                         <span className="font-semibold text-white flex items-center gap-1.5">
                                             <span>🎨 Auto-generate AI exhibition images (2–3 photos)</span>
-                                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono font-medium">DALL-E 3</span>
+                                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono font-medium">GPT-Image</span>
                                         </span>
                                         <p className="text-[11px] text-neutral-400 mt-0.5">
                                             AI will design, generate and embed photorealistic museum visuals (Hero showcase & gallery) directly into the page.

@@ -122,7 +122,7 @@ export function AITokenTracker({
 
                 {/* AI Images Count & Cost */}
                 {lastUsage?.imagesCount ? (
-                    <div className="flex items-center gap-1.5 bg-purple-950/60 px-2.5 py-1 rounded-md border border-purple-500/30 text-purple-300" title={`Generated ${lastUsage.imagesCount} AI images with DALL-E 3 (+$${lastUsage.imagesCostUsd?.toFixed(3)})`}>
+                    <div className="flex items-center gap-1.5 bg-purple-950/60 px-2.5 py-1 rounded-md border border-purple-500/30 text-purple-300" title={`Generated ${lastUsage.imagesCount} AI images with OpenAI GPT-Image (+$${lastUsage.imagesCostUsd?.toFixed(3)})`}>
                         <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
                         <span className="font-mono font-semibold">{lastUsage.imagesCount} AI {lastUsage.imagesCount === 1 ? 'img' : 'imgs'}</span>
                         {lastUsage.imagesCostUsd ? (

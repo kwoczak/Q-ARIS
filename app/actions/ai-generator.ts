@@ -354,31 +354,49 @@ Respond ONLY with a JSON object in this exact format:
         let totalImageCost = 0
         let generatedImageCount = 0
 
-        // Handle DALL-E AI Image Generation if requested
+        // Handle AI Image Generation if requested
         if (request.generateImages && Array.isArray(parsed.image_prompts) && parsed.image_prompts.length > 0) {
             const promptsToGenerate = parsed.image_prompts.slice(0, 3)
-            for (const imgItem of promptsToGenerate) {
-                if (!imgItem.prompt) continue
-                try {
-                    const imgRes = await openai.images.generate({
-                        model: 'dall-e-3',
-                        prompt: imgItem.prompt,
-                        n: 1,
-                        size: '1024x1024',
-                        quality: 'standard',
-                        response_format: 'url'
-                    })
+            for (let idx = 0; idx < promptsToGenerate.length; idx++) {
+                const imgItem = promptsToGenerate[idx]
+                const promptText = typeof imgItem === 'string' ? imgItem : imgItem.prompt
+                if (!promptText) continue
 
+                try {
+                    // Use native OpenAI image models (gpt-image-1-mini / gpt-image-1)
+                    let imgRes: any
+                    try {
+                        imgRes = await openai.images.generate({
+                            model: 'gpt-image-1-mini',
+                            prompt: promptText,
+                            n: 1,
+                            size: '1024x1024'
+                        })
+                    } catch (genErr1) {
+                        console.warn("gpt-image-1-mini failed, trying gpt-image-1:", genErr1)
+                        imgRes = await openai.images.generate({
+                            model: 'gpt-image-1',
+                            prompt: promptText,
+                            n: 1,
+                            size: '1024x1024'
+                        })
+                    }
+
+                    const b64Data = imgRes.data?.[0]?.b64_json
                     const tempUrl = imgRes.data?.[0]?.url
-                    if (tempUrl) {
-                        let permanentUrl = tempUrl
+
+                    let permanentUrl: string | null = null
+
+                    if (b64Data || tempUrl) {
                         try {
-                            const resFetch = await fetch(tempUrl)
-                            const arrayBuf = await resFetch.arrayBuffer()
+                            const imageBuffer = b64Data
+                                ? Buffer.from(b64Data, 'base64')
+                                : Buffer.from(new Uint8Array(await (await fetch(tempUrl!)).arrayBuffer()))
+
                             const adminSupabase = await createAdminClient()
                             const timestamp = Date.now()
                             const shortHash = Math.random().toString(36).substring(2, 7)
-                            const safeName = (imgItem.title || 'ai_image')
+                            const safeName = ((typeof imgItem === 'object' && imgItem.title) || `ai_image_${idx + 1}`)
                                 .replace(/[^a-zA-Z0-9_\-]/g, '_')
                                 .toLowerCase()
                                 .substring(0, 40)
@@ -386,7 +404,7 @@ Respond ONLY with a JSON object in this exact format:
 
                             const { error: uploadError } = await adminSupabase.storage
                                 .from('assets')
-                                .upload(filePath, Buffer.from(arrayBuf), {
+                                .upload(filePath, imageBuffer, {
                                     contentType: 'image/png',
                                     upsert: true
                                 })
@@ -396,31 +414,59 @@ Respond ONLY with a JSON object in this exact format:
                                     .from('assets')
                                     .getPublicUrl(filePath)
                                 permanentUrl = publicUrl
+                            } else {
+                                console.warn("Supabase upload error:", uploadError)
+                                permanentUrl = tempUrl || (b64Data ? `data:image/png;base64,${b64Data}` : null)
                             }
                         } catch (storageErr) {
-                            console.warn("Could not save DALL-E image to Supabase storage, using direct URL:", storageErr)
+                            console.warn("Storage upload exception:", storageErr)
+                            permanentUrl = tempUrl || (b64Data ? `data:image/png;base64,${b64Data}` : null)
                         }
 
-                        const attachment: AIAttachment = {
-                            id: Math.random().toString(36).substring(2, 9),
-                            name: `${imgItem.title || 'AI Image'}.png`,
-                            type: 'image',
-                            url: permanentUrl,
-                            purpose: 'content_asset'
+                        if (permanentUrl) {
+                            const attachment: AIAttachment = {
+                                id: Math.random().toString(36).substring(2, 9),
+                                name: `${(typeof imgItem === 'object' && imgItem.title) || `AI Image ${idx + 1}`}.png`,
+                                type: 'image',
+                                url: permanentUrl,
+                                purpose: 'content_asset'
+                            }
+                            generatedAttachments.push(attachment)
+
+                            // Replace placeholder in custom_html
+                            if (typeof imgItem === 'object' && imgItem.id) {
+                                const placeholder = `__AI_IMAGE_${imgItem.id}__`
+                                finalCustomHtml = finalCustomHtml.replaceAll(placeholder, permanentUrl)
+                            }
+
+                            // Also replace generic role placeholders
+                            if (idx === 0) {
+                                finalCustomHtml = finalCustomHtml
+                                    .replaceAll('__AI_IMAGE_hero__', permanentUrl)
+                                    .replaceAll('__AI_IMAGE_hero_img__', permanentUrl)
+                            } else if (idx === 1) {
+                                finalCustomHtml = finalCustomHtml
+                                    .replaceAll('__AI_IMAGE_gallery_1__', permanentUrl)
+                                    .replaceAll('__AI_IMAGE_gallery_img_1__', permanentUrl)
+                            } else if (idx === 2) {
+                                finalCustomHtml = finalCustomHtml
+                                    .replaceAll('__AI_IMAGE_gallery_2__', permanentUrl)
+                                    .replaceAll('__AI_IMAGE_gallery_img_2__', permanentUrl)
+                            }
+
+                            // Cost tracking: gpt-image-1-mini is $0.020 per image
+                            totalImageCost += 0.020
+                            generatedImageCount += 1
                         }
-                        generatedAttachments.push(attachment)
-
-                        // Replace placeholder in custom_html
-                        const placeholder = `__AI_IMAGE_${imgItem.id}__`
-                        finalCustomHtml = finalCustomHtml.replaceAll(placeholder, permanentUrl)
-
-                        // Cost tracking: DALL-E 3 standard 1024x1024 is $0.040 per image
-                        totalImageCost += 0.040
-                        generatedImageCount += 1
                     }
                 } catch (dalleErr) {
-                    console.error("DALL-E generation error for prompt:", imgItem.prompt, dalleErr)
+                    console.error("AI image generation error for prompt:", promptText, dalleErr)
                 }
+            }
+
+            // Replace any remaining unreplaced image placeholders with the first generated image
+            if (generatedAttachments.length > 0) {
+                finalCustomHtml = finalCustomHtml.replace(/__AI_IMAGE_[a-zA-Z0-9_\-]+__/g, generatedAttachments[0].url)
             }
         }
 

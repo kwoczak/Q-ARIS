@@ -5,6 +5,7 @@ import { COMPOSITION_ARCHETYPES } from '@/lib/ai-archetypes'
 import { uploadAsset } from '@/lib/supabase/storage'
 import { AIProgressBar } from './AIProgressBar'
 import { AIMediaLibraryModal } from './AIMediaLibraryModal'
+import { AIArchetypeModal } from './AIArchetypeModal'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
@@ -78,6 +79,7 @@ export function AIModeEditor({
     const [isEnhancingPrompt, setIsEnhancingPrompt] = useState(false)
     const [isEnhancingChatPrompt, setIsEnhancingChatPrompt] = useState(false)
     const [selectedArchetype, setSelectedArchetype] = useState<string>('auto')
+    const [isArchetypeModalOpen, setIsArchetypeModalOpen] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
     // Media Library Modal State
@@ -619,37 +621,34 @@ export function AIModeEditor({
                             )}
                         </div>
 
-                        {/* 1. Prompt Input with Archetype Selector and Enhance Button */}
+                        {/* 1. Prompt Input with Archetype Studio Button and Enhance Button */}
                         <div className="space-y-2">
                             <div className="flex items-center justify-between flex-wrap gap-2">
                                 <Label className="text-xs font-medium text-neutral-300 flex items-center gap-1.5">
                                     <span>1. Stage Description (Prompt)</span> <span className="text-purple-400">*</span>
                                 </Label>
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                    {/* 15 Composition Archetypes Selector */}
-                                    <Select
-                                        value={selectedArchetype}
-                                        onValueChange={(val) => {
-                                            setSelectedArchetype(val)
-                                            if (prompt.trim()) {
-                                                handleEnhancePrompt(val)
-                                            }
-                                        }}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {/* 15 Composition Archetypes Studio Preview Trigger */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsArchetypeModalOpen(true)}
+                                        className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-neutral-900/90 border border-purple-500/30 hover:border-purple-500/60 hover:bg-purple-950/40 text-purple-200 text-xs font-semibold shadow-sm transition-all cursor-pointer group"
+                                        title="Open Preset Studio to preview component blueprints, flow, and atmospheric mood"
                                     >
-                                        <SelectTrigger className="h-7 w-[210px] bg-neutral-900/90 border-purple-500/30 text-[11px] text-purple-200 focus:ring-1 focus:ring-purple-500 rounded-lg">
-                                            <SelectValue placeholder="Style Archetype" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-neutral-950 border-purple-500/30 text-white max-h-[340px] z-50">
-                                            <SelectItem value="auto" className="text-xs font-semibold text-amber-300">
-                                                🎲 Auto-Detect (Dynamic AI Choice)
-                                            </SelectItem>
-                                            {COMPOSITION_ARCHETYPES.map((arch) => (
-                                                <SelectItem key={arch.id} value={arch.id} className="text-xs cursor-pointer">
-                                                    <span className="mr-1.5">{arch.icon}</span> {arch.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        <span className="text-sm">
+                                            {selectedArchetype === 'auto'
+                                                ? '🎲'
+                                                : COMPOSITION_ARCHETYPES.find(a => a.id === selectedArchetype)?.icon || '🎨'}
+                                        </span>
+                                        <span className="font-semibold text-white">
+                                            {selectedArchetype === 'auto'
+                                                ? 'Auto-Detect Preset'
+                                                : COMPOSITION_ARCHETYPES.find(a => a.id === selectedArchetype)?.name || selectedArchetype}
+                                        </span>
+                                        <span className="text-[10px] text-purple-400 group-hover:text-purple-300 font-mono ml-0.5 bg-purple-950/70 px-1.5 py-0.5 rounded border border-purple-500/20">
+                                            Preview ▾
+                                        </span>
+                                    </button>
 
                                     <button
                                         type="button"
@@ -1284,6 +1283,19 @@ export function AIModeEditor({
                 onSelectAssets={handleAttachMediaAssets}
                 initialCategory={mediaModalCategory}
                 selectedUrls={materials.map(m => m.url)}
+            />
+
+            {/* Archetype Presets Studio Modal */}
+            <AIArchetypeModal
+                isOpen={isArchetypeModalOpen}
+                onClose={() => setIsArchetypeModalOpen(false)}
+                selectedArchetypeId={selectedArchetype}
+                onSelectArchetype={(newArchId) => setSelectedArchetype(newArchId)}
+                onApplyAndEnhance={(newArchId) => {
+                    setSelectedArchetype(newArchId)
+                    handleEnhancePrompt(newArchId)
+                }}
+                hasPromptText={Boolean(prompt.trim())}
             />
         </div>
     )

@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { AIAttachment } from '@/types/schema'
 import { AIMediaLibraryModal } from './AIMediaLibraryModal'
+import { IconPicker } from './IconPicker'
 import {
     HelpCircle,
     Plus,
@@ -744,14 +745,13 @@ export function AIComponentInspector({
                     {/* 2. FACT CARD EDITOR */}
                     {componentData.type === 'fact_card' && (
                         <>
-                            <div className="grid grid-cols-[60px_1fr] gap-3">
+                            <div className="grid grid-cols-[auto_1fr] gap-3 items-center">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-neutral-300">Icon</label>
-                                    <Input
+                                    <label className="text-xs font-semibold text-neutral-300 block">Icon</label>
+                                    <IconPicker
                                         value={factIcon}
-                                        onChange={(e) => setFactIcon(e.target.value)}
-                                        placeholder="💎"
-                                        className="h-9 text-center text-base bg-neutral-900 border-white/10 text-white"
+                                        onChange={(newIcon) => setFactIcon(newIcon)}
+                                        size="md"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -759,8 +759,8 @@ export function AIComponentInspector({
                                     <Input
                                         value={factTitle}
                                         onChange={(e) => setFactTitle(e.target.value)}
-                                        placeholder="Fact title..."
-                                        className="h-9 bg-neutral-900 border-white/10 text-xs text-white"
+                                        placeholder="Highlight title..."
+                                        className="h-10 bg-neutral-900 border-white/10 text-xs text-white"
                                     />
                                 </div>
                             </div>

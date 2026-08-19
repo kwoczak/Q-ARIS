@@ -313,7 +313,7 @@ export function AIBackgroundModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-2xl w-full bg-neutral-950 border border-purple-500/30 text-white shadow-2xl p-0 overflow-hidden sm:rounded-2xl z-50">
+            <DialogContent className="max-w-3xl w-full bg-neutral-950 border border-purple-500/30 text-white shadow-2xl p-0 overflow-hidden sm:rounded-2xl z-50">
                 {/* Header with Live Gradient Preview Stripe */}
                 <DialogHeader className="p-5 border-b border-white/10 bg-neutral-900/60 relative overflow-hidden">
                     <div
@@ -353,7 +353,7 @@ export function AIBackgroundModal({
                         }`}
                     >
                         <Compass className="w-3.5 h-3.5" />
-                        Gradient Studio (8+ Styles)
+                        Gradient Studio (9 Styles)
                     </button>
                     <button
                         type="button"
@@ -382,20 +382,20 @@ export function AIBackgroundModal({
                 </div>
 
                 {/* Body Content */}
-                <div className="p-5 space-y-5 max-h-[62vh] overflow-y-auto">
+                <div className="p-5 space-y-5 max-h-[64vh] overflow-y-auto">
                     {/* TAB 1: GRADIENT STUDIO (DISTRIBUTION + PALETTE) */}
                     {tabMode === 'studio' && (
                         <div className="space-y-5">
-                            {/* Step 1: Distribution Pattern (8+ styles) */}
-                            <div className="space-y-2">
+                            {/* Step 1: Distribution Pattern (9 styles) */}
+                            <div className="space-y-2.5">
                                 <div className="flex items-center justify-between">
                                     <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider flex items-center gap-1.5">
                                         <span>1. Gradient Distribution & Spread</span>
-                                        <span className="text-[10px] text-purple-400 font-mono font-normal">({GRADIENT_PATTERNS.length} styles)</span>
+                                        <span className="text-[11px] text-purple-400 font-mono font-normal">({GRADIENT_PATTERNS.length} styles)</span>
                                     </label>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                                     {GRADIENT_PATTERNS.map((pat) => {
                                         const isSelected = selectedPatternId === pat.id
                                         const currentPalette = COLOR_PALETTES.find(c => c.id === selectedPaletteId) || COLOR_PALETTES[0]
@@ -406,7 +406,7 @@ export function AIBackgroundModal({
                                                 key={pat.id}
                                                 type="button"
                                                 onClick={() => handleSelectStudioCombination(pat.id, selectedPaletteId)}
-                                                className={`p-2.5 rounded-xl border text-left flex flex-col justify-between h-20 relative overflow-hidden transition-all group cursor-pointer ${
+                                                className={`p-3 rounded-xl border text-left flex flex-col justify-between min-h-[5.75rem] relative overflow-hidden transition-all group cursor-pointer ${
                                                     isSelected
                                                         ? 'border-purple-500 ring-2 ring-purple-500/50 shadow-lg'
                                                         : 'border-white/10 hover:border-white/25 bg-neutral-900/70'
@@ -417,16 +417,16 @@ export function AIBackgroundModal({
                                                     style={{ background: miniPreview }}
                                                 />
                                                 <div className="relative z-10 flex items-center justify-between w-full">
-                                                    <span className="text-xs font-bold text-white flex items-center gap-1 drop-shadow">
+                                                    <span className="text-xs font-bold text-white flex items-center gap-1.5 drop-shadow">
                                                         <span>{pat.icon}</span> {pat.name}
                                                     </span>
                                                     {isSelected && (
-                                                        <span className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center text-white text-[9px]">
+                                                        <span className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center text-white text-[9px] shrink-0 ml-1">
                                                             <Check className="w-2.5 h-2.5" />
                                                         </span>
                                                     )}
                                                 </div>
-                                                <span className="text-[10px] text-neutral-400 relative z-10 line-clamp-1">
+                                                <span className="text-[11px] text-neutral-300 relative z-10 leading-tight">
                                                     {pat.desc}
                                                 </span>
                                             </button>
@@ -435,14 +435,14 @@ export function AIBackgroundModal({
                                 </div>
                             </div>
 
-                            {/* Step 2: Color Palette */}
-                            <div className="space-y-2 pt-2 border-t border-white/10">
+                            {/* Step 2: Color Atmosphere (10 Palettes) */}
+                            <div className="space-y-2.5 pt-3 border-t border-white/10">
                                 <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider flex items-center gap-1.5">
                                     <span>2. Color Atmosphere</span>
-                                    <span className="text-[10px] text-purple-400 font-mono font-normal">({COLOR_PALETTES.length} palettes)</span>
+                                    <span className="text-[11px] text-purple-400 font-mono font-normal">({COLOR_PALETTES.length} palettes)</span>
                                 </label>
 
-                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                                     {COLOR_PALETTES.map((pal) => {
                                         const isSelected = selectedPaletteId === pal.id
                                         return (
@@ -450,14 +450,14 @@ export function AIBackgroundModal({
                                                 key={pal.id}
                                                 type="button"
                                                 onClick={() => handleSelectStudioCombination(selectedPatternId, pal.id)}
-                                                className={`p-2 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer ${
+                                                className={`py-2 px-2.5 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer ${
                                                     isSelected
-                                                        ? 'border-purple-500 bg-purple-950/40 text-white ring-1 ring-purple-500'
-                                                        : 'border-white/10 bg-neutral-900/80 text-neutral-300 hover:border-white/20 hover:text-white'
+                                                        ? 'border-purple-500 bg-purple-950/50 text-white ring-2 ring-purple-500/50 shadow-md'
+                                                        : 'border-white/10 bg-neutral-900/80 text-neutral-200 hover:border-white/25 hover:text-white'
                                                 }`}
                                             >
-                                                <span className={`w-3.5 h-3.5 rounded-full bg-gradient-to-tr ${pal.tagColor} shrink-0 shadow-sm`} />
-                                                <span className="text-[11px] font-medium truncate">{pal.name}</span>
+                                                <span className={`w-3.5 h-3.5 rounded-full bg-gradient-to-tr ${pal.tagColor} shrink-0 shadow-sm ring-1 ring-white/20`} />
+                                                <span className="text-xs font-medium whitespace-nowrap">{pal.name}</span>
                                             </button>
                                         )
                                     })}

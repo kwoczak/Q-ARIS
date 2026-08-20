@@ -598,7 +598,7 @@ export function AIModeEditor({
                                     AI Creator - Project Brief
                                 </h2>
                                 <p className="text-xs text-neutral-400">
-                                    Describe your concept, attach multimedia assets, and specify a visual style. OpenAI will generate a complete stage screen for you.
+                                    Describe your concept, attach multimedia assets, and specify a visual style. AI will generate a complete interactive stage for you.
                                 </p>
                             </div>
                             {onOpenQR && (

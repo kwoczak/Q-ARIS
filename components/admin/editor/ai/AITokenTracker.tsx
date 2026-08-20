@@ -33,7 +33,7 @@ export function AITokenTracker({
     sessionUsage,
     lastUsage,
     isGenerating = false,
-    modelName = 'OpenAI 5.6 Terra (Reasoning Medium)',
+    modelName = 'AI Stage Architect',
     canUndo = false,
     canRedo = false,
     onUndo,
@@ -122,7 +122,7 @@ export function AITokenTracker({
 
                 {/* AI Images Count & Cost */}
                 {lastUsage?.imagesCount ? (
-                    <div className="flex items-center gap-1.5 bg-purple-950/60 px-2.5 py-1 rounded-md border border-purple-500/30 text-purple-300" title={`Generated ${lastUsage.imagesCount} AI images with OpenAI GPT-Image (+$${lastUsage.imagesCostUsd?.toFixed(3)})`}>
+                    <div className="flex items-center gap-1.5 bg-purple-950/60 px-2.5 py-1 rounded-md border border-purple-500/30 text-purple-300" title={`Generated ${lastUsage.imagesCount} AI images (+$${lastUsage.imagesCostUsd?.toFixed(3)})`}>
                         <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
                         <span className="font-mono font-semibold">{lastUsage.imagesCount} AI {lastUsage.imagesCount === 1 ? 'img' : 'imgs'}</span>
                         {lastUsage.imagesCostUsd ? (
@@ -143,7 +143,7 @@ export function AITokenTracker({
                 </div>
 
                 {/* Live USD Cost */}
-                <div className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-950/50 to-emerald-900/30 px-3 py-1 rounded-md border border-emerald-500/30 text-emerald-300 font-medium" title="Estimated OpenAI & DALL-E Cost">
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-950/50 to-emerald-900/30 px-3 py-1 rounded-md border border-emerald-500/30 text-emerald-300 font-medium" title="Estimated Generation Cost">
                     <Coins className="w-3.5 h-3.5 text-emerald-400" />
                     <span className="text-emerald-400/80">Cost:</span>
                     <span className="font-mono font-bold text-emerald-300">

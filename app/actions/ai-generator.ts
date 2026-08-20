@@ -569,7 +569,7 @@ export async function enhancePromptWithAI(request: PromptEnhancementRequest): Pr
     const archetypesCatalogue = COMPOSITION_ARCHETYPES.map(a => `- ${a.icon} [${a.id}] "${a.name}": ${a.desc} (Layout: ${a.layoutInstruction})`).join('\n')
 
     const systemPrompt = `You are a World-Class Lead Creative Technologist & Prompt Engineering Maestro for Quaris (a luxury interactive second-screen museum & storytelling web app).
-Your mission: Transform a brief user prompt into an atmospheric, masterpiece-level prompt by selecting or applying one of our 15 DISTINCT COMPOSITION ARCHETYPES.
+Your mission: Transform a brief user prompt into an atmospheric, masterpiece-level prompt by applying one of our 15 DISTINCT COMPOSITION ARCHETYPES.
 
 NEVER OUTPUT A GENERIC PREDICTABLE STRUCTURE. Each archetype has its own unique narrative rhythm, component order, and storytelling mood.
 
@@ -581,15 +581,17 @@ INSTRUCTIONS:
    - If user explicitly requested an archetype ID (${request.archetype && request.archetype !== 'auto' ? `"${request.archetype}"` : 'or auto-selected'}), use that archetype.
    - Otherwise, dynamically choose the archetype that best matches the topic's emotional resonance and domain.
 2. BESPOKE COMPOSITION STRUCTURE:
-   - Specify the exact sequence of components dictated by that archetype (e.g. if Mystery -> Scratch Card Clue + Classified Dossier + Deduction Quiz; if Technical Specs -> 2x2 Numbers Grid + Blueprint Specs + Audio; if Curatorial -> Quote + Audio + Portrait Gallery + Reveal).
+   - Describe what components should appear on the screen in natural, descriptive prose (e.g. hero visual with title, interactive quiz or rub-to-reveal card, audio guide player, gallery, or telemetry metrics).
 3. THEMATIC ATMOSPHERE:
-   - Request rich visual atmosphere (e.g. Cosmic Violet, Mars Crimson, Ocean Cyan, Gold Velvet, Emerald Night, Deep Space, Cyber Neon).
+   - Integrate rich visual lighting & atmosphere (e.g. Deep Space Nebula, Mars Crimson, Obsidian & Gold Amber, Emerald Forest, Arctic Cyan).
 4. TONE & POLISH:
-   - Apple-level aesthetic, engaging, succinct.
+   - Engaging, punchy, Apple-level creative polish.
 5. LANGUAGE:
-   - Write the enhanced prompt in the exact same language as the user's input (Polish -> Polish, English -> English).
-6. OUTPUT FORMAT:
-   - Return ONLY the raw enhanced prompt text ready to be pasted directly into the textarea. DO NOT include introductory text like "Here is your enhanced prompt" or backticks.`
+   - Write in the exact same language as the user's input (Polish -> Polish, English -> English).
+6. STRICT OUTPUT FORMAT:
+   - Output ONLY the pure narrative prompt ready to be pasted directly into the textarea.
+   - NEVER output internal archetype tags, archetype IDs, category names (e.g. do NOT output "[science_lab]", "Archetype: ...", "Atmospheric Theme: ...", or "Enhanced Prompt:").
+   - Start immediately with the narrative brief description.`
 
     try {
         const targetArchetype = request.archetype && request.archetype !== 'auto'
@@ -598,7 +600,7 @@ INSTRUCTIONS:
 
         const userMsg = targetArchetype
             ? `Original brief: "${request.prompt}"\nForced Archetype: "${targetArchetype.name}" (${targetArchetype.id})\nLanguage: ${request.language || 'auto'}`
-            : `Original brief: "${request.prompt}"\nLanguage: ${request.language || 'auto'}\nPlease choose the most fitting archetype from the 15 available.`
+            : `Original brief: "${request.prompt}"\nLanguage: ${request.language || 'auto'}\nPlease compose a rich, enhanced creative prompt for this stage.`
 
         const response = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
@@ -606,14 +608,21 @@ INSTRUCTIONS:
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userMsg }
             ],
-            temperature: 0.8,
+            temperature: 0.7,
             max_tokens: 600
         })
 
-        const enhancedText = response.choices[0]?.message?.content?.trim()
+        let enhancedText = response.choices[0]?.message?.content?.trim()
         if (!enhancedText) {
             return { success: false, error: 'Empty response from prompt enhancer.' }
         }
+
+        // Clean any accidental meta headers
+        enhancedText = enhancedText
+            .replace(/^[\s\S]*?(?:Enhanced Prompt:|Ulepszony prompt:)\s*/i, '')
+            .replace(/^(\[.+?\]|🧬|🏛️|⚡|📊|📖|🖼️|🕵️|🎙️|⚔️|🌌|📜|🌿|🗺️|🎨|💡)\s*["'][^"']+["']:[^\n]+\n+/i, '')
+            .replace(/^Atmospheric Theme:[^\n]+\n+/i, '')
+            .trim()
 
         return {
             success: true,

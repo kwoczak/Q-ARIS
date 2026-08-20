@@ -9,11 +9,11 @@ interface AIProgressBarProps {
 }
 
 const STEPS = [
-    { label: 'Processing media assets & prompt', icon: Sparkles, duration: 1500 },
-    { label: 'Analyzing visual aesthetic & style guidelines', icon: Eye, duration: 2500 },
-    { label: 'OpenAI Reasoning (Medium) - architecting layout', icon: BrainCircuit, duration: 4500 },
-    { label: 'Generating custom HTML & interactive components', icon: Code, duration: 3500 },
-    { label: 'Compiling and refreshing live preview', icon: CheckCircle2, duration: 1500 }
+    { label: 'Processing multimedia assets & brief', icon: Sparkles, subtitle: 'Analyzing story context and media attachments...' },
+    { label: 'Architecting visual mood & composition rhythm', icon: Eye, subtitle: 'Selecting optimal narrative archetype and color palette...' },
+    { label: 'Synthesizing layout structure & interactive flow', icon: BrainCircuit, subtitle: 'Composing storytelling blocks and responsive structure...' },
+    { label: 'Designing components & generating bespoke visuals', icon: Code, subtitle: 'Crafting interactive widgets, cards, and artwork...' },
+    { label: 'Compiling & refreshing live preview', icon: CheckCircle2, subtitle: 'Finalizing stage rendering and interactive mechanics...' }
 ]
 
 export function AIProgressBar({ isGenerating, customStepMessage }: AIProgressBarProps) {
@@ -35,7 +35,7 @@ export function AIProgressBar({ isGenerating, customStepMessage }: AIProgressBar
             current += 1
             if (current < STEPS.length) {
                 setCurrentStepIndex(current)
-                setProgressPercent(Math.min(20 + current * 18, 92))
+                setProgressPercent(Math.min(20 + current * 18, 94))
             }
         }, 2200)
 
@@ -48,10 +48,10 @@ export function AIProgressBar({ isGenerating, customStepMessage }: AIProgressBar
     const StepIcon = currentStep.icon
 
     return (
-        <div className="w-full bg-neutral-900/90 border border-purple-500/30 rounded-xl p-4 shadow-xl backdrop-blur-md space-y-3 animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-full bg-neutral-900/90 border border-purple-500/30 rounded-2xl p-4 shadow-xl backdrop-blur-md space-y-3 animate-in fade-in zoom-in-95 duration-200">
             {/* Header / Current Step Status */}
             <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 text-purple-300 font-medium">
+                <div className="flex items-center gap-2 text-purple-200 font-semibold">
                     <StepIcon className="w-4 h-4 text-purple-400 animate-spin" />
                     <span className="truncate">
                         {customStepMessage || currentStep.label}
@@ -88,7 +88,7 @@ export function AIProgressBar({ isGenerating, customStepMessage }: AIProgressBar
             </div>
 
             <p className="text-[11px] text-neutral-400 text-center italic">
-                OpenAI model is analyzing your brief with deep thinking (Reasoning Medium)...
+                {currentStep.subtitle}
             </p>
         </div>
     )
